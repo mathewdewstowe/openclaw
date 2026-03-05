@@ -1,0 +1,10 @@
+[
+  { "id": "1", "title": "Run wsl --shutdown in PowerShell to enable mirrored networking", "category": "Blocked", "completed": false, "createdAt": "2026-03-05" },
+  { "id": "2", "title": "Share Pipedrive API key", "category": "Pending You", "completed": false, "createdAt": "2026-03-05" },
+  { "id": "3", "title": "Approve community discussion tracker build (Reddit + HN + Brave → Sheets)", "category": "Pending You", "completed": false, "createdAt": "2026-03-05" },
+  { "id": "4", "title": "Create blank Google Sheet and share ID for community tracker", "category": "Pending You", "completed": false, "createdAt": "2026-03-05" },
+  { "id": "5", "title": "Share Q1 goals (remaining beyond Sonesse leads + Nth Layer deal)", "category": "Pending You", "completed": false, "createdAt": "2026-03-05" },
+  { "id": "6", "title": "Share your name and timezone for USER.md setup", "category": "Pending You", "completed": false, "createdAt": "2026-03-05" },
+  { "id": "7", "title": "LinkedIn browser automation (pending WSL networking fix)", "category": "Blocked", "completed": false, "createdAt": "2026-03-05" },
+  { "id": "8", "title": "Rotate Google OAuth client secret (shared over WhatsApp)", "category": "In Progress", "completed": false, "createdAt": "2026-03-05" }
+]

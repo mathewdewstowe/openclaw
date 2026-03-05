@@ -1,0 +1,66 @@
+[
+  {
+    "id": "icp-1",
+    "name": "Financial Services CTO / VP Engineering",
+    "sector": "Banking & Wealth Management",
+    "company_size": "500–5000 employees",
+    "persona": "CTO, VP Engineering, Head of AI",
+    "problem_statements": [
+      "MiFID II / FCA require call recording and data residency — standard cloud meeting bots don't comply",
+      "Conversational AI vendors can't integrate into Zoom/Teams without months of custom engineering",
+      "Every AI vendor requires separate meeting integrations — no unified layer"
+    ],
+    "value_prop": "Sonesse gives financial services firms one compliant API to integrate any conversational AI into Zoom, Teams and Google Meet — with the data residency and audit trail regulators require.",
+    "how_we_help": "Single API replaces bespoke integrations. Compliance baked in. Deploy any AI vendor (voice, video, chat) into meetings in days, not months. Full audit logging for FCA/MiFID II.",
+    "buying_trigger": "Hiring AI/ML engineers for meeting integration, evaluating conversational AI vendors, post-Series B scaling contact centre",
+    "createdAt": "2026-03-05T22:00:00.000Z"
+  },
+  {
+    "id": "icp-2",
+    "name": "Healthcare / NHS Digital Leader",
+    "sector": "Healthcare & Pharma",
+    "company_size": "1000+ employees",
+    "persona": "Chief Digital Officer, CTO, Head of Clinical AI",
+    "problem_statements": [
+      "GDPR + clinical data regulations mean AI in patient-facing meetings must be on-prem or private cloud",
+      "Meeting AI is underused in healthcare precisely because integration complexity is too high",
+      "Each AI vendor requires separate compliance sign-off and integration — slows adoption to years"
+    ],
+    "value_prop": "Sonesse enables compliant, on-prem meeting AI for healthcare — one integration that works with any approved AI vendor inside Zoom or Teams, without breaching data sovereignty requirements.",
+    "how_we_help": "On-prem/private cloud deployment option. Vendor agnostic — use whatever AI you've already approved. Single integration point reduces compliance surface area and accelerates deployment.",
+    "buying_trigger": "Digital transformation programmes, AI strategy being built, new CDO hired, NHS AI adoption initiatives",
+    "createdAt": "2026-03-05T22:01:00.000Z"
+  },
+  {
+    "id": "icp-3",
+    "name": "Legal Technology Director",
+    "sector": "Legal (Magic Circle & Mid-Tier)",
+    "company_size": "200–2000 employees",
+    "persona": "CTO, Director of Legal Technology, COO",
+    "problem_statements": [
+      "Legal privilege concerns mean any recording or transcription tool needs watertight data controls",
+      "Client confidentiality rules out standard SaaS meeting bots without significant legal review",
+      "Lawyers want AI in client meetings but compliance teams block deployment"
+    ],
+    "value_prop": "Sonesse removes the compliance blocker for legal AI — giving firms control over where data lives and how it's processed, with a single API to deploy approved AI into Zoom or Teams.",
+    "how_we_help": "Private deployment with full data sovereignty. Enables real-time AI assistance in client calls without breaching privilege. One integration for all meeting AI — reduces the compliance review surface.",
+    "buying_trigger": "Legal tech strategy refresh, new CTO, firm evaluating AI assistants for client work, innovation budget approved",
+    "createdAt": "2026-03-05T22:02:00.000Z"
+  },
+  {
+    "id": "icp-4",
+    "name": "PE/VC Portfolio Value Creation Lead",
+    "sector": "Private Equity & Venture Capital",
+    "company_size": "Fund with 5–50 portfolio companies",
+    "persona": "Operating Partner, Head of Value Creation, CTO in Residence",
+    "problem_statements": [
+      "Portfolio companies are all building AI strategies independently — no shared infrastructure or learnings",
+      "Meeting AI pilots at portfolio level get stuck on integration complexity before showing value",
+      "Investing in AI tooling per company is expensive — no leverage across the portfolio"
+    ],
+    "value_prop": "Sonesse gives PE funds a single meeting AI integration layer they can deploy across portfolio companies — accelerating AI adoption and creating measurable operational leverage.",
+    "how_we_help": "One commercial agreement, deployed across portfolio. Shared integration infrastructure removes per-company engineering cost. Portfolio-level reporting on meeting AI ROI.",
+    "buying_trigger": "New fund raise, AI value creation thesis being built, operating partner hired to drive AI across portfolio",
+    "createdAt": "2026-03-05T22:03:00.000Z"
+  }
+]

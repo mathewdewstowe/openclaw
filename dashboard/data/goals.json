@@ -1,0 +1,24 @@
+[
+  {
+    "id": "1",
+    "title": "10 Hot Leads for Sonesse",
+    "description": "Sonesse is an integration layer for conversational AI vendors (video/audio/chat) into Zoom and Microsoft Teams",
+    "target": 10,
+    "current": 0,
+    "unit": "leads",
+    "quarter": "Q1 2026",
+    "status": "In Progress",
+    "lastUpdated": "2026-03-05"
+  },
+  {
+    "id": "2",
+    "title": "Close a Nth Layer Deal",
+    "description": "Nth Layer is Matthew's consulting company — close at least one deal this quarter",
+    "target": 1,
+    "current": 0,
+    "unit": "deals",
+    "quarter": "Q1 2026",
+    "status": "In Progress",
+    "lastUpdated": "2026-03-05"
+  }
+]

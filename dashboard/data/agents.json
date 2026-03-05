@@ -1,0 +1,69 @@
+[
+  {
+    "id": "workout",
+    "name": "💪 Workout Email",
+    "description": "Generates 4 daily workouts (2x HYROX, Strength, CrossFit) and emails to matthewdewstowe@gmail.com",
+    "schedule": "7:00 AM daily",
+    "status": "live",
+    "lastRun": "2026-03-05",
+    "metric": "Email delivery",
+    "metricValue": "✅ Sent",
+    "goal": "Personal fitness — intermediate/advanced, 45-60 min sessions"
+  },
+  {
+    "id": "community",
+    "name": "🔍 Community Tracker",
+    "description": "Searches Reddit, Hacker News and web for discussions about meeting bots and conversational AI vendors",
+    "schedule": "8:00 AM daily",
+    "status": "pending",
+    "lastRun": "Never",
+    "metric": "New discussions found",
+    "metricValue": "—",
+    "goal": "Sonesse — find people evaluating AI meeting integrations"
+  },
+  {
+    "id": "apollo",
+    "name": "🎯 Apollo Lead Gen",
+    "description": "Searches Apollo for VP CX, Head of Contact Centre, CTO contacts at companies using conversational AI vendors on Zoom/Teams",
+    "schedule": "9:00 AM daily",
+    "status": "pending",
+    "lastRun": "Never",
+    "metric": "Leads found",
+    "metricValue": "—",
+    "goal": "Sonesse — 10 hot leads Q1"
+  },
+  {
+    "id": "meta",
+    "name": "🧠 Meta Agent",
+    "description": "Reviews all agent metrics, analyses goal progress and generates 3 workflow improvement suggestions",
+    "schedule": "10:00 AM daily",
+    "status": "pending",
+    "lastRun": "Never",
+    "metric": "Suggestions acted on",
+    "metricValue": "—",
+    "goal": "Continuous improvement across all systems"
+  },
+  {
+    "id": "openquestions",
+    "name": "📋 Open Questions",
+    "description": "Daily reminder of outstanding questions and tasks needing Matthew's input",
+    "schedule": "11:00 AM daily",
+    "status": "pending",
+    "lastRun": "Never",
+    "metric": "Questions resolved",
+    "metricValue": "—",
+    "goal": "Keep momentum — nothing blocked"
+  },
+  {
+    "id": "linkedin",
+    "name": "🔗 LinkedIn",
+    "description": "Browser automation for prospect search, connection requests and message sending on LinkedIn",
+    "schedule": "2:00 PM daily",
+    "status": "blocked",
+    "lastRun": "Never",
+    "metric": "Messages sent",
+    "metricValue": "—",
+    "goal": "Sonesse + Nth Layer — outreach at scale",
+    "blocker": "WSL mirrored networking not yet enabled"
+  }
+]

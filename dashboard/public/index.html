@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matthew's Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e1e4e8; min-height: 100vh; }
+
+  /* LOGIN */
+  #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .login-box { background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 40px; width: 360px; }
+  .login-box h1 { font-size: 24px; margin-bottom: 8px; }
+  .login-box p { color: #8b949e; margin-bottom: 28px; font-size: 14px; }
+  .login-box input { width: 100%; padding: 10px 14px; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; color: #e1e4e8; font-size: 14px; margin-bottom: 12px; outline: none; }
+  .login-box input:focus { border-color: #58a6ff; }
+  .remember-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 13px; color: #8b949e; }
+  .remember-row input[type=checkbox] { accent-color: #238636; }
+  .btn-primary { width: 100%; padding: 10px; background: #238636; border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-primary:hover { background: #2ea043; }
+  .error-msg { color: #f85149; font-size: 13px; margin-top: 8px; }
+
+  /* DASHBOARD */
+  #dashboard { display: none; }
+  header { background: #161b22; border-bottom: 1px solid #30363d; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+  header h1 { font-size: 16px; font-weight: 700; }
+  header span { color: #8b949e; font-size: 13px; }
+  .logout-btn { background: none; border: 1px solid #30363d; color: #8b949e; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .logout-btn:hover { color: #e1e4e8; border-color: #8b949e; }
+
+  nav { background: #161b22; border-bottom: 1px solid #30363d; display: flex; gap: 0; padding: 0 24px; overflow-x: auto; }
+  nav button { background: none; border: none; color: #8b949e; padding: 14px 16px; cursor: pointer; font-size: 13px; font-weight: 500; border-bottom: 2px solid transparent; white-space: nowrap; }
+  nav button:hover { color: #e1e4e8; }
+  nav button.active { color: #58a6ff; border-bottom-color: #58a6ff; }
+
+  main { padding: 24px; max-width: 1100px; margin: 0 auto; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* CARDS & SECTIONS */
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-blocked { background: #3d1f1f; color: #f85149; }
+  .badge-pending { background: #2d2208; color: #e3b341; }
+  .badge-progress { background: #1f2d3d; color: #58a6ff; }
+  .badge-live { background: #1a2f1a; color: #3fb950; }
+
+  /* TASKS */
+  .task-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #21262d; }
+  .task-item:last-child { border-bottom: none; }
+  .task-item input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #238636; flex-shrink: 0; }
+  .task-item .task-text { flex: 1; font-size: 14px; }
+  .task-item.done .task-text { text-decoration: line-through; color: #8b949e; }
+  .task-group-title { font-size: 11px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
+  .add-task { display: flex; gap: 8px; margin-top: 16px; }
+  .add-task input { flex: 1; padding: 8px 12px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e1e4e8; font-size: 13px; outline: none; }
+  .btn-sm { padding: 8px 16px; background: #238636; border: none; border-radius: 6px; color: white; font-size: 13px; cursor: pointer; }
+  .btn-sm:hover { background: #2ea043; }
+
+  /* AGENTS */
+  .agent-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 18px; margin-bottom: 12px; display: flex; gap: 16px; align-items: flex-start; }
+  .agent-icon { font-size: 28px; flex-shrink: 0; }
+  .agent-info { flex: 1; }
+  .agent-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .agent-desc { font-size: 13px; color: #8b949e; margin-bottom: 8px; line-height: 1.5; }
+  .agent-meta { display: flex; gap: 16px; font-size: 12px; color: #8b949e; flex-wrap: wrap; }
+  .agent-metric { background: #21262d; padding: 4px 10px; border-radius: 6px; }
+
+  /* SYSTEMS */
+  .system-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  .system-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px; display: flex; align-items: center; gap: 14px; }
+  .system-icon { font-size: 24px; }
+  .system-info { flex: 1; }
+  .system-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .system-account { font-size: 12px; color: #8b949e; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-connected { background: #3fb950; }
+  .dot-pending { background: #e3b341; }
+  .dot-blocked { background: #f85149; }
+
+  /* MEMORY */
+  .memory-content { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 20px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; max-height: 600px; overflow-y: auto; color: #c9d1d9; }
+
+  /* GOALS */
+  .goal-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .goal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .goal-title { font-size: 16px; font-weight: 700; }
+  .goal-desc { font-size: 13px; color: #8b949e; margin-bottom: 16px; }
+  .progress-bar { background: #21262d; border-radius: 8px; height: 8px; margin-bottom: 12px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 8px; background: linear-gradient(90deg, #238636, #3fb950); transition: width 0.5s; }
+  .goal-stats { display: flex; gap: 20px; font-size: 13px; }
+  .goal-stat { color: #8b949e; }
+  .goal-stat strong { color: #e1e4e8; }
+  .goal-update { display: flex; gap: 8px; margin-top: 14px; }
+  .goal-update input { width: 80px; padding: 6px 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e1e4e8; font-size: 13px; outline: none; }
+
+  /* PROPOSALS */
+  .proposal-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+  .proposal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 12px; }
+  .proposal-title { font-size: 15px; font-weight: 700; }
+  .proposal-desc { font-size: 13px; color: #8b949e; line-height: 1.6; margin-bottom: 14px; }
+  .proposal-meta { display: flex; gap: 16px; font-size: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .stars { color: #e3b341; }
+  .proposal-footer { display: flex; gap: 8px; }
+  .btn-approve { padding: 8px 18px; background: #238636; border: none; border-radius: 6px; color: white; font-size: 13px; cursor: pointer; font-weight: 600; }
+  .btn-approve:hover { background: #2ea043; }
+  .btn-approve:disabled { background: #1a2f1a; color: #3fb950; cursor: default; }
+  .btn-skip { padding: 8px 14px; background: none; border: 1px solid #30363d; border-radius: 6px; color: #8b949e; font-size: 13px; cursor: pointer; }
+  .approved-badge { background: #1a2f1a; color: #3fb950; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+
+  /* LINKEDIN */
+  .linkedin-placeholder { text-align: center; padding: 60px 20px; }
+  .linkedin-placeholder .icon { font-size: 48px; margin-bottom: 16px; }
+  .linkedin-placeholder h3 { font-size: 18px; margin-bottom: 8px; }
+  .linkedin-placeholder p { color: #8b949e; font-size: 14px; max-width: 400px; margin: 0 auto; }
+
+  .empty-state { text-align: center; padding: 40px; color: #8b949e; font-size: 14px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    header { padding: 0 14px; }
+    header h1 { font-size: 13px; }
+    #header-date { display: none; }
+    nav { padding: 0 8px; gap: 0; }
+    nav button { padding: 12px 10px; font-size: 12px; }
+    main { padding: 14px; }
+    .login-box { width: 90%; padding: 28px 20px; }
+    .system-grid { grid-template-columns: 1fr; }
+    .agent-card { flex-direction: column; gap: 10px; }
+    .agent-meta { flex-direction: column; gap: 6px; }
+    .goal-stats { flex-direction: column; gap: 6px; }
+    .proposal-header { flex-direction: column; gap: 8px; }
+    .proposal-meta { flex-direction: column; gap: 6px; }
+    .goal-update { flex-wrap: wrap; }
+    .add-task { flex-wrap: wrap; }
+    .add-task input { width: 100%; }
+    .card { padding: 14px; }
+    .section-title { font-size: 16px; }
+    main { padding: 10px; }
+    .memory-content { font-size: 12px; }
+  }
+
+  @media (max-width: 480px) {
+    nav button { padding: 10px 7px; font-size: 11px; }
+    .proposal-footer { flex-direction: column; }
+    .btn-approve, .btn-skip { width: 100%; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>👋 Welcome back</h1>
+    <p>Matthew's AI Command Centre</p>
+    <input type="text" id="username" placeholder="Username" autocomplete="username" />
+    <input type="password" id="password" placeholder="Password" autocomplete="current-password" />
+    <div class="remember-row"><input type="checkbox" id="remember"><label for="remember">Remember me for 30 days</label></div>
+    <button class="btn-primary" onclick="login()">Sign in</button>
+    <div class="error-msg" id="login-error"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <header>
+    <h1>🚀 Matthew's Command Centre</h1>
+    <div style="display:flex;align-items:center;gap:16px">
+      <span id="header-date"></span>
+      <button class="logout-btn" onclick="logout()">Sign out</button>
+    </div>
+  </header>
+
+  <nav>
+    <button class="active" onclick="switchTab('tasks', this)">✅ Tasks</button>
+    <button onclick="switchTab('agents', this)">🤖 Agents</button>
+    <button onclick="switchTab('systems', this)">🔌 Systems</button>
+    <button onclick="switchTab('memory', this)">🧠 Memory</button>
+    <button onclick="switchTab('goals', this)">🎯 Goals</button>
+    <button onclick="switchTab('proposals', this)">💡 Meta Agent</button>
+    <button onclick="switchTab('briefings', this)">📰 Briefings</button>
+    <button onclick="switchTab('icps', this)">🎯 ICPs</button>
+    <button onclick="switchTab('posts', this)">✍️ LinkedIn Posts</button>
+    <button onclick="switchTab('usage', this)">📊 Usage</button>
+    <button onclick="switchTab('linkedin', this)">🔗 LinkedIn</button>
+  </nav>
+
+  <main>
+    <!-- TASKS TAB -->
+    <div id="tab-tasks" class="tab-content active">
+      <div class="card">
+        <div class="section-title">Outstanding Tasks</div>
+        <div id="tasks-blocked"><div class="task-group-title">🔴 Blocked</div></div>
+        <div id="tasks-pending"><div class="task-group-title">🟡 Pending You</div></div>
+        <div id="tasks-progress"><div class="task-group-title">🔵 In Progress</div></div>
+        <div id="tasks-done" style="display:none"><div class="task-group-title">✅ Done</div></div>
+        <div class="add-task">
+          <input type="text" id="new-task-input" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addTask()" />
+          <button class="btn-sm" onclick="addTask()">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AGENTS TAB -->
+    <div id="tab-agents" class="tab-content">
+      <div class="section-title">Active Agents</div>
+      <div id="agents-list"></div>
+    </div>
+
+    <!-- SYSTEMS TAB -->
+    <div id="tab-systems" class="tab-content">
+      <div class="section-title">Connected Systems</div>
+      <div class="system-grid" id="systems-grid"></div>
+    </div>
+
+    <!-- MEMORY TAB -->
+    <div id="tab-memory" class="tab-content">
+      <div class="card">
+        <div class="section-title">🧠 Memory</div>
+        <div class="memory-content" id="memory-content">Loading...</div>
+      </div>
+    </div>
+
+    <!-- GOALS TAB -->
+    <div id="tab-goals" class="tab-content">
+      <div class="section-title">Q1 2026 Goals</div>
+      <div id="goals-list"></div>
+    </div>
+
+    <!-- PROPOSALS TAB -->
+    <div id="tab-proposals" class="tab-content">
+      <div class="section-title">💡 Meta Agent Proposals</div>
+      <p style="color:#8b949e;font-size:13px;margin-bottom:20px">Select proposals to approve and develop. Rated by impact (⭐) and effort required.</p>
+      <div id="proposals-list"></div>
+    </div>
+
+    <!-- BRIEFINGS TAB -->
+    <div id="tab-briefings" class="tab-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div class="section-title" style="margin:0">📰 Daily OpenClaw Briefings</div>
+        <span style="font-size:12px;color:#8b949e">Delivered 8:30 AM daily</span>
+      </div>
+      <div id="briefings-list"></div>
+    </div>
+
+    <!-- ICP TAB -->
+    <div id="tab-icps" class="tab-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div class="section-title" style="margin:0">🎯 Ideal Customer Profiles</div>
+        <button class="btn-sm" onclick="showAddICP()">+ Add ICP</button>
+      </div>
+
+      <!-- Add ICP form (hidden by default) -->
+      <div id="add-icp-form" style="display:none" class="card" style="margin-bottom:20px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:16px">New ICP</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div><label style="font-size:12px;color:#8b949e;display:block;margin-bottom:4px">Name / Role</label><input id="icp-name" placeholder="e.g. CTO at FinTech" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none" /></div>
+          <div><label style="font-size:12px;color:#8b949e;display:block;margin-bottom:4px">Sector</label><input id="icp-sector" placeholder="e.g. Financial Services" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none" /></div>
+          <div><label style="font-size:12px;color:#8b949e;display:block;margin-bottom:4px">Company Size</label><input id="icp-size" placeholder="e.g. 500–5000 employees" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none" /></div>
+          <div><label style="font-size:12px;color:#8b949e;display:block;margin-bottom:4px">Persona / Title</label><input id="icp-persona" placeholder="e.g. CTO, VP Engineering" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none" /></div>
+        </div>
+        <div style="margin-bottom:12px"><label style="font-size:12px;color:#8b949e;display:block;margin-bottom:4px">Value Proposition</label><textarea id="icp-value" rows="3" placeholder="What's the core value we deliver to this ICP?" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none;resize:vertical"></textarea></div>
+        <div style="margin-bottom:12px"><label style="font-size:12px;color:#8b949e;display:block;margin-bottom:4px">Problem Statements (one per line)</label><textarea id="icp-problems" rows="4" placeholder="Problem 1&#10;Problem 2&#10;Problem 3" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none;resize:vertical"></textarea></div>
+        <div style="margin-bottom:12px"><label style="font-size:12px;color:#8b949e;display:block;margin-bottom:4px">How We Help</label><textarea id="icp-help" rows="3" placeholder="Specific ways Sonesse/Nth Layer solves their problems" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none;resize:vertical"></textarea></div>
+        <div style="margin-bottom:16px"><label style="font-size:12px;color:#8b949e;display:block;margin-bottom:4px">Buying Triggers</label><input id="icp-triggers" placeholder="e.g. New CTO hired, Series B raised" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none" /></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-sm" onclick="saveNewICP()">Save ICP</button>
+          <button class="btn-sm" style="background:none;border:1px solid #30363d;color:#8b949e" onclick="document.getElementById('add-icp-form').style.display='none'">Cancel</button>
+        </div>
+      </div>
+
+      <div id="icps-list"></div>
+    </div>
+
+    <!-- LINKEDIN POSTS TAB -->
+    <div id="tab-posts" class="tab-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div class="section-title" style="margin:0">✍️ LinkedIn Posts — Nth Layer</div>
+        <button class="btn-sm" onclick="generatePosts()" id="gen-btn">✨ Generate 3 new drafts</button>
+      </div>
+      <div id="posts-list"></div>
+      <div id="posts-empty" style="display:none" class="card">
+        <div class="empty-state">
+          <div style="font-size:36px;margin-bottom:12px">✍️</div>
+          <div style="font-weight:600;margin-bottom:8px">No drafts yet</div>
+          <div style="color:#8b949e;font-size:13px;margin-bottom:16px">Click "Generate 3 new drafts" to create LinkedIn post options for Nth Layer</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USAGE TAB -->
+    <div id="tab-usage" class="tab-content">
+      <div class="section-title">📊 Token Usage & Limits</div>
+      <div id="usage-content">
+        <div class="card" style="margin-bottom:16px">
+          <div style="font-size:13px;color:#8b949e;margin-bottom:16px">Model: <strong id="usage-model" style="color:#e1e4e8">Loading...</strong></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+            <div style="background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:18px">
+              <div style="font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Daily Usage</div>
+              <div style="font-size:28px;font-weight:700;margin-bottom:4px" id="daily-used">—</div>
+              <div style="font-size:12px;color:#8b949e">of <span id="daily-limit">—</span> tokens</div>
+              <div style="background:#21262d;border-radius:6px;height:6px;margin:10px 0;overflow:hidden"><div id="daily-bar" style="height:100%;border-radius:6px;background:linear-gradient(90deg,#238636,#3fb950);width:0%;transition:width 0.5s"></div></div>
+              <div style="font-size:12px;color:#8b949e">Resets: <strong id="daily-reset" style="color:#e1e4e8">—</strong></div>
+            </div>
+            <div style="background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:18px">
+              <div style="font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Weekly Usage</div>
+              <div style="font-size:28px;font-weight:700;margin-bottom:4px" id="weekly-used">—</div>
+              <div style="font-size:12px;color:#8b949e">of <span id="weekly-limit">—</span> tokens</div>
+              <div style="background:#21262d;border-radius:6px;height:6px;margin:10px 0;overflow:hidden"><div id="weekly-bar" style="height:100%;border-radius:6px;background:linear-gradient(90deg,#1f6feb,#58a6ff);width:0%;transition:width 0.5s"></div></div>
+              <div style="font-size:12px;color:#8b949e">Resets: <strong id="weekly-reset" style="color:#e1e4e8">—</strong></div>
+            </div>
+            <div style="background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:18px">
+              <div style="font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Current Session</div>
+              <div style="font-size:28px;font-weight:700;margin-bottom:4px" id="session-tokens">—</div>
+              <div style="font-size:12px;color:#8b949e">tokens this session</div>
+              <div style="margin-top:14px;font-size:13px;color:#8b949e">Est. cost: <strong id="session-cost" style="color:#e3b341">—</strong></div>
+            </div>
+          </div>
+          <div style="margin-top:16px;font-size:12px;color:#8b949e;text-align:right">Last updated: <span id="usage-updated">—</span></div>
+        </div>
+        <div class="card">
+          <div style="font-size:14px;font-weight:600;margin-bottom:10px">Agent API Calls Today</div>
+          <div id="agent-usage-list" style="font-size:13px;color:#8b949e">Usage data will populate as agents run throughout the day.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINKEDIN TAB -->
+    <div id="tab-linkedin" class="tab-content">
+      <div class="card">
+        <div class="linkedin-placeholder">
+          <div class="icon">🔗</div>
+          <h3>LinkedIn Feed</h3>
+          <p>Browser automation is pending WSL mirrored networking setup. Once connected, this will show posts from 20 first-degree connections who recently posted.</p>
+          <br>
+          <span class="badge badge-blocked">Blocked — WSL restart needed</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+let TOKEN = localStorage.getItem('dash_token');
+if (TOKEN) showDashboard();
+
+async function loadBriefings() {
+  const briefings = await api('GET', '/api/briefings');
+  if (!briefings) return;
+  const list = document.getElementById('briefings-list');
+  if (!briefings.length) {
+    list.innerHTML = '<div class="card"><div class="empty-state">No briefings yet — first one arrives at 8:30 AM tomorrow.</div></div>';
+    return;
+  }
+  list.innerHTML = briefings.map((b, i) => `
+    <div class="card" style="margin-bottom:14px${i===0?';border-color:#238636':'}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:15px;font-weight:700">${b.title || 'Daily Briefing'}</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${i===0?'<span class="badge badge-live">Latest</span>':''}
+          <span style="font-size:12px;color:#8b949e">${new Date(b.createdAt).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+        </div>
+      </div>
+      <div style="font-size:13px;line-height:1.8;color:#c9d1d9;white-space:pre-wrap">${b.content||''}</div>
+    </div>
+  `).join('');
+}
+
+async function loadICPs() {
+  const icps = await api('GET', '/api/icps');
+  if (!icps) return;
+  const list = document.getElementById('icps-list');
+  if (!icps.length) { list.innerHTML = '<div class="card"><div class="empty-state">No ICPs yet — click Add ICP to get started.</div></div>'; return; }
+  list.innerHTML = icps.map(icp => `
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:16px;font-weight:700;margin-bottom:4px">${icp.name}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span class="badge badge-progress">${icp.sector||''}</span>
+            ${icp.company_size?`<span class="badge" style="background:#21262d;color:#8b949e">${icp.company_size}</span>`:''}
+            ${icp.persona?`<span class="badge" style="background:#21262d;color:#e3b341">${icp.persona}</span>`:''}
+          </div>
+        </div>
+        <button class="btn-sm" style="background:#3d1f1f;font-size:12px" onclick="deleteICP('${icp.id}')">🗑️ Delete</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr;gap:14px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#58a6ff;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🔥 Problem Statements</div>
+          <ul style="margin:0;padding-left:18px;font-size:13px;color:#c9d1d9;line-height:1.8">
+            ${(icp.problem_statements||[]).map(p => `<li>${p}</li>`).join('')}
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#3fb950;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">💡 Value Proposition</div>
+          <div style="font-size:13px;color:#c9d1d9;line-height:1.6;background:#0d1117;padding:12px;border-radius:8px;border-left:3px solid #238636">${icp.value_prop||''}</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#e3b341;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🛠️ How We Help</div>
+          <div style="font-size:13px;color:#c9d1d9;line-height:1.6">${icp.how_we_help||''}</div>
+        </div>
+        ${icp.buying_trigger?`<div>
+          <div style="font-size:11px;font-weight:700;color:#f85149;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⚡ Buying Triggers</div>
+          <div style="font-size:13px;color:#c9d1d9">${icp.buying_trigger}</div>
+        </div>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function showAddICP() {
+  document.getElementById('add-icp-form').style.display = 'block';
+  document.getElementById('add-icp-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function saveNewICP() {
+  const problems = document.getElementById('icp-problems').value.split('\n').filter(p => p.trim());
+  const icp = {
+    name: document.getElementById('icp-name').value,
+    sector: document.getElementById('icp-sector').value,
+    company_size: document.getElementById('icp-size').value,
+    persona: document.getElementById('icp-persona').value,
+    value_prop: document.getElementById('icp-value').value,
+    problem_statements: problems,
+    how_we_help: document.getElementById('icp-help').value,
+    buying_trigger: document.getElementById('icp-triggers').value,
+  };
+  if (!icp.name) return alert('Name is required');
+  await api('POST', '/api/icps', icp);
+  document.getElementById('add-icp-form').style.display = 'none';
+  ['name','sector','size','persona','value','problems','help','triggers'].forEach(f => {
+    const el = document.getElementById('icp-' + f);
+    if (el) el.value = '';
+  });
+  loadICPs();
+}
+
+async function deleteICP(id) {
+  if (!confirm('Delete this ICP?')) return;
+  await api('DELETE', `/api/icps/${id}`);
+  loadICPs();
+}
+
+async function loadPosts() {
+  const posts = await api('GET', '/api/posts');
+  if (!posts) return;
+  const list = document.getElementById('posts-list');
+  const empty = document.getElementById('posts-empty');
+  if (!posts.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  const statusColour = { draft: '#e3b341', approved: '#3fb950', posted: '#58a6ff', archived: '#8b949e' };
+  list.innerHTML = posts.map(p => `
+    <div class="card" style="margin-bottom:14px" id="post-${p.id}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:11px;font-weight:700;color:${statusColour[p.status]||'#8b949e'};text-transform:uppercase;letter-spacing:1px">${p.status}</span>
+          <span style="font-size:12px;color:#8b949e">${new Date(p.createdAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn-sm" style="background:none;border:1px solid #30363d;color:#8b949e;font-size:12px" onclick="copyPost('${p.id}')">📋 Copy</button>
+          ${p.status==='draft'?`<button class="btn-sm" style="font-size:12px" onclick="approvePost('${p.id}')">✅ Approve</button>`:''}
+          ${p.status==='approved'?`<button class="btn-sm" style="background:#1f6feb;font-size:12px" onclick="markPosted('${p.id}')">🚀 Mark Posted</button>`:''}
+          <button class="btn-sm" style="background:#3d1f1f;font-size:12px" onclick="deletePost('${p.id}')">🗑️</button>
+        </div>
+      </div>
+      <textarea id="post-text-${p.id}" style="width:100%;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px;color:#e1e4e8;font-size:14px;line-height:1.6;resize:vertical;min-height:160px;outline:none;font-family:inherit" onblur="savePostText('${p.id}')">${p.content||''}</textarea>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:#8b949e">
+        <span id="post-chars-${p.id}">${(p.content||'').length} / 3000 chars</span>
+        <span>${p.tone||''}</span>
+      </div>
+    </div>
+  `).join('');
+  posts.forEach(p => {
+    const ta = document.getElementById('post-text-' + p.id);
+    if (ta) ta.addEventListener('input', () => {
+      document.getElementById('post-chars-' + p.id).textContent = ta.value.length + ' / 3000 chars';
+    });
+  });
+}
+
+async function generatePosts() {
+  const btn = document.getElementById('gen-btn');
+  btn.textContent = '⏳ Generating...'; btn.disabled = true;
+  const drafts = [
+    { tone: 'Thought leadership', content: `The companies winning with AI aren't the ones with the biggest models.\n\nThey're the ones who figured out integration first.\n\nAt Nth Layer, we see it constantly — organisations spending millions on conversational AI that sits unused because it doesn't connect to where their teams actually work: Zoom. Teams. The daily meeting.\n\nThe gap between AI capability and AI adoption is an integration problem.\n\nWe help close it.\n\n#AI #DigitalTransformation #NthLayer #ConversationalAI #FutureOfWork` },
+    { tone: 'Problem/Solution', content: `Hot take: most AI implementations fail before they start.\n\nNot because the tech is wrong.\nBecause the integration is an afterthought.\n\n→ Voice AI that can't join your Teams calls\n→ Chat bots that don't know your CRM\n→ Video AI that's siloed from your workflows\n\nThe result? Expensive pilots. Frustrated teams. Abandoned projects.\n\nNth Layer specialises in getting AI from proof-of-concept to production — connected, integrated, actually used.\n\nWhat's your biggest AI integration headache right now?\n\n#AI #NthLayer #ContactCentre #DigitalTransformation` },
+    { tone: 'Story/Personal', content: `A client called me last month, frustrated.\n\nThey'd spent 6 months and £200k on a conversational AI project. The tech worked perfectly in demos.\n\nBut adoption was 4%.\n\nThe reason? It didn't live where their team worked. It required them to leave Zoom, navigate to a separate tool, log in, and then interact with the AI.\n\nOne extra step. That's all it took to kill adoption.\n\nWe spent 3 weeks on integration. Adoption hit 67%.\n\nThe lesson: AI isn't an island. It has to live in the workflow.\n\nThat's what Nth Layer does.\n\n#AI #NthLayer #DigitalTransformation #Adoption #ConversationalAI` }
+  ];
+  for (const d of drafts) {
+    await api('POST', '/api/posts', { content: d.content, tone: d.tone, status: 'draft' });
+  }
+  await loadPosts();
+  btn.textContent = '✨ Generate 3 new drafts'; btn.disabled = false;
+}
+
+async function savePostText(id) {
+  const content = document.getElementById('post-text-' + id).value;
+  await api('PATCH', `/api/posts/${id}`, { content });
+}
+async function approvePost(id) { await api('PATCH', `/api/posts/${id}`, { status: 'approved' }); loadPosts(); }
+async function markPosted(id) { await api('PATCH', `/api/posts/${id}`, { status: 'posted' }); loadPosts(); }
+async function deletePost(id) { if (!confirm('Delete this draft?')) return; await api('DELETE', `/api/posts/${id}`); loadPosts(); }
+async function copyPost(id) {
+  const text = document.getElementById('post-text-' + id).value;
+  await navigator.clipboard.writeText(text);
+  const btn = document.querySelector(`#post-${id} button`);
+  const orig = btn.textContent; btn.textContent = '✅ Copied!';
+  setTimeout(() => btn.textContent = orig, 2000);
+}
+
+async function loadUsage() {
+  const data = await api('GET', '/api/usage');
+  if (!data) return;
+  document.getElementById('usage-model').textContent = data.model || 'claude-sonnet-4-6';
+  function fmt(n) { return n != null ? Number(n).toLocaleString() : '—'; }
+  function timeUntil(iso) {
+    if (!iso) return '—';
+    const diff = new Date(iso) - new Date();
+    const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000);
+    return 'in ' + h + 'h ' + m + 'm';
+  }
+  document.getElementById('daily-used').textContent = fmt(data.daily && data.daily.used);
+  document.getElementById('daily-limit').textContent = fmt(data.daily && data.daily.limit);
+  document.getElementById('daily-reset').textContent = timeUntil(data.daily && data.daily.resetsAt);
+  if (data.daily && data.daily.used && data.daily.limit)
+    document.getElementById('daily-bar').style.width = Math.min(100, Math.round(data.daily.used/data.daily.limit*100)) + '%';
+  document.getElementById('weekly-used').textContent = fmt(data.weekly && data.weekly.used);
+  document.getElementById('weekly-limit').textContent = fmt(data.weekly && data.weekly.limit);
+  document.getElementById('weekly-reset').textContent = timeUntil(data.weekly && data.weekly.resetsAt);
+  if (data.weekly && data.weekly.used && data.weekly.limit)
+    document.getElementById('weekly-bar').style.width = Math.min(100, Math.round(data.weekly.used/data.weekly.limit*100)) + '%';
+  document.getElementById('session-tokens').textContent = fmt(data.session && data.session.tokens);
+  document.getElementById('session-cost').textContent = data.session && data.session.cost ? '$' + data.session.cost : '—';
+  document.getElementById('usage-updated').textContent = data.lastUpdated ? new Date(data.lastUpdated).toLocaleTimeString() : '—';
+  if (data.note) document.getElementById('agent-usage-list').textContent = data.note;
+}
+
+async function api(method, path, body) {
+  const res = await fetch(path, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (res.status === 401) { logout(); return; }
+  return res.json();
+}
+
+async function login() {
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  const remember = document.getElementById('remember').checked;
+  const res = await fetch('/api/login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({username:u,password:p,remember}) });
+  const data = await res.json();
+  if (data.token) { TOKEN = data.token; localStorage.setItem('dash_token', TOKEN); showDashboard(); }
+  else document.getElementById('login-error').textContent = 'Invalid username or password';
+}
+
+function logout() { localStorage.removeItem('dash_token'); TOKEN = null; document.getElementById('dashboard').style.display = 'none'; document.getElementById('login-screen').style.display = 'flex'; }
+
+function showDashboard() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
+  loadTasks(); loadAgents(); loadSystems(); loadMemory(); loadGoals(); loadProposals(); loadUsage(); loadPosts(); loadICPs(); loadBriefings();
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// TASKS
+async function loadTasks() {
+  const tasks = await api('GET', '/api/tasks');
+  if (!tasks) return;
+  const groups = { Blocked: document.getElementById('tasks-blocked'), 'Pending You': document.getElementById('tasks-pending'), 'In Progress': document.getElementById('tasks-progress') };
+  Object.values(groups).forEach(g => { while(g.children.length > 1) g.removeChild(g.lastChild); });
+  let doneContainer = document.getElementById('tasks-done');
+  while(doneContainer.children.length > 1) doneContainer.removeChild(doneContainer.lastChild);
+  let hasDone = false;
+  tasks.forEach(task => {
+    const el = document.createElement('div');
+    el.className = 'task-item' + (task.completed ? ' done' : '');
+    el.innerHTML = `<input type="checkbox" ${task.completed?'checked':''} onchange="toggleTask('${task.id}', this.checked)"><span class="task-text">${task.title}</span><span class="badge badge-${task.category==='Blocked'?'blocked':task.category==='Pending You'?'pending':'progress'}">${task.category}</span>`;
+    if (task.completed) { doneContainer.appendChild(el); hasDone = true; }
+    else if (groups[task.category]) groups[task.category].appendChild(el);
+    else groups['In Progress'].appendChild(el);
+  });
+  doneContainer.style.display = hasDone ? 'block' : 'none';
+}
+
+async function toggleTask(id, completed) {
+  await api('PATCH', `/api/tasks/${id}`, { completed });
+  loadTasks();
+}
+
+async function addTask() {
+  const input = document.getElementById('new-task-input');
+  if (!input.value.trim()) return;
+  await api('POST', '/api/tasks', { title: input.value.trim(), category: 'In Progress' });
+  input.value = '';
+  loadTasks();
+}
+
+// AGENTS
+async function loadAgents() {
+  const agents = await api('GET', '/api/agents');
+  if (!agents) return;
+  const statusClass = { live: 'badge-live', pending: 'badge-pending', blocked: 'badge-blocked' };
+  document.getElementById('agents-list').innerHTML = agents.map(a => `
+    <div class="agent-card">
+      <div class="agent-icon">${a.name.split(' ')[0]}</div>
+      <div class="agent-info">
+        <div class="agent-name">${a.name.replace(/^\S+\s/, '')} <span class="badge ${statusClass[a.status]}">${a.status}</span></div>
+        <div class="agent-desc">${a.description}${a.blocker ? `<br><span style="color:#f85149">⚠️ ${a.blocker}</span>` : ''}</div>
+        <div class="agent-meta">
+          <span>⏰ ${a.schedule}</span>
+          <span class="agent-metric">📊 ${a.metric}: ${a.metricValue}</span>
+          <span>🎯 ${a.goal}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// SYSTEMS
+async function loadSystems() {
+  const systems = await api('GET', '/api/systems');
+  if (!systems) return;
+  document.getElementById('systems-grid').innerHTML = systems.map(s => `
+    <div class="system-card">
+      <div class="system-icon">${s.icon}</div>
+      <div class="system-info">
+        <div class="system-name">${s.name}</div>
+        <div class="system-account">${s.account}</div>
+      </div>
+      <div class="status-dot dot-${s.status}" title="${s.status}"></div>
+    </div>
+  `).join('');
+}
+
+// MEMORY
+async function loadMemory() {
+  const data = await api('GET', '/api/memory');
+  if (data) document.getElementById('memory-content').textContent = data.content || 'No memory files found yet.';
+}
+
+// GOALS
+async function loadGoals() {
+  const goals = await api('GET', '/api/goals');
+  if (!goals) return;
+  document.getElementById('goals-list').innerHTML = goals.map(g => {
+    const pct = Math.min(100, Math.round((g.current / g.target) * 100));
+    return `
+    <div class="goal-card">
+      <div class="goal-header">
+        <div class="goal-title">${g.title}</div>
+        <span class="badge badge-progress">${g.quarter}</span>
+      </div>
+      <div class="goal-desc">${g.description}</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="goal-stats">
+        <div class="goal-stat"><strong>${g.current}</strong> / ${g.target} ${g.unit}</div>
+        <div class="goal-stat"><strong>${pct}%</strong> complete</div>
+        <div class="goal-stat">Updated: <strong>${g.lastUpdated}</strong></div>
+      </div>
+      <div class="goal-update">
+        <input type="number" id="goal-val-${g.id}" placeholder="${g.current}" min="0" max="${g.target}" />
+        <button class="btn-sm" onclick="updateGoal('${g.id}')">Update progress</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function updateGoal(id) {
+  const val = document.getElementById('goal-val-' + id).value;
+  if (val === '') return;
+  await api('PATCH', `/api/goals/${id}`, { current: parseInt(val) });
+  loadGoals();
+}
+
+// PROPOSALS
+async function loadProposals() {
+  const proposals = await api('GET', '/api/proposals');
+  if (!proposals) return;
+  function stars(n, max) { return '⭐'.repeat(n) + '☆'.repeat(max - n); }
+  document.getElementById('proposals-list').innerHTML = proposals.map(p => `
+    <div class="proposal-card">
+      <div class="proposal-header">
+        <div class="proposal-title">${p.title}</div>
+        ${p.approved ? '<span class="approved-badge">✅ Approved</span>' : ''}
+      </div>
+      <div class="proposal-desc">${p.description}</div>
+      <div class="proposal-meta">
+        <span>Impact: ${stars(p.impact, 5)}</span>
+        <span>Effort: ${stars(p.effort, 5)}</span>
+        <span style="color:#8b949e">🎯 ${p.goalAlignment}</span>
+      </div>
+      <div class="proposal-footer">
+        <button class="btn-approve" onclick="approveProposal('${p.id}')" ${p.approved?'disabled':''}>
+          ${p.approved ? '✅ Approved' : 'Approve & Build'}
+        </button>
+        ${!p.approved ? `<button class="btn-skip" onclick="skipProposal('${p.id}')">Skip</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function approveProposal(id) {
+  await api('PATCH', `/api/proposals/${id}`, { approved: true, status: 'approved' });
+  loadProposals();
+}
+async function skipProposal(id) {
+  await api('PATCH', `/api/proposals/${id}`, { status: 'skipped' });
+  loadProposals();
+}
+
+// Enter key for login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') login();
+});
+</script>
+</body>
+</html>

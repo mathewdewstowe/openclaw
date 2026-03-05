@@ -1,0 +1,23 @@
+[
+  {
+    "id": "post-1",
+    "createdAt": "2026-03-05T22:00:00.000Z",
+    "status": "draft",
+    "tone": "Thought leadership",
+    "content": "Most AI strategies I see in PE portfolios have the same problem.\n\nThey're investment decisions pretending to be product decisions.\n\nA board approves an AI budget. A team runs a pilot. The pilot looks good in a deck.\n\nThen nothing changes.\n\nBecause nobody asked the harder questions:\n→ Where does AI actually change the unit economics?\n→ Does the operating model support it?\n→ What does the roadmap look like after the pilot?\n\nAI at inflection points isn't a technology problem. It's a product strategy and operating model problem.\n\nThat's the work I do with investors and operators at Nth Layer.\n\nIndependent. Outcome-led. No permanent headcount.\n\nWhat's the hardest AI strategy question your portfolio is sitting on right now?\n\n#AI #ProductStrategy #PrivateEquity #FractionalCPO #NthLayer"
+  },
+  {
+    "id": "post-2",
+    "createdAt": "2026-03-05T22:01:00.000Z",
+    "status": "draft",
+    "tone": "Problem/Solution",
+    "content": "There's a moment every high-growth B2B SaaS company hits.\n\nThe product that got you to £5m ARR starts fighting the product you need to get to £20m.\n\nRoadmaps fill with legacy commitments. Delivery focuses on output, not outcomes. Teams are busy but strategic clarity is gone.\n\nMost CEOs know something needs to change. Few have the bandwidth to lead the change while running the business.\n\nThat's exactly where fractional product leadership earns its place.\n\nNot to replace your CPO. Not to run your team.\n\nTo bring independent perspective, reset strategic priorities, and rebuild execution around what creates value next — not what created value last.\n\nIf you're at that inflection point, I'd like to talk.\n\n#ProductStrategy #B2BSaaS #FractionalLeadership #NthLayer #ScaleUp"
+  },
+  {
+    "id": "post-3",
+    "createdAt": "2026-03-05T22:02:00.000Z",
+    "status": "draft",
+    "tone": "Personal/Story",
+    "content": "A founder I worked with recently said something that stuck with me.\n\n\"We've got 18 months of runway and an AI strategy that looks brilliant on a slide and means nothing in production.\"\n\nThey'd done everything right on paper. Hired smart people. Bought the right tools. Got the board excited.\n\nBut the operating model hadn't changed. Priorities were still set the old way. The roadmap was still built around features, not outcomes.\n\nWe spent 8 weeks resetting. Not the technology — the strategy and the way decisions got made.\n\nBy month 3, they'd shipped an agentic workflow that cut their delivery cost by 34%.\n\nAI doesn't fail because the models are wrong.\n\nIt fails because strategy and operating model don't move with it.\n\nThat's the work. And it's what Nth Layer exists to do.\n\n#AI #ProductLeadership #AgenticAI #NthLayer #OperatingModel"
+  }
+]
