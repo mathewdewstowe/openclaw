@@ -1,0 +1,78 @@
+{
+  "updatedAt": "2026-03-16T22:14:45.326Z",
+  "createdAt": "2026-03-16T22:14:45.326Z",
+  "id": "2igJrPPuPUzpcosy",
+  "name": "\ud83d\udcaa Morning Workout Email (7AM)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "t",
+      "name": "Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "e",
+      "name": "Execute",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'Send morning workout email to Matthew'"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule": {
+      "main": [
+        [
+          {
+            "node": "Execute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "0cce5733-c3a6-45a2-8137-5c6838085b94",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T22:14:45.329Z",
+      "createdAt": "2026-03-16T22:14:45.329Z",
+      "role": "workflow:owner",
+      "workflowId": "2igJrPPuPUzpcosy",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

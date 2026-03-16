@@ -1,0 +1,78 @@
+{
+  "updatedAt": "2026-03-16T22:11:54.693Z",
+  "createdAt": "2026-03-16T22:11:54.693Z",
+  "id": "w0MGFyKJYLP5XTRV",
+  "name": "\ud83d\udcbc LinkedIn Post Monitor (Interested Prospects)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "Every 2 Hours Weekdays",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9,11,13,15,17 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "run-monitor",
+      "name": "Run LinkedIn Monitor",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "command": "python3 /home/matthewdewstowe/.openclaw/workspace/scripts/linkedin-post-monitor.py"
+      }
+    }
+  ],
+  "connections": {
+    "Every 2 Hours Weekdays": {
+      "main": [
+        [
+          {
+            "node": "Run LinkedIn Monitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "b437b4b6-9fd6-40e8-899f-49473eb86b52",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T22:11:54.697Z",
+      "createdAt": "2026-03-16T22:11:54.697Z",
+      "role": "workflow:owner",
+      "workflowId": "w0MGFyKJYLP5XTRV",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

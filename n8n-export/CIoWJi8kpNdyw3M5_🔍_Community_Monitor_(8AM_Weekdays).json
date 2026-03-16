@@ -1,0 +1,78 @@
+{
+  "updatedAt": "2026-03-16T21:08:38.442Z",
+  "createdAt": "2026-03-16T21:08:38.442Z",
+  "id": "CIoWJi8kpNdyw3M5",
+  "name": "\ud83d\udd0d Community Monitor (8AM Weekdays)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "trigger-6",
+      "name": "Schedule - Community Monitor 8AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "community-exec",
+      "name": "Run Community Monitor",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'Run the community monitor: search Reddit + HN for Sonesse/Umified/meeting bot signals and update the Google Sheet.'"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule - Community Monitor 8AM": {
+      "main": [
+        [
+          {
+            "node": "Run Community Monitor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "063155ac-fe7f-4f32-9a01-a0ec36e32c67",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T21:08:38.444Z",
+      "createdAt": "2026-03-16T21:08:38.444Z",
+      "role": "workflow:owner",
+      "workflowId": "CIoWJi8kpNdyw3M5",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

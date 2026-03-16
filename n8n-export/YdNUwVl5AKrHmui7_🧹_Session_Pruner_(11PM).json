@@ -1,0 +1,78 @@
+{
+  "updatedAt": "2026-03-16T22:14:45.887Z",
+  "createdAt": "2026-03-16T22:14:45.887Z",
+  "id": "YdNUwVl5AKrHmui7",
+  "name": "\ud83e\uddf9 Session Pruner (11PM)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "t",
+      "name": "Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 23 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "e",
+      "name": "Execute",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "command": "bash /home/matthewdewstowe/.openclaw/workspace/scripts/prune-sessions.sh"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule": {
+      "main": [
+        [
+          {
+            "node": "Execute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "059b3a1f-0bd1-4396-9aa7-68732210d4a5",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T22:14:45.890Z",
+      "createdAt": "2026-03-16T22:14:45.890Z",
+      "role": "workflow:owner",
+      "workflowId": "YdNUwVl5AKrHmui7",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

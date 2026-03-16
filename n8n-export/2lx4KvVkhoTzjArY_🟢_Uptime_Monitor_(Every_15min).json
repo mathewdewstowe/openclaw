@@ -1,0 +1,149 @@
+{
+  "updatedAt": "2026-03-16T21:08:38.563Z",
+  "createdAt": "2026-03-16T21:08:38.563Z",
+  "id": "2lx4KvVkhoTzjArY",
+  "name": "\ud83d\udfe2 Uptime Monitor (Every 15min)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "trigger-9",
+      "name": "Schedule - Uptime Every 15min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "uptime-dashboard",
+      "name": "Check Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        200
+      ],
+      "parameters": {
+        "url": "http://localhost:3737",
+        "method": "GET",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "uptime-check",
+      "name": "Check Status",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        720,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "uptime-alert",
+      "name": "Auto-Restart Services",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        960,
+        400
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'UPTIME ALERT: Dashboard appears down. Diagnose and restart if needed, alert Matthew with the cause.'"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule - Uptime Every 15min": {
+      "main": [
+        [
+          {
+            "node": "Check Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Dashboard": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Auto-Restart Services",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "f84f257a-83d9-49fe-a92d-1e6717438201",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T21:08:38.565Z",
+      "createdAt": "2026-03-16T21:08:38.565Z",
+      "role": "workflow:owner",
+      "workflowId": "2lx4KvVkhoTzjArY",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

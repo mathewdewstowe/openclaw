@@ -1,0 +1,78 @@
+{
+  "updatedAt": "2026-03-16T22:14:59.608Z",
+  "createdAt": "2026-03-16T22:14:59.608Z",
+  "id": "5iw69qVFcpNAj2Qe",
+  "name": "\ud83d\udcbe Daily Backup (11PM)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "t",
+      "name": "Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 23 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "e",
+      "name": "Execute",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "command": "cd /home/matthewdewstowe/.openclaw/workspace && git add -A && git commit -m \"Auto backup $(date +%Y-%m-%d)\""
+      }
+    }
+  ],
+  "connections": {
+    "Schedule": {
+      "main": [
+        [
+          {
+            "node": "Execute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "8435a85c-b9b7-42c4-b4b9-fd2c5d47ad08",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T22:14:59.610Z",
+      "createdAt": "2026-03-16T22:14:59.610Z",
+      "role": "workflow:owner",
+      "workflowId": "5iw69qVFcpNAj2Qe",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

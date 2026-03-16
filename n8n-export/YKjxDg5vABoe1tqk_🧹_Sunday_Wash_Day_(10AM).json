@@ -1,0 +1,78 @@
+{
+  "updatedAt": "2026-03-16T21:08:39.152Z",
+  "createdAt": "2026-03-16T21:08:39.152Z",
+  "id": "YKjxDg5vABoe1tqk",
+  "name": "\ud83e\uddf9 Sunday Wash Day (10AM)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "trigger-12",
+      "name": "Schedule - Sunday Wash Day",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * 0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "washday-exec",
+      "name": "Run Wash Day",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'Run Sunday wash day: prune sessions, compress old memory files, vacuum SQLite, report to Matthew.'"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule - Sunday Wash Day": {
+      "main": [
+        [
+          {
+            "node": "Run Wash Day",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "971e32be-7e3f-480a-b941-48ad425f33bc",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T21:08:39.156Z",
+      "createdAt": "2026-03-16T21:08:39.156Z",
+      "role": "workflow:owner",
+      "workflowId": "YKjxDg5vABoe1tqk",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

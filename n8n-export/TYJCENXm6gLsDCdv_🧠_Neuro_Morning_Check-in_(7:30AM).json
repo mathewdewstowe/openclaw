@@ -1,0 +1,78 @@
+{
+  "updatedAt": "2026-03-16T22:14:45.383Z",
+  "createdAt": "2026-03-16T22:14:45.383Z",
+  "id": "TYJCENXm6gLsDCdv",
+  "name": "\ud83e\udde0 Neuro Morning Check-in (7:30AM)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "t",
+      "name": "Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 7 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "e",
+      "name": "Execute",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'Send neuro morning check-in to #claw_neuro if not sent today'"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule": {
+      "main": [
+        [
+          {
+            "node": "Execute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "b0deab41-ecfe-4580-b212-e99ca8af8d36",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T22:14:45.386Z",
+      "createdAt": "2026-03-16T22:14:45.386Z",
+      "role": "workflow:owner",
+      "workflowId": "TYJCENXm6gLsDCdv",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

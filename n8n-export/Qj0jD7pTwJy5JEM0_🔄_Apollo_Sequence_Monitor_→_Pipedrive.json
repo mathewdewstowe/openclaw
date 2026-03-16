@@ -1,0 +1,78 @@
+{
+  "updatedAt": "2026-03-16T22:11:34.624Z",
+  "createdAt": "2026-03-16T22:11:34.624Z",
+  "id": "Qj0jD7pTwJy5JEM0",
+  "name": "\ud83d\udd04 Apollo Sequence Monitor \u2192 Pipedrive",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "Every 30 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "poll-apollo",
+      "name": "Check Apollo Sequences",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "command": "python3 /home/matthewdewstowe/.openclaw/workspace/scripts/apollo-sequence-poller.py"
+      }
+    }
+  ],
+  "connections": {
+    "Every 30 Minutes": {
+      "main": [
+        [
+          {
+            "node": "Check Apollo Sequences",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "1e0cda2d-138b-4599-961b-7c80bbfc1299",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T22:11:34.630Z",
+      "createdAt": "2026-03-16T22:11:34.630Z",
+      "role": "workflow:owner",
+      "workflowId": "Qj0jD7pTwJy5JEM0",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

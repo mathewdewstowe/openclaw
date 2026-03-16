@@ -1,0 +1,78 @@
+{
+  "updatedAt": "2026-03-16T21:08:39.114Z",
+  "createdAt": "2026-03-16T21:08:39.114Z",
+  "id": "S0nX6PUEZy9dLFyU",
+  "name": "\u270d\ufe0f Sonesse Content Engine (9AM Weekdays)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "trigger-11",
+      "name": "Schedule - Content Engine 9AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "content-exec",
+      "name": "Write Sonesse Tutorial",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'Write and publish today\\'s Sonesse tutorial from the content queue.'"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule - Content Engine 9AM": {
+      "main": [
+        [
+          {
+            "node": "Write Sonesse Tutorial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "f1274742-9951-4da8-9df3-9b51b4d88e9b",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T21:08:39.116Z",
+      "createdAt": "2026-03-16T21:08:39.116Z",
+      "role": "workflow:owner",
+      "workflowId": "S0nX6PUEZy9dLFyU",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

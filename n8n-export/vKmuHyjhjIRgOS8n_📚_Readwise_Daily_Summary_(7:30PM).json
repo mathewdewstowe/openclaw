@@ -1,0 +1,78 @@
+{
+  "updatedAt": "2026-03-16T22:14:45.447Z",
+  "createdAt": "2026-03-16T22:14:45.447Z",
+  "id": "vKmuHyjhjIRgOS8n",
+  "name": "\ud83d\udcda Readwise Daily Summary (7:30PM)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "t",
+      "name": "Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "30 19 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "e",
+      "name": "Execute",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'Fetch Readwise highlights and post to #claw-reading-list'"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule": {
+      "main": [
+        [
+          {
+            "node": "Execute",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "be2694ba-842a-4edb-9eda-11d5eb9a92ac",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T22:14:45.449Z",
+      "createdAt": "2026-03-16T22:14:45.449Z",
+      "role": "workflow:owner",
+      "workflowId": "vKmuHyjhjIRgOS8n",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

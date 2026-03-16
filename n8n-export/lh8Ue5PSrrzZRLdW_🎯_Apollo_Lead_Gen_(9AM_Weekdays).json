@@ -1,0 +1,78 @@
+{
+  "updatedAt": "2026-03-16T21:08:38.483Z",
+  "createdAt": "2026-03-16T21:08:38.483Z",
+  "id": "lh8Ue5PSrrzZRLdW",
+  "name": "\ud83c\udfaf Apollo Lead Gen (9AM Weekdays)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "trigger-7",
+      "name": "Schedule - Apollo Lead Gen 9AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "apollo-exec",
+      "name": "Run Apollo Lead Gen",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'Run Apollo lead gen: find new prospects for Sonesse and Nth Layer, enrich with LinkedIn URLs, add to Pipedrive.'"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule - Apollo Lead Gen 9AM": {
+      "main": [
+        [
+          {
+            "node": "Run Apollo Lead Gen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "3debb837-7d24-4184-aec5-d3d5ea4fe4bc",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T21:08:38.486Z",
+      "createdAt": "2026-03-16T21:08:38.486Z",
+      "role": "workflow:owner",
+      "workflowId": "lh8Ue5PSrrzZRLdW",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}

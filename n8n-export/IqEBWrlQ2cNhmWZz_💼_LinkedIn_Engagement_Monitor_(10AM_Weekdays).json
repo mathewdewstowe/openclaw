@@ -1,0 +1,78 @@
+{
+  "updatedAt": "2026-03-16T21:08:38.526Z",
+  "createdAt": "2026-03-16T21:08:38.526Z",
+  "id": "IqEBWrlQ2cNhmWZz",
+  "name": "\ud83d\udcbc LinkedIn Engagement Monitor (10AM Weekdays)",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "trigger-8",
+      "name": "Schedule - LinkedIn Engagement 10AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "linkedin-exec",
+      "name": "Monitor LinkedIn Prospect Posts",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'Check LinkedIn for new posts from prospect lists, surface to #claw_neuro for Matthew to approve interactions. Max 20/hour, randomised delays.'"
+      }
+    }
+  ],
+  "connections": {
+    "Schedule - LinkedIn Engagement 10AM": {
+      "main": [
+        [
+          {
+            "node": "Monitor LinkedIn Prospect Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "8b6e1ff2-6102-4e49-a6f9-f08b8a9de75e",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-16T21:08:38.528Z",
+      "createdAt": "2026-03-16T21:08:38.528Z",
+      "role": "workflow:owner",
+      "workflowId": "IqEBWrlQ2cNhmWZz",
+      "projectId": "msscZx3weCUyaLsv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
