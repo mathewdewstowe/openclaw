@@ -1,0 +1,3994 @@
+[
+  {
+    "id": "56d9d226f3e5bb633d000251",
+    "name": "Y Combinator",
+    "website": "http://www.ycombinator.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "56d382a1f3e5bb2289001722",
+    "name": "Sequoia Capital",
+    "website": "http://www.sequoiacap.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f3e17386eea1d0001eb19f6",
+    "name": "Private Equity Insights",
+    "website": "http://www.pe-insights.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1221b69702d9a8b8c1703",
+    "name": "Andreessen Horowitz",
+    "website": "http://www.a16z.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "614ee5ce0284850001e293f9",
+    "name": "Agmen Capital",
+    "website": "http://www.agmencapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ed1c40ca647560001d3febb",
+    "name": "500 Global",
+    "website": "http://www.500.co",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1344c69702d3e83c31400",
+    "name": "Sonae",
+    "website": "http://www.sonae.pt",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5db44816dcc21000019a7b41",
+    "name": "Techstars",
+    "website": "http://www.techstars.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b852a53324d440eeae6414a",
+    "name": "Antler",
+    "website": "http://www.antler.co",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ed4da721ad1410001a653e6",
+    "name": "Conscience VC",
+    "website": "http://www.conscience.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "605c68323cb4c600e2dc26aa",
+    "name": "Virgin",
+    "website": "http://www.virginlimitededition.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b851bd5f874f7403caa9b21",
+    "name": "Accel",
+    "website": "http://www.accel.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "648a0e4724611500a3da5084",
+    "name": "Peak XV Partners",
+    "website": "http://www.peakxv.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a121a769702d9d7e039502",
+    "name": "Greylock Partners",
+    "website": "http://www.greylock.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a135a269702d48e2b0ae00",
+    "name": "Bessemer Venture Partners",
+    "website": "http://www.bvp.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a25f5d7468693cdd1bd91d",
+    "name": "Finatal",
+    "website": "http://www.finatal.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e57897a54c3e10001a320ba",
+    "name": "Neventa Capital",
+    "website": "http://www.neventa.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1224369702da425321603",
+    "name": "Lightspeed",
+    "website": "http://www.lsvp.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f47a6c98869850001eed1e9",
+    "name": "Index Ventures",
+    "website": "http://www.indexventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1186d69702d5c363f0300",
+    "name": "Bain Capital Ventures (BCV)",
+    "website": "http://www.baincapitalventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1396369702d231f106d00",
+    "name": "Plug and Play Tech Center",
+    "website": "http://www.plugandplaytechcenter.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1284969702d8eeb075001",
+    "name": "Entrepreneurs First",
+    "website": "http://www.joinef.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f3ff2704939d300be9bdb41",
+    "name": "Nesma",
+    "website": "http://www.nesma.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a121c369702d8ed408d602",
+    "name": "Blume Ventures",
+    "website": "http://www.blume.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d3504f3a3ae61d33e08df9e",
+    "name": "Insight Partners",
+    "website": "http://www.insightpartners.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "604934872b2cb000013ec0d1",
+    "name": "Movile",
+    "website": "http://www.movile.com.br",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e55b8306d9ff2000188aeb4",
+    "name": "First Round Capital",
+    "website": "http://www.firstround.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11deb69702d77c2e45101",
+    "name": "General Catalyst",
+    "website": "http://www.generalcatalyst.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f8e6281a9fea600bef6c895",
+    "name": "Elevation Capital",
+    "website": "http://www.elevationcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556e2818736964112ca72901",
+    "name": "GV (Google Ventures)",
+    "website": "http://www.gv.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "66bd3e29f00c380001adb1fd",
+    "name": "HSG",
+    "website": "http://www.hsgcap.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d0ab561f65125c94629e01c",
+    "name": "Z47",
+    "website": "http://www.z47.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d0a7e0580f93e7bbf43797a",
+    "name": "Kleiner Perkins",
+    "website": "http://www.kleinerperkins.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e57b0c242a70300013901df",
+    "name": "H.I.G. Capital",
+    "website": "http://www.hig.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a122de69702d97c1447903",
+    "name": "PitchBook",
+    "website": "http://www.pitchbook.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d348dc6f6512563d0715786",
+    "name": "Annalect",
+    "website": "http://www.alliancegroupinvest.co.za",
+    "country": "",
+    "industry": "marketing & advertising",
+    "description": ""
+  },
+  {
+    "id": "60486ee97bc44d0001f02a6d",
+    "name": "Caprae Capital Partners",
+    "website": "http://www.capraecapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1202369702d97c1ec4902",
+    "name": "Permira",
+    "website": "http://www.permira.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "652677c8f9809300dd7003aa",
+    "name": "Oak Grove Ventures",
+    "website": "http://www.oakgrove.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e55a732b2a59b0001291006",
+    "name": "Titan Capital",
+    "website": "http://www.titancapital.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11c9869702d97c17dbf00",
+    "name": "Acumen",
+    "website": "http://www.acumen.org",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "61e8122c3c164300c2d2a7d4",
+    "name": "Earlybird Venture Capital",
+    "website": "http://www.earlybird.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1226d69702da425eb3203",
+    "name": "SGInnovate",
+    "website": "http://www.sginnovate.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1283a69702d931394f800",
+    "name": "Kalaari Capital",
+    "website": "http://www.kalaari.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1299469702dcef951b201",
+    "name": "Khosla Ventures",
+    "website": "http://www.khoslaventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55f7f26ef3e5bb0fa1001d56",
+    "name": "Connecticut Innovations",
+    "website": "http://www.ctinnovations.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "6005bf66e6b24b008c6e608c",
+    "name": "Private Equity Insider",
+    "website": "http://www.pe-insider.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556d15ef736964126cf58800",
+    "name": "Recruitment Entrepreneur",
+    "website": "http://www.recruitmententrepreneur.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "658593df2b5dde01c66897b9",
+    "name": "Montegallo.",
+    "website": "http://www.montegallo.eu",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5e57837a111d140001a360e5",
+    "name": "Turbostart",
+    "website": "http://www.turbostart.co",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "670ca8ac415f0100012b5efa",
+    "name": "entertainmentandassociates.it",
+    "website": "http://www.entertainmentandassociates.it",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "66dff2605e606f0001e4a0d4",
+    "name": "Vukani Simuka Capital",
+    "website": "http://www.vukanisimuka.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5fc84faa9e72040001dc9556",
+    "name": "IAN Group",
+    "website": "http://www.iangroup.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "647ebcff2a881c00ab3ffee3",
+    "name": "2070 Health",
+    "website": "http://www.2070health.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1357869702d36c93ad600",
+    "name": "PER",
+    "website": "http://www.per-people.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11e4069702d97c1056f01",
+    "name": "Balderton",
+    "website": "http://www.balderton.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1203f69702d9a8b876202",
+    "name": "Speedinvest",
+    "website": "http://www.speedinvest.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f7c20ff50ead500ca616fb6",
+    "name": "Apax",
+    "website": "http://www.apax.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9e4bd1a6da98d97e7bb7a0",
+    "name": "CSC Generation",
+    "website": "http://www.cscgeneration.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11ff569702d77c2074302",
+    "name": "PAI Partners",
+    "website": "http://www.paipartners.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a198f874686942d3958000",
+    "name": "Founders Fund",
+    "website": "http://www.foundersfund.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1359669702d38bbeacd00",
+    "name": "Battery Ventures",
+    "website": "http://www.battery.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "56df0662f3e5bb7086005882",
+    "name": "Energy Impact Partners",
+    "website": "http://www.energyimpactpartners.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5fca067162cea00001875277",
+    "name": "Cinven",
+    "website": "http://www.cinven.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "62587aacca24cc00d8d67a57",
+    "name": "Nexus Venture Partners",
+    "website": "http://www.nexusvp.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "56e6b3eaf3e5bb3a24002a3a",
+    "name": "B Capital",
+    "website": "http://www.b.capital",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5cb82a72f65125d4045a0ea2",
+    "name": "Octopus Ventures",
+    "website": "http://www.octopusventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f49795086c1c00001b7c2a8",
+    "name": "Centum Investment Company Plc.",
+    "website": "http://www.centum.co.ke",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5bebca561dc272bb2a2d9629",
+    "name": "SoftBank Investment Advisers",
+    "website": "http://www.visionfund.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5cb7353aa3ae61459dd68527",
+    "name": "Atomico",
+    "website": "http://www.atomico.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9f3828a6da98d97e81d82a",
+    "name": "Fireside Ventures",
+    "website": "http://www.firesideventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11ec869702d97c1e8b001",
+    "name": "BECO Capital",
+    "website": "http://www.becocapital.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5a9f5088a6da98d97e828ce8",
+    "name": "Seedstars",
+    "website": "http://www.seedstars.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "54a134bf69702d46f02e3800",
+    "name": "Chiratae Ventures",
+    "website": "http://www.chiratae.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "612778719adbb10112e40f6f",
+    "name": "Mirae Asset Global Investments",
+    "website": "http://am.miraeasset.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "54a1229969702d8ed48e3003",
+    "name": "New Enterprise Associates (NEA)",
+    "website": "http://www.nea.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5cb8d64780f93ecb767769d0",
+    "name": "EWOR",
+    "website": "http://www.ewor.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ef4ad36e6a813008cb9b764",
+    "name": "Cherry Ventures",
+    "website": "http://www.cherry.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55922a26736964186517a600",
+    "name": "Project A",
+    "website": "http://www.project-a.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d096cfbf651257f03311fee",
+    "name": "Summit Partners",
+    "website": "http://www.summitpartners.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a12acc69702d8cfcee6e02",
+    "name": "Blackbird",
+    "website": "http://www.blackbird.vc",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5ed96e6ceb902e00015b6bef",
+    "name": "iPay Holding",
+    "website": "http://www.ipayholding.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4c0cda6da9836a2b03b92",
+    "name": "Fundaci\u00f3n Chile",
+    "website": "http://www.fch.cl",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55693d1573696421a3041700",
+    "name": "Hg",
+    "website": "http://www.hgcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d3599cc01e59309a43c2c09",
+    "name": "Venture Catalysts++ | India's 1st Multi-Stage VC",
+    "website": "http://www.venturecatalysts.in",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ed0cb69bf6350000195796c",
+    "name": "Alumni Ventures",
+    "website": "http://www.av-funds.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a129b769702d931360d501",
+    "name": "Orios Venture Partners",
+    "website": "http://www.oriosvp.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a135a869702d3e8314ca00",
+    "name": "Indian Venture and Alternate Capital Association (IVCA)",
+    "website": "http://www.ivca.in",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b825e1e324d445925a5ebcf",
+    "name": "Partech",
+    "website": "http://www.partechpartners.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5da50756c263a30001567922",
+    "name": "Rainmatter by Zerodha",
+    "website": "http://www.rainmatter.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f4d9d45be466a00c76d2ade",
+    "name": "Startupbootcamp",
+    "website": "http://www.startupbootcamp.org",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d43082b68e2950a2fb4a0f7",
+    "name": "Inflection Point Ventures",
+    "website": "http://www.ipventures.in",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1234b69702d8ed49f6b03",
+    "name": "Notable Capital",
+    "website": "http://www.notablecap.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e58268ceedbc700019aff45",
+    "name": "100X.VC",
+    "website": "http://www.100x.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f4143ad7c0c850001d303fb",
+    "name": "ACE Ventures",
+    "website": "http://www.aceventures.com.br",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1201a69702d97c1eb4302",
+    "name": "Creandum",
+    "website": "http://www.creandum.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1213669702d84c5858602",
+    "name": "HarbourVest Partners",
+    "website": "http://www.harbourvest.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1206e69702d77c2057a02",
+    "name": "Menlo Ventures",
+    "website": "http://www.menlovc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9f672aa6da98d9a8de29f3",
+    "name": "Lightspeed India",
+    "website": "http://www.lsip.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b85d8d2f874f709ba324da0",
+    "name": "3one4 Capital",
+    "website": "http://www.3one4capital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1349c69702d2db427ac00",
+    "name": "Norfund",
+    "website": "http://www.norfund.no",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "658003dc6ab92503002cfd7b",
+    "name": "16VC",
+    "website": "http://www.16vc.co",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9d52fea6da98d9466c6a2a",
+    "name": "Pear VC",
+    "website": "http://www.pear.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f4995c58566500001b90a83",
+    "name": "Seedcamp",
+    "website": "http://www.seedcamp.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "61173f4c5ca8de0001f1a52b",
+    "name": "Jeffamazon",
+    "website": "http://www.jeffamazon.com",
+    "country": "",
+    "industry": "information technology & services",
+    "description": ""
+  },
+  {
+    "id": "556d1cfa736964122f0a9900",
+    "name": "Airtree",
+    "website": "http://www.airtree.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a12ad169702db648913802",
+    "name": "Redpoint",
+    "website": "http://www.redpoint.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b80a7fb324d440ce516cf2f",
+    "name": "HV Capital",
+    "website": "http://www.hvcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "559241c67369642529787e00",
+    "name": "Norwest",
+    "website": "http://www.norwest.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9e298da6da98d97e7ac043",
+    "name": "Creative Destruction Lab",
+    "website": "http://www.creativedestructionlab.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5da62f7714833d0001dda021",
+    "name": "Crypto Funding",
+    "website": "http://www.cryptofunding.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "61fb658eedb253008df05110",
+    "name": "Acquisition.com",
+    "website": "http://www.acquisition.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a126ce69702d8cfce27900",
+    "name": "Tracxn",
+    "website": "http://www.tracxn.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5c367f66e4710109a98bfc86",
+    "name": "Redesign Health",
+    "website": "http://www.redesignhealth.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9d9e87a6da98d9466e7f8b",
+    "name": "Harlem Capital",
+    "website": "http://www.harlem.capital",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556d726e736964124b661401",
+    "name": "Wa'ed Ventures",
+    "website": "http://www.waed.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "6034fbb18b07bd01702bfeb2",
+    "name": "VinaCapital",
+    "website": "http://www.vinacapital.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "54a1352269702d3cbba79000",
+    "name": "BC Partners",
+    "website": "http://www.bcpartners.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5da4805cd7e66f00012e2709",
+    "name": "Stride Ventures",
+    "website": "http://www.strideventures.global",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b135ebda6da98dd138500fb",
+    "name": "Africa Fintech Summit",
+    "website": "http://www.africafintechsummit.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ca25aa6ce32d30922f7811d",
+    "name": "Global Ventures",
+    "website": "http://www.global.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9d05dea6da98d938b8a9c2",
+    "name": "Intel Capital",
+    "website": "http://www.intelcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b8728ddf874f73b9cb28c37",
+    "name": "YZi Labs",
+    "website": "http://www.yzilabs.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b832f60f874f732f79a52ae",
+    "name": "Primary Venture Partners",
+    "website": "http://www.primary.vc",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5a9d1cd9a6da98d938b92cef",
+    "name": "Fifth Wall",
+    "website": "http://www.fifthwall.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9d9f9ba6da98d93566736a",
+    "name": "Picus Capital",
+    "website": "http://www.picuscap.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a13b9469702d2185f49e01",
+    "name": "KASZEK",
+    "website": "http://www.kaszek.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b80b6d1324d442166f0f589",
+    "name": "AI Fund",
+    "website": "http://www.aifund.ai",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11e0e69702d77c2eb5d01",
+    "name": "Axon Partners Group",
+    "website": "http://www.axonpartnersgroup.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "54a2637e7468693cdd77281f",
+    "name": "AgFunder",
+    "website": "http://www.https:agfunder.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "66419670f28ea306a6673f81",
+    "name": "S4",
+    "website": "http://www.s4inc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "646b286d716a03000141c363",
+    "name": "Accel in India",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1294d69702dc1286e5101",
+    "name": "Third Rock Ventures",
+    "website": "http://www.thirdrockventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1343d69702d3170ff4100",
+    "name": "Lakestar",
+    "website": "http://www.lakestar.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a12b3969702d90a2efa202",
+    "name": "UK Private Capital",
+    "website": "http://www.ukprivatecapital.co.uk",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e57aabe85593a0001d6220c",
+    "name": "The StartupLab",
+    "website": "http://www.thestartuplab.in",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "66d564480b4a9c000130ccd0",
+    "name": "Emireq",
+    "website": "http://www.emireq.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5569c8ed7369642539e19700",
+    "name": "Sapphire Ventures",
+    "website": "http://www.sapphireventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e75cca169e9860099773fe2",
+    "name": "Lowercarbon Capital",
+    "website": "http://www.lowercarbon.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "60483f41ccc54f0001bd5db0",
+    "name": "RisingIndia \u0909\u092d\u0930\u0924\u093e \u092d\u093e\u0930\u0924",
+    "website": "http://www.risingindia.in",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9f14e7a6da98d97e80d3f8",
+    "name": "Stellaris Venture Partners",
+    "website": "http://www.stellarisvp.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "64189c228c424e00d99e35d8",
+    "name": "Attack Capital",
+    "website": "http://www.attack.capital",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55eb8bcdf3e5bb1388000290",
+    "name": "Female Founders Fund",
+    "website": "http://www.femalefoundersfund.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5c271589a3ae61809e499a66",
+    "name": "Gain",
+    "website": "http://www.gain.ai",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b12e503a6da98dcf7601064",
+    "name": "Hustle Fund",
+    "website": "http://www.hustlefund.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d42e6c3cbafca09d550c3e8",
+    "name": "54 Collective",
+    "website": "http://www.54collective.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "62c0c66e2f3a1000a325c21d",
+    "name": "Huspy Holding",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11dd369702da10f1f3901",
+    "name": "Northzone",
+    "website": "http://www.northzone.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5c20df0b80f93e61af9bc6e8",
+    "name": "M12, Microsoft's Venture Fund",
+    "website": "http://www.m12.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "65f3fe6de079210007acd670",
+    "name": "Aramco Ventures",
+    "website": "http://www.aramcoventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f4332436c77de00016ea710",
+    "name": "The Family",
+    "website": "http://www.thefamily.co",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5da34175741f9b00019d7d6b",
+    "name": "Surge",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d0a889a80f93e6e9166e1f7",
+    "name": "Inflexion",
+    "website": "http://www.inflexion.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1215469702d97c1d3e802",
+    "name": "Eurazeo Investment Manager",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5c269387a3ae617495581d75",
+    "name": "BLCK VC",
+    "website": "http://www.blckvc.org",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556da6ba7369641217205d01",
+    "name": "Antin Infrastructure Partners",
+    "website": "http://www.antin-ip.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ed21a59e77a2c00016122b0",
+    "name": "CapitalG",
+    "website": "http://www.capitalg.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a117cb69702d49268f0c00",
+    "name": "Venturelab",
+    "website": "http://www.venturelab.swiss",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1229b69702d8aa1c21b03",
+    "name": "HTGF | High-Tech Gr\u00fcnderfonds",
+    "website": "http://www.htgf.de",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a117a469702d4926110b00",
+    "name": "Capital Factory",
+    "website": "http://www.capitalfactory.com",
+    "country": "",
+    "industry": "investment banking",
+    "description": ""
+  },
+  {
+    "id": "54a11dae69702da10f6d2b01",
+    "name": "Startup Wise Guys",
+    "website": "http://www.startupwiseguys.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556d87017369641271292601",
+    "name": "Team8",
+    "website": "http://www.team8.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b84719c324d444282277019",
+    "name": "IIMA Ventures",
+    "website": "http://www.iimaventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11f0269702d8ccc12ba01",
+    "name": "Mumbai Angels",
+    "website": "http://www.mumbaiangels.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11dba69702d8ed49f2401",
+    "name": "Francisco Partners",
+    "website": "http://www.franciscopartners.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d318a0080f93eefee1d0026",
+    "name": "Rockstart",
+    "website": "http://www.rockstart.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f1079f22711da00f7f8a43b",
+    "name": "Simest SpA",
+    "website": "http://www.simest.it",
+    "country": "",
+    "industry": "capital markets",
+    "description": ""
+  },
+  {
+    "id": "559239327369641b33d99f00",
+    "name": "Keiretsu Forum",
+    "website": "http://www.keiretsuforum.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ed5ca78d69d5000013bf0ad",
+    "name": "Salesforce Ventures",
+    "website": "http://www.salesforceventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e55f5d78c394e0001531dff",
+    "name": "ajvc",
+    "website": "http://www.ajuniorvc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4f739a6da986a132541e6",
+    "name": "Invest Europe",
+    "website": "http://www.investeurope.eu",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4a406a6da982cc0f79f1f",
+    "name": "8VC",
+    "website": "http://www.8vc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5cb5cadda3ae614bc63124e4",
+    "name": "500 LatAm",
+    "website": "http://www.500latam.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5eb810067c57b4008c1b6dd2",
+    "name": "Sanabil Investments",
+    "website": "http://www.sanabil.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "54a11e0369702da4250b3701",
+    "name": "Lux Capital",
+    "website": "http://www.luxcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b851343324d44599e919e88",
+    "name": "South Park Commons",
+    "website": "http://www.southparkcommons.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "62b5520184c9e500a369554f",
+    "name": "Raha Beach Ventures",
+    "website": "http://www.rahabeach.io",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d0a2bfef6512506f9bea544",
+    "name": "K1 Investment Management",
+    "website": "http://www.k1.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a13c5f69702d231fcc2302",
+    "name": "Greycroft",
+    "website": "http://www.greycroft.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "60264be7e02e7500e87a2626",
+    "name": "Fuel Ventures \ud83d\ude80",
+    "website": "http://www.fuel.ventures",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9d033ea6da98d98529c952",
+    "name": "SOSV",
+    "website": "http://www.sosv.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a122ee69702d8ed4c34303",
+    "name": "gener8tor",
+    "website": "http://www.gener8tor.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1359c69702d46f0fbaa00",
+    "name": "United Al Saqer Group",
+    "website": "http://www.alsaqergroup.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11c3469702d94a4628200",
+    "name": "Jungle Ventures",
+    "website": "http://www.jungle.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ed33c0bfecfe40001e9c2ce",
+    "name": "SAIF Partners",
+    "website": "http://www.sbaif.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "60d33bc49e6a570001ec26de",
+    "name": "Thrive Capital",
+    "website": "http://www.thrivecap.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4ba24a6da9836e27ff099",
+    "name": "MassChallenge",
+    "website": "http://www.masschallenge.org",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d36278580f93e4337166d34",
+    "name": "China Renaissance \u534e\u5174\u8d44\u672c",
+    "website": "http://www.chinarenaissance.com",
+    "country": "",
+    "industry": "investment banking",
+    "description": ""
+  },
+  {
+    "id": "5fc8cb2b941c57000170dcf1",
+    "name": "Kima Ventures",
+    "website": "http://www.kimaventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f43e9aba459b90001abeb42",
+    "name": "Benchmark",
+    "website": "http://www.benchmark.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4bb95a6da9836ba3da9eb",
+    "name": "IITM Incubation Cell",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55f4f968f3e5bb165f0041bb",
+    "name": "Antai Ventures",
+    "website": "http://www.antaiventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a121fb69702d97c1254303",
+    "name": "Omnivore",
+    "website": "http://www.omnivore.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1357069702d2f9f880601",
+    "name": "LDC",
+    "website": "http://www.ldc.co.uk",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1279269702d93137db000",
+    "name": "Middle East Venture Partners (MEVP)",
+    "website": "http://www.mevp.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f47d5c54e9b5700016ca9ae",
+    "name": "Hillhouse Investment",
+    "website": "http://www.hillhouseinvestment.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "54a122cc69702d84c5984003",
+    "name": "Verdane",
+    "website": "http://www.verdane.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11c4e69702d97c1959f00",
+    "name": "Kae Capital",
+    "website": "http://www.kae-capital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f9953ebf701a000be3c2428",
+    "name": "Norrsken VC",
+    "website": "http://www.norrsken.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5fca86cea50ee70001452723",
+    "name": "PedalStart",
+    "website": "http://www.pedalstart.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a12b2269702d93138e8b02",
+    "name": "Planet A Ventures",
+    "website": "http://www.planet-a.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "65ab600b365f170816f84e75",
+    "name": "Quoppo",
+    "website": "http://www.quoppo.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55ea9d3af3e5bb575400a852",
+    "name": "ARCHIMED",
+    "website": "http://www.archimed.group",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "654a5cecc7235e008b7f2334",
+    "name": "ESC Venture Capital SGEIC (antes Encomenda Smart Capital)",
+    "website": "http://www.escvc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "66880c8b686dbe00013c290d",
+    "name": "Headline",
+    "website": "http://www.headline.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a134c169702d46f0ba3900",
+    "name": "IQT",
+    "website": "http://www.iqt.org",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1345d69702d3170145200",
+    "name": "Navis Capital Partners",
+    "website": "http://www.naviscapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5fca96b1e62bbf000131b9ba",
+    "name": "World Fund",
+    "website": "http://www.worldfund.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5cd49cb75598e2093126d047",
+    "name": "Dragonfly",
+    "website": "http://www.dragonfly.xyz",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1394f69702db45d3f2c00",
+    "name": "Ankur Capital",
+    "website": "http://www.ankurcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b87087a324d4416617f4f67",
+    "name": "Venture University",
+    "website": "http://www.venture.university",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5569ed3273696425bcf0b800",
+    "name": "Alpha JWC Ventures",
+    "website": "http://www.alphajwc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1290769702d8eebbdb401",
+    "name": "East Ventures",
+    "website": "http://www.east.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a12a0769702d979ca2f501",
+    "name": "Anjos do Brasil",
+    "website": "http://www.anjosdobrasil.net",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "56d3822ff3e5bb2269000b26",
+    "name": "FoodLabs",
+    "website": "http://www.foodlabs.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b38350ba3ae619e8526183d",
+    "name": "Unreasonable",
+    "website": "http://www.unreasonablegroup.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "56feb6d5f3e5bb5e6a000006",
+    "name": "Social Capital",
+    "website": "http://www.socialcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5c231e89a3ae611de3db0f33",
+    "name": "Maersk Growth",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f3a743cfefbc20114584dce",
+    "name": "Latitud",
+    "website": "http://www.latitud.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "66cccb9367c94501b3ba24dd",
+    "name": "a16z speedrun",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f458c9a060c090001846927",
+    "name": "Notion Capital",
+    "website": "http://www.notion.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e83a0b1cff2f500de83c99f",
+    "name": "Crescent Enterprises",
+    "website": "http://www.crescententerprises.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5b130a49a6da98dcb5c7186f",
+    "name": "Insignia Ventures Partners",
+    "website": "http://www.insignia.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1222369702d94a4241e03",
+    "name": "Golden Gate Ventures",
+    "website": "http://www.goldengate.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b84c98b324d447195ef74bb",
+    "name": "Alteria Capital",
+    "website": "http://www.alteriacapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9f1b12a6da98d977ff91c7",
+    "name": "WaterBridge Ventures",
+    "website": "http://www.waterbridge.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9cf323a6da98d93bdcece6",
+    "name": "Forgepoint Capital",
+    "website": "http://www.forgepointcap.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1217469702d7fe626da02",
+    "name": "Accel-KKR",
+    "website": "http://www.accel-kkr.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9e1413a6da98d93edf1750",
+    "name": "Outlier Ventures",
+    "website": "http://www.outlierventures.io",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e56fe021d6cf000016a7652",
+    "name": "Carbon13",
+    "website": "http://www.carbonthirteen.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9f4db3a6da98d98c73a9ea",
+    "name": "Newchip Accelerator",
+    "website": "http://www.newchip.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1215869702d7fe670c202",
+    "name": "IDG Capital",
+    "website": "http://www.idgcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "61ed5781bdb2cf00010a696f",
+    "name": "Nacre Capital",
+    "website": "http://www.nacrecapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "604a1f3bc67d7f0001e8a467",
+    "name": "We Founder Circle",
+    "website": "http://www.wefoundercircle.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4b9aba6da98372d4ae191",
+    "name": "777 Partners",
+    "website": "http://www.777part.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5569d2af7369642565e99c00",
+    "name": "FasterCapital",
+    "website": "http://www.fastercapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55697d7f73696425cbba4000",
+    "name": "AltamarCAM Partners",
+    "website": "http://www.altamarcam.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5d0d7c4702a222094472d627",
+    "name": "Clean Energy Ventures",
+    "website": "http://www.cleanenergyventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "6141655f87e92a00019ef1fb",
+    "name": "Grupo Fictor",
+    "website": "http://www.fictor.com.br",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f49f363f1b6ba0001f898a7",
+    "name": "Mutares SE & Co. KGaA",
+    "website": "http://www.mutares.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1340e69702d2f9f9c3300",
+    "name": "Orbit Ventures",
+    "website": "http://www.orbitventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d321b20a3ae61a1053afd1f",
+    "name": "TCV",
+    "website": "http://www.tcv.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11ca369702d84c593b400",
+    "name": "Qualcomm Ventures",
+    "website": "http://www.qualcommventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5569a9f673696425b2617300",
+    "name": "Wavemaker Partners",
+    "website": "http://www.wavemakerpartners.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a122ad69702d9a8bfd5f03",
+    "name": "Intellectual Ventures",
+    "website": "http://www.intellectualventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5fce200b4e2d2900f61be4c7",
+    "name": "OurCrowd",
+    "website": "http://www.ourcrowd.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "61d52ad4439d0600a4544b5d",
+    "name": "GETTYLAB",
+    "website": "http://www.gettylab.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5da502630b44a3000157a517",
+    "name": "Avaana Capital",
+    "website": "http://www.avaanacapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9ef247a6da98d98c710abb",
+    "name": "Cemex Ventures",
+    "website": "http://www.cemexventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f4a287dbe95090001a502e6",
+    "name": "Point Nine",
+    "website": "http://www.pointnine.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e57b1635e3c26000104c6b0",
+    "name": "LvlUp Ventures",
+    "website": "http://www.lvlup.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "60ef278ba5658800f6c9a3a8",
+    "name": "VC Lab",
+    "website": "http://www.govclab.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "60b09c55e4991a00012122e6",
+    "name": "Tamilpreneur",
+    "website": "http://www.tamilpreneur.in",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1359c69702d3170470501",
+    "name": "Gobi Partners",
+    "website": "http://www.gobi.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556ce37d73696411d5454b00",
+    "name": "Skill Capital",
+    "website": "http://www.skillcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55ee474df3e5bb22620007ab",
+    "name": "Eight Roads",
+    "website": "http://www.eightroads.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "60f403f6ce494f000190cfba",
+    "name": "Main Capital Partners",
+    "website": "http://www.main.nl",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4fa69a6da986ac74421d7",
+    "name": "PrimeVP",
+    "website": "http://www.primevp.in",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5592235673696418d7608c00",
+    "name": "Initialized Capital",
+    "website": "http://www.initialized.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a134d569702d2f9fdfb100",
+    "name": "OpenView",
+    "website": "http://www.openviewpartners.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "617a2f2bcccbce00da34005e",
+    "name": "Wavemaker Impact",
+    "website": "http://www.wavemakerimpact.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4c5bfa6da983682816348",
+    "name": "Venture Highway",
+    "website": "http://www.venturehighway.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d097e65f651256b59dc8e7f",
+    "name": "Verve Ventures",
+    "website": "http://www.verve.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556cf4b37369641217475e00",
+    "name": "Anplify",
+    "website": "http://www.anplify.com",
+    "country": "",
+    "industry": "investment banking",
+    "description": ""
+  },
+  {
+    "id": "5da42988e9922c0001d91017",
+    "name": "SilverMile Capital",
+    "website": "http://www.silvermilecapital.com",
+    "country": "",
+    "industry": "investment banking",
+    "description": ""
+  },
+  {
+    "id": "60b07805acadd000018f95b1",
+    "name": "Algeria Venture",
+    "website": "http://www.aventure.dz",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "604ab05ffd155500017a2540",
+    "name": "Felix Capital",
+    "website": "http://www.felixcap.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "60b2f526c045a20001e16675",
+    "name": "bossa invest",
+    "website": "http://www.bossainvest.com",
+    "country": "",
+    "industry": "investment banking",
+    "description": ""
+  },
+  {
+    "id": "5da147c3978d8e0001a883df",
+    "name": "Future Africa",
+    "website": "http://www.future.africa",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11e8769702d7fe68d8501",
+    "name": "Square Peg",
+    "website": "http://www.squarepeg.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b85841ff874f72dca253f1c",
+    "name": "Canary",
+    "website": "http://www.canary.com.br",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f2be7e00f4feb00be63cab3",
+    "name": "Aavishkaar Capital",
+    "website": "http://www.aavishkaarcapital.in",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5e5787e6feb36f00019e2f99",
+    "name": "Lightrock",
+    "website": "http://www.lightrock.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a13ca369702d04863cfa01",
+    "name": "360 Capital",
+    "website": "http://www.360cap.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a116ea69702d3ec0332b00",
+    "name": "Hummingbird Ventures",
+    "website": "http://www.hummingbird.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "661d0a023318be0301cded80",
+    "name": "WTFund",
+    "website": "http://www.allthingswtf.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5c25cfb7a3ae617449ce3066",
+    "name": "National Incubation Center Karachi",
+    "website": "http://www.nickarachi.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556d3a217369641276e4bd00",
+    "name": "Inovia Capital",
+    "website": "http://www.inovia.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "61ec366e29c32800015ea332",
+    "name": "Diversica Financial Group",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "613185566ae5340001eef554",
+    "name": "Demium",
+    "website": "http://www.missionfund.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a13b9b69702db45d4b9401",
+    "name": "IAG",
+    "website": "http://www.italianangels.net",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "697902b273f6f30021955025",
+    "name": "Mission (formerly Demium)",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5592353073696424de719700",
+    "name": "Union Square Ventures",
+    "website": "http://www.usv.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4cfefa6da986a57bb2905",
+    "name": "XAnge",
+    "website": "http://www.xange.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a13c8869702d048685f101",
+    "name": "Hamilton Bradshaw Group",
+    "website": "http://www.hamiltonbradshaw.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b14f6c2a6da98712ec1badf",
+    "name": "Trifecta Capital",
+    "website": "http://www.trifectacapital.in",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e570ee8ff5f2800015d2add",
+    "name": "Beyond Group",
+    "website": "http://www.beyondgroup.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5fa9a3516bd514008c1b5580",
+    "name": "Serena Ventures",
+    "website": "http://www.serenaventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1219a69702d8ccc8cce02",
+    "name": "Fonds de solidarit\u00e9 FTQ",
+    "website": "http://www.fondsftq.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556e247a7369641105f92d01",
+    "name": "NFX",
+    "website": "http://www.nfx.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "6188b8f96cac4b0001bfc3ac",
+    "name": "TIM Ventures",
+    "website": "http://www.tim.it",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e5823aff6d38f00011ba217",
+    "name": "European Women in VC",
+    "website": "http://www.europeanwomenvc.org",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5b15e8f7a6da986989e871a9",
+    "name": "FinTech Innovation Lab",
+    "website": "http://www.fintechinnovationlab.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c48b11a6da98159190880e",
+    "name": "daphni",
+    "website": "http://www.daphni.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "60edb6a37b80bd008cee4056",
+    "name": "NotSoLiquid",
+    "website": "http://www.notsoliquid.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d1ca98aa47d950bb8844d0f",
+    "name": "Big Idea Ventures",
+    "website": "http://www.bigideaventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a25ef17468693cdd9eb01d",
+    "name": "Everstone Group",
+    "website": "http://www.everstonegroup.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f42c96bc31d000001fe0957",
+    "name": "Better Capital",
+    "website": "http://www.bettercapital.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55ea67bef3e5bb598f00adaf",
+    "name": "Quona Capital",
+    "website": "http://www.quona.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f48b2460a63ba000143e8ea",
+    "name": "Deep Science Ventures",
+    "website": "http://www.deepscienceventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556d124873696411b60c8400",
+    "name": "BREEGA",
+    "website": "http://www.breega.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55f725cdf3e5bb192c022465",
+    "name": "Atlas Venture",
+    "website": "http://www.atlasventure.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1361469702d48e25ffb00",
+    "name": "REAG Investimentos",
+    "website": "http://www.reagasset.com.br",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "60aed1a73d74f500010a0004",
+    "name": "United Capital Investments Group (UCIG)",
+    "website": "http://www.ucigdmcc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11d6e69702d77c26f2401",
+    "name": "Carlyle AlpInvest",
+    "website": "http://www.carlylealpinvest.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9d5919a6da98d98c6a2026",
+    "name": "STV",
+    "website": "http://www.stv.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d32705c80f93e59c741c82e",
+    "name": "Forward Partners",
+    "website": "http://www.forwardpartners.com",
+    "country": "",
+    "industry": "financial services",
+    "description": ""
+  },
+  {
+    "id": "5a9d6023a6da98d97e75336a",
+    "name": "Summa Equity",
+    "website": "http://www.summaequity.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a122f169702d77c2d44603",
+    "name": "FirstMark",
+    "website": "http://www.firstmark.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1286969702d9313d20e01",
+    "name": "Astella",
+    "website": "http://www.astella.com.br",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ed35486ed5e5400014fa583",
+    "name": "Eximius Ventures",
+    "website": "http://www.eximiusvc.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5e56a9a5979f7d008c95fe9d",
+    "name": "baby vc",
+    "website": "http://www.babyvc.co",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9e799aa6da98d9977c31ef",
+    "name": "RAED Ventures",
+    "website": "http://www.raed.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a13c4869702d2bfdfabd01",
+    "name": "Shore Capital Partners",
+    "website": "http://www.shorecp.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f45952f2059ac00016f21df",
+    "name": "Oakley Capital",
+    "website": "http://www.oakleycapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1b4837468695c82867409",
+    "name": "IvyCap Ventures",
+    "website": "http://www.ivycapventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9f1945a6da98d932e7ca30",
+    "name": "JSW Ventures",
+    "website": "http://www.jswvc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11feb69702d77c2853b02",
+    "name": "TRG - The Resource Group",
+    "website": "http://www.trgworld.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4ddc7a6da986a274f5b5b",
+    "name": "MONASHEES",
+    "website": "http://www.monashees.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1351d69702d317060be00",
+    "name": "Elaia",
+    "website": "http://www.elaia.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f5afaea99bdcf00e42d2d78",
+    "name": "Prosus Ventures",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d09708b80f93e7555f10926",
+    "name": "Serena",
+    "website": "http://www.serena.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f172fa787f9fb01144da7f0",
+    "name": "Aleph",
+    "website": "http://www.aleph.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e5695fbad3e7900010d572e",
+    "name": "Launch Africa Ventures",
+    "website": "http://www.launchafrica.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d09742880f93ed0d65ed10a",
+    "name": "Oxford University Innovation",
+    "website": "http://innovation.ox.ac.uk",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "61eb9dfdb6047d00019a45fa",
+    "name": "Hesabu Capital",
+    "website": "http://www.hesabucap.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c48e9aa6da9816357e11f0",
+    "name": "Tenity",
+    "website": "http://www.tenity.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9da8cea6da98d932e17957",
+    "name": "Roark Capital",
+    "website": "http://www.roarkcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5569f87a73696434cb300100",
+    "name": "Axcel",
+    "website": "http://www.axcel.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5569b60073696425e21c8000",
+    "name": "AIFI - Associazione Italiana Private Equity, Venture Capital e Private Debt",
+    "website": "http://www.aifi.it",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556dc29e73696411de848a01",
+    "name": "Adams Street Partners",
+    "website": "http://www.adamsstreetpartners.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d369c7e80f93eca59c8b190",
+    "name": "Otium",
+    "website": "http://www.otiumcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "6167e336218d9900daabe28e",
+    "name": "Brinc",
+    "website": "http://www.brinc.io",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1219b69702d9d7e4f8402",
+    "name": "IndiaQuotient",
+    "website": "http://www.indiaquotient.in",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a27b6b74686930c25b4526",
+    "name": "Jump Capital",
+    "website": "http://www.jumpcap.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "64ac5ed043f41c00a39d9d57",
+    "name": "NATO Innovation Fund (NIF)",
+    "website": "http://www.nif.fund",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a121b369702d918c83b602",
+    "name": "OMERS Ventures",
+    "website": "http://www.omersventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "56d575fcf3e5bb263a00203b",
+    "name": "LocalGlobe",
+    "website": "http://www.localglobe.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5da6d9482d2fa400017ccb19",
+    "name": "Included VC",
+    "website": "http://www.included.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d3478b080f93ef3bd9a8ed7",
+    "name": "M13",
+    "website": "http://www.m13.co",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a127c169702d90a298e400",
+    "name": "Salt Creek Capital",
+    "website": "http://www.saltcreekcap.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556d6c59736964122aaf0b01",
+    "name": "Canadian Venture Capital & Private Equity Association (CVCA)",
+    "website": "http://www.cvca.ca",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b8452d2f874f74e1e326c3d",
+    "name": "Amethis",
+    "website": "http://www.amethis.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1206169702d918c7b4302",
+    "name": "Felicis",
+    "website": "http://www.felicis.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "559227cd73696418df5b9e00",
+    "name": "Startup 500",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5dcefb2bfb4787008c267bd3",
+    "name": "Montagu",
+    "website": "http://www.montagu.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5592304d7369643bdd616000",
+    "name": "Angel Investor",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1213d69702d84c57f8e02",
+    "name": "Spark Capital",
+    "website": "http://www.sparkcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5dcc6ec0092f0a009878ed47",
+    "name": "Left Lane Capital",
+    "website": "http://www.leftlane.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d3abe95754f110946dc3112",
+    "name": "Omidyar Network India",
+    "website": "http://www.omidyarnetwork.in",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4adfda6da98689e15a1c1",
+    "name": "Modus Capital",
+    "website": "http://www.modus.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ed19a17479e970001dff65d",
+    "name": "Flash Ventures",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e56fe89126a770001d87345",
+    "name": "Odegard Group",
+    "website": "http://www.odegardgroup.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1203069702d9a8b0d5802",
+    "name": "redalpine",
+    "website": "http://www.redalpine.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5fc7941de420d600d67242a1",
+    "name": "Renew Capital",
+    "website": "http://www.renewcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a122ff69702d97c16f8b03",
+    "name": "Alven",
+    "website": "http://www.alven.co",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b84401af874f76934b1513b",
+    "name": "Marina de Empresas",
+    "website": "http://www.marinadeempresas.es",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9d0c45a6da98d954d753e7",
+    "name": "India Accelerator",
+    "website": "http://www.indiaaccelerator.live",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1222d69702d9a8bd22703",
+    "name": "50 Partners",
+    "website": "http://www.50partners.fr",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556d83a5736964124bec2f01",
+    "name": "VentureSouq",
+    "website": "http://www.venturesouq.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a12ac769702d93130c5102",
+    "name": "Hudson Advisors L.P.",
+    "website": "http://www.hudson-advisors.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f84d44c52eaf100dab1639a",
+    "name": "FootPrint Coalition",
+    "website": "http://www.footprintcoalition.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9e4157a6da98d93be58fb1",
+    "name": "Zinc",
+    "website": "http://www.zinc.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4aa2ba6da98687f8e51e4",
+    "name": "Winton",
+    "website": "http://www.winton.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "54a1170f69702d46234f0100",
+    "name": "Sofina",
+    "website": "http://www.sofinagroup.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a2422e7468693a7e95931a",
+    "name": "Upfront Ventures",
+    "website": "http://www.upfront.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "64d38d0a5255dd008b1b35b3",
+    "name": "InVitro Capital",
+    "website": "http://www.invitrocapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11c3469702da7536ea000",
+    "name": "MMC Ventures",
+    "website": "http://www.mmc.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5c23318e80f93ef9e2f16fda",
+    "name": "MAYA CAPITAL",
+    "website": "http://www.maya.capital",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55923aaa7369642393c38600",
+    "name": "FSN Capital Partners",
+    "website": "http://www.fsncapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55ea519ef3e5bb58f8001513",
+    "name": "Anthill Ventures",
+    "website": "http://www.anthillventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "626e19736238a700d9bfbfba",
+    "name": "Ellenox",
+    "website": "http://www.ellenox.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a128b969702dc128db0a01",
+    "name": "YEDA - Technology Transfer Company of Weizmann Institute of Science",
+    "website": "http://www.yedarnd.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "63b12225a1376c00017d09da",
+    "name": "SKR Angels",
+    "website": "http://www.skrangels.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1227869702d94a4d33703",
+    "name": "Siparex",
+    "website": "http://www.siparex.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55924210736964191e87fd00",
+    "name": "Mayfield",
+    "website": "http://www.mayfield.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e5655128c394e0001d63165",
+    "name": "Impact46",
+    "website": "http://www.impact46.sa",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d326c18f651251e9f99a1d3",
+    "name": "b2venture",
+    "website": "http://www.b2venture.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5eb104d24cfadd008d51dffb",
+    "name": "DSH Ventures",
+    "website": "http://www.draperstartuphouse.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e4bb7489e17c200d4a23fc3",
+    "name": "Ada Ventures",
+    "website": "http://www.adaventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55697395736964255d6c3000",
+    "name": "Valor Capital Group",
+    "website": "http://www.valorcapitalgroup.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5cd9ab263ea9200d2de653d5",
+    "name": "Sauce.vc",
+    "website": "http://www.sauce.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "617e16ad091a1d008cddca3d",
+    "name": "Dubai Future District Fund",
+    "website": "http://www.dfdf.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "62e84bbce50d8600cbb1c789",
+    "name": "Impact Shakers",
+    "website": "http://www.impactshakers.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f298d702c142600bef4737c",
+    "name": "Global Women in VC",
+    "website": "http://www.women-vc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d0a4c69f65125eaba17c5a9",
+    "name": "United Green",
+    "website": "http://www.unitedgreen.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "630341514f652100df2f1ed9",
+    "name": "Catalyst Fund",
+    "website": "http://www.thecatalystfund.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "56d8f777f3e5bb57e30028c8",
+    "name": "Ampersand Capital Partners",
+    "website": "http://www.ampersandcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f3e345190a8100001f54f83",
+    "name": "Platanus",
+    "website": "http://www.platan.us",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9e6fd9a6da98d954dc9288",
+    "name": "IVP",
+    "website": "http://www.ivp.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1204769702da4255e3c02",
+    "name": "Playfair",
+    "website": "http://www.playfair.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1216569702d8ed4f39b02",
+    "name": "LVenture Group",
+    "website": "http://www.lventuregroup.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5da61ac55607c8000199f52c",
+    "name": "MCJ",
+    "website": "http://www.mcj.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5c20a15ef6512512d5932fdd",
+    "name": "Angel Ventures",
+    "website": "http://www.angelventures.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "654f6fd089271500017a9eb6",
+    "name": "VC Crafters (Break Into VC)",
+    "website": "http://www.vccrafters.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5592419d73696418b73afa00",
+    "name": "Venrock",
+    "website": "http://www.venrock.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5c5de7f85021b00ec5edd0da",
+    "name": "Paradigm",
+    "website": "http://www.paradigm.xyz",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f72d4880043390115997a79",
+    "name": "Unicorn India Ventures",
+    "website": "http://www.unicornivc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9d1c6da6da98d94d8a5810",
+    "name": "Baobab Network",
+    "website": "http://www.thebaobabnetwork.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d34b2a6f65125866dacd22f",
+    "name": "EBAN - European Business Angel Network",
+    "website": "http://www.eban.org",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5569ceb1736964251ead9800",
+    "name": "Wamda Capital",
+    "website": "http://www.wamdacapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "56d8cb71f3e5bb57db00128d",
+    "name": "F-Prime",
+    "website": "http://www.fprimecapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "66144e6fbfe7210006e0db64",
+    "name": "EXC Managed Services",
+    "website": "http://www.exc.ms",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5db40dd3593a74000126bc90",
+    "name": "Visionaries Club",
+    "website": "http://www.visionaries.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "61869c62e5de3900011e021a",
+    "name": "LPEA - Luxembourg Private Equity & Venture Capital Association",
+    "website": "http://www.lpea.lu",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5da461d9e3ed0a00019a31dc",
+    "name": "\u0645\u0646\u062c\u0645 \u062a\u0637\u0648\u064a\u0631 \u0627\u0644\u0623\u0639\u0645\u0627\u0644 | BIM Ventures",
+    "website": "http://www.bimventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a278b37468693a7e665e25",
+    "name": "Empowerists",
+    "website": "http://www.empowerists.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556e2424736964115a2e1e01",
+    "name": "Blockchain Capital",
+    "website": "http://www.blockchaincapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d09f096f65125cae6ddb191",
+    "name": "Startuplab",
+    "website": "http://www.startuplab.no",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e58037de983c80001fb75d6",
+    "name": "Falak Investment Hub \u0641\u0644\u0643 \u0644\u0644\u0623\u0639\u0645\u0627\u0644 \u0648\u0627\u0644\u0627\u0633\u062a\u062b\u0645\u0627\u0631",
+    "website": "http://www.falak.sa",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "618a8d91b0ad3b00016caf4a",
+    "name": "Molten Ventures",
+    "website": "http://www.moltenventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1205369702d88c4f21b02",
+    "name": "White Star Capital",
+    "website": "http://www.whitestarcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9f503ea6da98d93be904bb",
+    "name": "Algebra Ventures",
+    "website": "http://www.algebraventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a13b1869702d2bfd9c5b01",
+    "name": "YourNest Venture Capital",
+    "website": "http://www.yournest.in",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11c0169702da10f217900",
+    "name": "Sun Capital Partners, Inc.",
+    "website": "http://www.suncappart.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9f6a8fa6da98d9a8de437a",
+    "name": "ASTRA Infra",
+    "website": "http://www.astrainfra.co.id",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9dcd42a6da98d9a15b4fde",
+    "name": "Fasanara Capital",
+    "website": "http://www.fasanara.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5b1444a5a6da98dcdbcbf164",
+    "name": "TPL Corp",
+    "website": "http://www.tplcorp.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556d464873696412022fd900",
+    "name": "Portobello Capital",
+    "website": "http://www.portobellocapital.es",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a122a469702d8aa1142303",
+    "name": "Pitango",
+    "website": "http://www.pitango.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1204c69702d94a44c1c02",
+    "name": "Dawn Capital",
+    "website": "http://www.dawncapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1170f69702d42b7a10d00",
+    "name": "Forerunner",
+    "website": "http://www.forerunnerventures.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5e307898f529af00e2d0a8b1",
+    "name": "Saudi Venture Capital and Private Equity Association",
+    "website": "http://www.vcpea.org.sa",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "65a1fd5b211aa000010919ac",
+    "name": "Miura Partners",
+    "website": "http://www.miura.partners",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55f2b7b2f3e5bb0ba5007282",
+    "name": "High Alpha",
+    "website": "http://www.highalpha.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556cfa3e7369641284086400",
+    "name": "Venture Kick",
+    "website": "http://www.venturekick.ch",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e57eb8854322100017f5dfb",
+    "name": "ChrysCapital",
+    "website": "http://www.chryscapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5c1eadafa3ae6113546cc629",
+    "name": "La Famiglia",
+    "website": "http://www.lafamiglia.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f46c8b60a4a540001ba02d1",
+    "name": "Traded: Venture Capital",
+    "website": "",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5fdc49eff9875f0001de8f16",
+    "name": "Affinitas FZCO",
+    "website": "http://www.affinitasdmcc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556dc96673696411fdbf8701",
+    "name": "Livingbridge",
+    "website": "http://www.livingbridge.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d32d634a3ae61ac7626fab5",
+    "name": "Club degli Investitori",
+    "website": "http://www.clubdeglinvestitori.it",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d0a7e5ba3ae612b52e2ca78",
+    "name": "Emerald Technology Ventures",
+    "website": "http://www.emerald.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1276069702d9ebc126400",
+    "name": "Innovation Works",
+    "website": "http://www.innovationworks.org",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a135d169702d3cbb07f400",
+    "name": "Gulf Capital",
+    "website": "http://www.gulfcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55fa2ac3f3e5bb7166002a12",
+    "name": "Sustainable Ventures",
+    "website": "http://www.sustainableventures.co.uk",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11cd469702d86b6b8c400",
+    "name": "DCVC",
+    "website": "http://www.dcvc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9d18a5a6da98d977f1d58f",
+    "name": "Backstage Capital",
+    "website": "http://www.backstagecapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f4a9a2c2ea3690001ecf0da",
+    "name": "IndieBio",
+    "website": "http://www.indiebio.co",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f3f7b0dc84be20001722f8c",
+    "name": "Vertex Network",
+    "website": "http://www.vertexnetwork.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a122b569702d88c4c88e02",
+    "name": "Pragma",
+    "website": "http://www.pragma.com.tr",
+    "country": "",
+    "industry": "investment banking",
+    "description": ""
+  },
+  {
+    "id": "63d5c69284aea900018d94d0",
+    "name": "ELITE CYBERR",
+    "website": "http://www.eliteventure-capital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ed1bd820fb665000102d1c9",
+    "name": "Verlinvest",
+    "website": "http://www.verlinvest.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11fd969702d94a4caf201",
+    "name": "Obvious Ventures",
+    "website": "http://www.obvious.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4dac7a6da986a132472c5",
+    "name": "Kinetic Investments",
+    "website": "http://www.ki.uk",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11fcd69702d84c509f901",
+    "name": "Guild Capital",
+    "website": "http://www.guildcap.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f4a2f7ff95c15000172241d",
+    "name": "Equistone Partners Europe",
+    "website": "http://www.equistonepe.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e580052a4128d0001ca2bb9",
+    "name": "Fearless Fund",
+    "website": "http://www.fearless.fund",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a25e5a7468693fda8b8c1d",
+    "name": "Riyadh Valley Company (RVC)",
+    "website": "http://www.rvc.com.sa",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4a890a6da98689038cd66",
+    "name": "Kinnevik",
+    "website": "http://www.kinnevik.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5fb1455f90479e008c4ebabc",
+    "name": "Viola Ventures",
+    "website": "http://www.viola-group.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a128e569702d8cfcfa8401",
+    "name": "JVP",
+    "website": "http://www.jvpvc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e56745b37cf0d000154923c",
+    "name": "Global SWF",
+    "website": "http://www.globalswf.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5e56ca381b2f22000113837e",
+    "name": "TDK Ventures",
+    "website": "http://www.tdk-ventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556d569c736964120233f200",
+    "name": "IDIA Capital Investissement",
+    "website": "http://www.ca-idia.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556d39557369641258aeb900",
+    "name": "Athos Partners",
+    "website": "http://www.athospartners.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11fac69702d8cccfc0402",
+    "name": "Cache Ventures",
+    "website": "http://www.cacheventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b148a26a6da98712765a9a9",
+    "name": "Village Global",
+    "website": "http://www.villageglobal.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d09fba5a3ae61c0b8a51a77",
+    "name": "Forge Innovation & Ventures",
+    "website": "http://www.forge-iv.co",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a12add69702d8b199cd302",
+    "name": "VOX Capital",
+    "website": "http://www.voxcapital.com.br",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "5b8623d1f874f706f8e55234",
+    "name": "Falak Startups",
+    "website": "http://www.falakstartups.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9dab9ca6da98d9466edc6f",
+    "name": "5AM Ventures",
+    "website": "http://www.5amventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "556965bb7369642521f21e00",
+    "name": "Eleven Ventures",
+    "website": "http://www.11.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ca9e8ecfc52f80bd41b117b",
+    "name": "Capitaria Latam",
+    "website": "http://www.capitaria.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1214e69702d8ccc4daf02",
+    "name": "Northleaf Capital Partners",
+    "website": "http://www.northleafcapital.com",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "54a128b969702d8b19e8b501",
+    "name": "Cathay Capital",
+    "website": "http://www.cathaycapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "57c4cf04a6da986a7fc943a3",
+    "name": "TLV Partners",
+    "website": "http://www.tlv.partners",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b131e32a6da98dd057cd1df",
+    "name": "Blue Horizon",
+    "website": "http://www.bluehorizon.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5da31babad8161000130eb47",
+    "name": "GSV Ventures",
+    "website": "http://www.gsv.ventures",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ea2e7dc7e93b0008c0f1348",
+    "name": "ACV Capital",
+    "website": "http://www.acv.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5ed7b25cfb2f860001d6187d",
+    "name": "KPTL",
+    "website": "http://www.kptl.com.br",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "56d9bebef3e5bb0b710023c5",
+    "name": "The Chennai Angels",
+    "website": "http://www.thechennaiangels.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11fb169702d8ccce50a02",
+    "name": "Polymath Ventures",
+    "website": "http://www.polymathv.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5f443ad8dabab50001ff2f3c",
+    "name": "100Unicorns",
+    "website": "http://www.100unicorns.in",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e579b595c00fd00015814e9",
+    "name": "FutureSight",
+    "website": "http://www.futuresight.ventures",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5db00a4f5b28f800f9400b0d",
+    "name": "Speciale Invest",
+    "website": "http://www.specialeinvest.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "642112fe469edd00012ee099",
+    "name": "Rosberg Ventures",
+    "website": "http://www.rosberg.ventures",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "666da3d6156f8700013ce091",
+    "name": "Forum Ventures",
+    "website": "http://www.forumvc.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5fb92546a3f8a80099424ffe",
+    "name": "Astanor",
+    "website": "http://www.astanor.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "55f806edf3e5bb45cd001a54",
+    "name": "BITKRAFT Ventures",
+    "website": "http://www.bitkraft.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e5742f86d127c0001d210b6",
+    "name": "Artha Venture Fund",
+    "website": "http://www.artha.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5a9d5107a6da98d9a8d70bec",
+    "name": "Point72 Ventures",
+    "website": "http://www.p72.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "633a7aea1560c000cbe17a19",
+    "name": "SEE Holding",
+    "website": "",
+    "country": "",
+    "industry": "investment management",
+    "description": ""
+  },
+  {
+    "id": "556ced1e73696411d58e5700",
+    "name": "Hi Ventures",
+    "website": "http://www.hi.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d093b61f651251f52755ac9",
+    "name": "Cowboy Ventures",
+    "website": "http://www.cowboy.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1218269702d7fe68ae402",
+    "name": "YL Ventures",
+    "website": "http://www.ylventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11cf569702d77c27af000",
+    "name": "Nana Bianca",
+    "website": "http://www.nanabianca.it",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "60b1fad893fc660001ca2dcb",
+    "name": "Sumo Investments",
+    "website": "http://www.sumosydney.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "65f1c60d808e7b000756bb29",
+    "name": "Everywhere Ventures",
+    "website": "http://www.everywhere.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1285c69702db878cce300",
+    "name": "BlackFin Capital Partners",
+    "website": "http://www.blackfin.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "653fc4a04b3789008b54f41d",
+    "name": "Engine Ventures",
+    "website": "http://www.engineventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a1355c69702d2f9f58f900",
+    "name": "True Ventures",
+    "website": "http://www.trueventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5d9f34f6701efc0098c5e891",
+    "name": "CVX Ventures",
+    "website": "http://www.cvx.vc",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5b83aef5324d440933f20184",
+    "name": "SVG Ventures | THRIVE",
+    "website": "http://www.thriveagrifood.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11e4369702da753027401",
+    "name": "Foundation Capital",
+    "website": "http://www.foundationcapital.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11fa269702d8ed430ef01",
+    "name": "DeA Capital Alternative Funds SGR",
+    "website": "http://www.deacapitalaf.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "5e6b5151e362eb00faaedc3d",
+    "name": "JMI Equity",
+    "website": "http://www.jmi.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "66d698a53e3edb01b2dca714",
+    "name": "Venture Chronicle",
+    "website": "http://www.chronicleventures.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  },
+  {
+    "id": "54a11ea769702d7fe6e88801",
+    "name": "Canaan",
+    "website": "http://www.canaan.com",
+    "country": "",
+    "industry": "venture capital & private equity",
+    "description": ""
+  }
+]

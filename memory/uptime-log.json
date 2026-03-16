@@ -1,0 +1,8 @@
+{
+  "goal": "100% uptime",
+  "services": {
+    "dashboard": { "target": "http://localhost:3737", "status": "unknown" },
+    "cloudflare_tunnel": { "tunnel_id": "82ebc6e5-eeae-4532-8331-325d82345028", "status": "unknown" }
+  },
+  "incidents": []
+}

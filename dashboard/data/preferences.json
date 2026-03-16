@@ -1,0 +1,42 @@
+{
+  "tone": {
+    "value": "direct, no filler words, concise",
+    "confidence": 0.9,
+    "examples": 5
+  },
+  "outreach_style": {
+    "value": "specific signal reference, short, no generic phrases, reference something real about them",
+    "confidence": 0.8,
+    "examples": 3
+  },
+  "message_length": {
+    "value": "under 150 words for outreach, detailed for strategy docs",
+    "confidence": 0.8,
+    "examples": 3
+  },
+  "approval_threshold": {
+    "value": "always suggest before acting on anything external (emails, LinkedIn, public posts)",
+    "confidence": 1.0,
+    "examples": 10
+  },
+  "rejected_phrases": {
+    "value": "I hope this finds you well, reach out, touch base, circle back, synergy, leverage (as a verb), game-changer, thought leader",
+    "confidence": 0.9,
+    "examples": 5
+  },
+  "structure_preference": {
+    "value": "bullet points over paragraphs for lists, concise headers, no horizontal rules, no sycophantic openers",
+    "confidence": 0.85,
+    "examples": 4
+  },
+  "target_icp": {
+    "value": "PE-backed SaaS CEOs and operating partners for Nth Layer; CTOs and VP Engineering at companies building with Tavus/ElevenLabs/Anam for Sonesse",
+    "confidence": 0.95,
+    "examples": 8
+  },
+  "communication_style": {
+    "value": "direct answers first, then context. Never start with 'Great question'. Concise. Structured. Practical.",
+    "confidence": 0.95,
+    "examples": 10
+  }
+}

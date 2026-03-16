@@ -1,0 +1,788 @@
+[
+  {
+    "investor": "Vukani Simuka Capital",
+    "investor_url": "http://www.vukanisimuka.com",
+    "name": "Services",
+    "url": "https://vukanisimuka.com/services/"
+  },
+  {
+    "investor": "Sequoia Capital",
+    "investor_url": "http://www.sequoiacap.com",
+    "name": "Stories",
+    "url": "https://sequoiacap.com/stories/"
+  },
+  {
+    "investor": "Sequoia Capital",
+    "investor_url": "http://www.sequoiacap.com",
+    "name": "Podcasts",
+    "url": "https://sequoiacap.com/podcasts/"
+  },
+  {
+    "investor": "Sequoia Capital",
+    "investor_url": "http://www.sequoiacap.com",
+    "name": "Arc",
+    "url": "https://sequoiacap.com/arc/"
+  },
+  {
+    "investor": "Sequoia Capital",
+    "investor_url": "http://www.sequoiacap.com",
+    "name": "Our Ethos",
+    "url": "https://sequoiacap.com/our-ethos/"
+  },
+  {
+    "investor": "Sequoia Capital",
+    "investor_url": "http://www.sequoiacap.com",
+    "name": "Our History",
+    "url": "https://sequoiacap.com/our-history/"
+  },
+  {
+    "investor": "Sequoia Capital",
+    "investor_url": "http://www.sequoiacap.com",
+    "name": "Legal",
+    "url": "https://sequoiacap.com/legal/"
+  },
+  {
+    "investor": "Sequoia Capital",
+    "investor_url": "http://www.sequoiacap.com",
+    "name": "Sequoia Capital",
+    "url": "https://sequoiacap.com/"
+  },
+  {
+    "investor": "Sequoia Capital",
+    "investor_url": "http://www.sequoiacap.com",
+    "name": "Sequoia Heritage",
+    "url": "https://schf.com"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Conferences",
+    "url": "https://pe-insights.com/private-equity-conferences/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "United Kingdom",
+    "url": "https://pe-insights.com/uk"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Agenda",
+    "url": "https://pe-insights.com/london/agenda/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Speakers",
+    "url": "https://pe-insights.com/london/speakers"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Who Attends",
+    "url": "https://pe-insights.com/london/who-attends"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Sponsors",
+    "url": "https://pe-insights.com/uk-11/sponsors-uk/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Register",
+    "url": "https://pe-insights.com/london/register"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "DACH",
+    "url": "https://pe-insights.com/private-equity-conferences/dach/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Agenda",
+    "url": "https://pe-insights.com/private-equity-conferences/dach/agenda/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Speakers",
+    "url": "https://pe-insights.com/private-equity-conferences/dach/speakers-dach/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Register",
+    "url": "https://pe-insights.com/private-equity-conferences/dach/register/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Benelux",
+    "url": "https://pe-insights.com/private-equity-conferences/benelux/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Agenda",
+    "url": "https://pe-insights.com/private-equity-conferences/benelux/agenda/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Speakers",
+    "url": "https://pe-insights.com/private-equity-conferences/benelux/speakers/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Register",
+    "url": "https://pe-insights.com/private-equity-conferences/benelux/register/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Nordics",
+    "url": "https://pe-insights.com/private-equity-conferences/nordics/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Agenda",
+    "url": "https://pe-insights.com/private-equity-conferences/nordics/agenda/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Speakers",
+    "url": "https://pe-insights.com/private-equity-conferences/nordics/speakers/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Register",
+    "url": "https://pe-insights.com/private-equity-conferences/nordics/register/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Poland &#038; CEE",
+    "url": "https://pe-insights.com/poland-cee"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Agenda",
+    "url": "https://pe-insights.com/poland-cee/agenda"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Speakers",
+    "url": "https://pe-insights.com/poland-cee/speakers"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Who attends",
+    "url": "https://pe-insights.com/poland-cee/who-attends/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Sponsors",
+    "url": "https://pe-insights.com/poland-cee/sponsors/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Register",
+    "url": "https://pe-insights.com/poland-cee/register"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Italy",
+    "url": "https://pe-insights.com/private-equity-conferences/italy/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Agenda",
+    "url": "https://pe-insights.com/private-equity-conferences/italy/agenda/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Speakers",
+    "url": "https://pe-insights.com/private-equity-conferences/italy/speakers/"
+  },
+  {
+    "investor": "Private Equity Insights",
+    "investor_url": "http://www.pe-insights.com",
+    "name": "Register",
+    "url": "https://pe-insights.com/private-equity-conferences/italy/register/"
+  },
+  {
+    "investor": "Andreessen Horowitz",
+    "investor_url": "http://www.a16z.com",
+    "name": "Crypto",
+    "url": "https://a16zcrypto.com"
+  },
+  {
+    "investor": "Andreessen Horowitz",
+    "investor_url": "http://www.a16z.com",
+    "name": "AI&rsquo;s Oppenheimer Moment",
+    "url": "https://a16z.com/ais-oppenheimer-moment/"
+  },
+  {
+    "investor": "Andreessen Horowitz",
+    "investor_url": "http://www.a16z.com",
+    "name": "Why the World Still Runs on SAP",
+    "url": "https://a16z.com/why-the-world-still-runs-on-sap/"
+  },
+  {
+    "investor": "Andreessen Horowitz",
+    "investor_url": "http://www.a16z.com",
+    "name": "Investing in Mind Robotics",
+    "url": "https://a16z.com/announcement/investing-in-mind-robotics/"
+  },
+  {
+    "investor": "Andreessen Horowitz",
+    "investor_url": "http://www.a16z.com",
+    "name": "Investing in Nexthop AI",
+    "url": "https://a16z.com/announcement/investing-in-nexthop/"
+  },
+  {
+    "investor": "Andreessen Horowitz",
+    "investor_url": "http://www.a16z.com",
+    "name": "a16z Build",
+    "url": "https://build.a16z.com/"
+  },
+  {
+    "investor": "Andreessen Horowitz",
+    "investor_url": "http://www.a16z.com",
+    "name": "Disclosures",
+    "url": "https://a16z.com/disclosures/"
+  },
+  {
+    "investor": "Andreessen Horowitz",
+    "investor_url": "http://www.a16z.com",
+    "name": "Sitemap",
+    "url": "https://a16z.com/sitemap/"
+  },
+  {
+    "investor": "Accel",
+    "investor_url": "http://www.accel.com",
+    "name": "Companies",
+    "url": "http://www.accel.com/companies"
+  },
+  {
+    "investor": "Greylock Partners",
+    "investor_url": "http://www.greylock.com",
+    "name": "upgrade your browser",
+    "url": "http://browsehappy.com/"
+  },
+  {
+    "investor": "Greylock Partners",
+    "investor_url": "http://www.greylock.com",
+    "name": "Powered by Consider",
+    "url": "https://product.consider.com/ctc/talent-circle?utm_campaign=undefined"
+  },
+  {
+    "investor": "Bessemer Venture Partners",
+    "investor_url": "http://www.bvp.com",
+    "name": "Consumer",
+    "url": "http://www.bvp.com/consumer"
+  },
+  {
+    "investor": "Bessemer Venture Partners",
+    "investor_url": "http://www.bvp.com",
+    "name": "AI &amp; ML",
+    "url": "http://www.bvp.com/ai"
+  },
+  {
+    "investor": "Bessemer Venture Partners",
+    "investor_url": "http://www.bvp.com",
+    "name": "Cloud",
+    "url": "http://www.bvp.com/atlas?filter=roadmap&value=cloud#filters"
+  },
+  {
+    "investor": "Bessemer Venture Partners",
+    "investor_url": "http://www.bvp.com",
+    "name": "Vertical software",
+    "url": "http://www.bvp.com/companies?filter=portfolio-roadmap&value=vertical-software#portfolio"
+  },
+  {
+    "investor": "Bessemer Venture Partners",
+    "investor_url": "http://www.bvp.com",
+    "name": "2U",
+    "url": "https://www.bvp.com/companies/2u"
+  },
+  {
+    "investor": "Bessemer Venture Partners",
+    "investor_url": "http://www.bvp.com",
+    "name": "Marketplaces",
+    "url": "http://www.bvp.com/companies?filter=portfolio-roadmap&value=marketplaces#portfolio"
+  },
+  {
+    "investor": "Bessemer Venture Partners",
+    "investor_url": "http://www.bvp.com",
+    "name": "Visit Website",
+    "url": "https://2u.com/"
+  },
+  {
+    "investor": "Bessemer Venture Partners",
+    "investor_url": "http://www.bvp.com",
+    "name": "Rob Stavis",
+    "url": "https://www.bvp.com/team/rob-stavis"
+  },
+  {
+    "investor": "Bessemer Venture Partners",
+    "investor_url": "http://www.bvp.com",
+    "name": "Charles Birnbaum",
+    "url": "https://www.bvp.com/team/charles-birnbaum"
+  },
+  {
+    "investor": "Finatal",
+    "investor_url": "http://www.finatal.com",
+    "name": "Practices",
+    "url": "https://finatal.com/practices/"
+  },
+  {
+    "investor": "Finatal",
+    "investor_url": "http://www.finatal.com",
+    "name": "Insights",
+    "url": "https://finatal.com/insights/"
+  },
+  {
+    "investor": "Finatal",
+    "investor_url": "http://www.finatal.com",
+    "name": "Track Record",
+    "url": "https://finatal.com/track-record/"
+  },
+  {
+    "investor": "Finatal",
+    "investor_url": "http://www.finatal.com",
+    "name": "Find a role",
+    "url": "https://finatal.com/job-listings/"
+  },
+  {
+    "investor": "Finatal",
+    "investor_url": "http://www.finatal.com",
+    "name": "Work with us",
+    "url": "https://finatal.com/life-at-finatal/"
+  },
+  {
+    "investor": "Finatal",
+    "investor_url": "http://www.finatal.com",
+    "name": "directly here",
+    "url": "https://finatal.com/contact-us/"
+  },
+  {
+    "investor": "Lightspeed",
+    "investor_url": "http://www.lsvp.com",
+    "name": "Companies",
+    "url": "https://lsvp.com/companies/"
+  },
+  {
+    "investor": "Lightspeed",
+    "investor_url": "http://www.lsvp.com",
+    "name": "Founder Experience",
+    "url": "https://lsvp.com/founder-experience/"
+  },
+  {
+    "investor": "Lightspeed",
+    "investor_url": "http://www.lsvp.com",
+    "name": "Stories",
+    "url": "https://lsvp.com/stories/"
+  },
+  {
+    "investor": "Lightspeed",
+    "investor_url": "http://www.lsvp.com",
+    "name": "Launch",
+    "url": "https://lsvp.com/launch/"
+  },
+  {
+    "investor": "Index Ventures",
+    "investor_url": "http://www.indexventures.com",
+    "name": "Seed",
+    "url": "http://www.indexventures.com/companies/backed/seed/"
+  },
+  {
+    "investor": "Index Ventures",
+    "investor_url": "http://www.indexventures.com",
+    "name": "Index Origin",
+    "url": "http://www.indexventures.com/perspectives/introducing-index-origin-a-200-million-seed-fund-investing-in-entrepreneurs-from-day-one/"
+  },
+  {
+    "investor": "Entrepreneurs First",
+    "investor_url": "http://www.joinef.com",
+    "name": "[START]",
+    "url": "https://apply.joinef.com"
+  },
+  {
+    "investor": "Entrepreneurs First",
+    "investor_url": "http://www.joinef.com",
+    "name": "Insights",
+    "url": "https://www.joinef.com/insights/"
+  },
+  {
+    "investor": "Entrepreneurs First",
+    "investor_url": "http://www.joinef.com",
+    "name": "FAQs",
+    "url": "https://www.joinef.com/faqs/"
+  },
+  {
+    "investor": "Entrepreneurs First",
+    "investor_url": "http://www.joinef.com",
+    "name": "[MENU]",
+    "url": "https://www.joinef.com/"
+  },
+  {
+    "investor": "Entrepreneurs First",
+    "investor_url": "http://www.joinef.com",
+    "name": "Portfolio",
+    "url": "https://www.joinef.com/portfolio/"
+  },
+  {
+    "investor": "Entrepreneurs First",
+    "investor_url": "http://www.joinef.com",
+    "name": "View open roles here",
+    "url": "https://portfolio.joinef.com/jobs"
+  },
+  {
+    "investor": "Entrepreneurs First",
+    "investor_url": "http://www.joinef.com",
+    "name": "London",
+    "url": "https://www.joinef.com/location/london/"
+  },
+  {
+    "investor": "Entrepreneurs First",
+    "investor_url": "http://www.joinef.com",
+    "name": "Automotive &amp; Mobility",
+    "url": "https://www.joinef.com/industry/automotive-mobility/"
+  },
+  {
+    "investor": "Entrepreneurs First",
+    "investor_url": "http://www.joinef.com",
+    "name": "Insurance",
+    "url": "https://www.joinef.com/industry/insurance/"
+  },
+  {
+    "investor": "Entrepreneurs First",
+    "investor_url": "http://www.joinef.com",
+    "name": "Alex Dalyac",
+    "url": "https://www.linkedin.com/in/adalyac/"
+  },
+  {
+    "investor": "Entrepreneurs First",
+    "investor_url": "http://www.joinef.com",
+    "name": "Industrial &amp; Manufacturing",
+    "url": "https://www.joinef.com/industry/industrial-manufacturing/"
+  },
+  {
+    "investor": "Entrepreneurs First",
+    "investor_url": "http://www.joinef.com",
+    "name": "Mostafa ElSayed",
+    "url": "https://www.linkedin.com/in/moselsayed"
+  },
+  {
+    "investor": "H.I.G. Capital",
+    "investor_url": "http://www.hig.com",
+    "name": "Strategies",
+    "url": "https://hig.com/strategies/"
+  },
+  {
+    "investor": "H.I.G. Capital",
+    "investor_url": "http://www.hig.com",
+    "name": "Portfolio",
+    "url": "https://hig.com/portfolio/"
+  },
+  {
+    "investor": "H.I.G. Capital",
+    "investor_url": "http://www.hig.com",
+    "name": "Responsibility",
+    "url": "https://hig.com/responsibility/"
+  },
+  {
+    "investor": "Annalect",
+    "investor_url": "http://www.alliancegroupinvest.co.za",
+    "name": "Our Business",
+    "url": "https://alliancegroupinvest.co.za/our-business/"
+  },
+  {
+    "investor": "Annalect",
+    "investor_url": "http://www.alliancegroupinvest.co.za",
+    "name": "Community Projects",
+    "url": "https://alliancegroupinvest.co.za/communityprojects/"
+  },
+  {
+    "investor": "Titan Capital",
+    "investor_url": "http://www.titancapital.vc",
+    "name": "Cart.com",
+    "url": "https://www.titancapital.vc/cart-com/"
+  },
+  {
+    "investor": "Titan Capital",
+    "investor_url": "http://www.titancapital.vc",
+    "name": "Dealshare",
+    "url": "https://www.titancapital.vc/dealshare/"
+  },
+  {
+    "investor": "Acumen",
+    "investor_url": "http://www.acumen.org",
+    "name": "Support us",
+    "url": "https://acumen.org/individual-family-partners/"
+  },
+  {
+    "investor": "Acumen",
+    "investor_url": "http://www.acumen.org",
+    "name": "Partner with us",
+    "url": "https://acumen.org/institution-partners/"
+  },
+  {
+    "investor": "Acumen",
+    "investor_url": "http://www.acumen.org",
+    "name": "Grow your business",
+    "url": "https://acumen.org/entrepreneurs/"
+  },
+  {
+    "investor": "Acumen",
+    "investor_url": "http://www.acumen.org",
+    "name": "Financials",
+    "url": "https://acumen.org/financials/"
+  },
+  {
+    "investor": "Acumen",
+    "investor_url": "http://www.acumen.org",
+    "name": "Anti-corruption policy",
+    "url": "https://acumen.org/anti-corruption-policy/"
+  },
+  {
+    "investor": "Acumen",
+    "investor_url": "http://www.acumen.org",
+    "name": "Grievances",
+    "url": "https://acumen.org/grievance/"
+  },
+  {
+    "investor": "Acumen",
+    "investor_url": "http://www.acumen.org",
+    "name": "Disclosures",
+    "url": "https://acumen.org/disclosures/"
+  },
+  {
+    "investor": "Acumen",
+    "investor_url": "http://www.acumen.org",
+    "name": "Site by Briteweb",
+    "url": "https://briteweb.com"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Venture Portfolio",
+    "url": "https://ctinnovations.com/investors/venture-portfolio/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Who We Are",
+    "url": "https://ctinnovations.com/learn-about-connecticut-innovations/who-we-are/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Successful Exits",
+    "url": "https://ctinnovations.com/learn-about-connecticut-innovations/exits/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Case Studies",
+    "url": "https://ctinnovations.com/learn-about-connecticut-innovations/case-studies/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Financial Information",
+    "url": "https://ctinnovations.com/learn-about-connecticut-innovations/financial-information/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Talent Acquisition",
+    "url": "https://ctinnovations.com/program/talent-acquisition/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Press",
+    "url": "https://ctinnovations.com/learn-about-connecticut-innovations/press-events/ci-news/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Governance",
+    "url": "https://ctinnovations.com/learn-about-connecticut-innovations/governance/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "RFPs/RFIs/Notice of Public Hearings",
+    "url": "https://ctinnovations.com/learn-about-connecticut-innovations/rfps-rfis/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Obtain Funding",
+    "url": "https://ctinnovations.com/obtain-funding/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Funding Opportunities",
+    "url": "https://ctinnovations.com/obtain-funding/opportunities/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Angel Investor Tax Credit Program",
+    "url": "https://ctinnovations.com/angel-investor-tax-credit-program/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "SSBCI Technical Assistance Program",
+    "url": "https://ctinnovations.com/ssbci-technical-assistance-program/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Investors",
+    "url": "https://ctinnovations.com/investors/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Investment Strategy",
+    "url": "https://ctinnovations.com/investors/investment-strategy/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Explore Connections",
+    "url": "https://ctinnovations.com/explore-connections/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Access Content Library",
+    "url": "https://ctinnovations.com/access-content-library/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Job Seekers",
+    "url": "https://ctinnovations.com/learn-about-connecticut-innovations/jobs/"
+  },
+  {
+    "investor": "Connecticut Innovations",
+    "investor_url": "http://www.ctinnovations.com",
+    "name": "Connect With Us",
+    "url": "https://ctinnovations.com/connect/"
+  },
+  {
+    "investor": "IAN Group",
+    "investor_url": "http://www.iangroup.vc",
+    "name": "IAN Group",
+    "url": "https://iangroup.vc/"
+  },
+  {
+    "investor": "IAN Group",
+    "investor_url": "http://www.iangroup.vc",
+    "name": "Join IAN Angel Fund",
+    "url": "https://iangroup.vc/join-ian-angel-fund/"
+  },
+  {
+    "investor": "IAN Group",
+    "investor_url": "http://www.iangroup.vc",
+    "name": "Join IAN Alpha Fund",
+    "url": "https://alpha.indianangelnetwork.com/"
+  },
+  {
+    "investor": "IAN Group",
+    "investor_url": "http://www.iangroup.vc",
+    "name": "Events",
+    "url": "https://iangroup.vc/events/"
+  },
+  {
+    "investor": "IAN Group",
+    "investor_url": "http://www.iangroup.vc",
+    "name": "Submit Plan",
+    "url": "https://iangroup.vc/submit-plan/"
+  },
+  {
+    "investor": "IAN Group",
+    "investor_url": "http://www.iangroup.vc",
+    "name": "IAN Insights",
+    "url": "https://iangroup.vc/newsletters-reports/"
+  },
+  {
+    "investor": "IAN Group",
+    "investor_url": "http://www.iangroup.vc",
+    "name": "Partnerships",
+    "url": "https://iangroup.vc/partnerships/"
+  },
+  {
+    "investor": "IAN Group",
+    "investor_url": "http://www.iangroup.vc",
+    "name": "Refund &#038; Cancellation Policy",
+    "url": "https://iangroup.vc/refund-and-cancellation-policy/"
+  },
+  {
+    "investor": "2070 Health",
+    "investor_url": "http://www.2070health.com",
+    "name": "See more",
+    "url": "https://2070health.com/companies/"
+  },
+  {
+    "investor": "Balderton",
+    "investor_url": "http://www.balderton.com",
+    "name": "Companies",
+    "url": "https://www.balderton.com/companies/"
+  },
+  {
+    "investor": "Balderton",
+    "investor_url": "http://www.balderton.com",
+    "name": "Founder Spotlights",
+    "url": "https://www.balderton.com/founder-spotlights/"
+  },
+  {
+    "investor": "Balderton",
+    "investor_url": "http://www.balderton.com",
+    "name": "ESG",
+    "url": "https://www.balderton.com/resources/category/esg/"
+  },
+  {
+    "investor": "Balderton",
+    "investor_url": "http://www.balderton.com",
+    "name": "Talent &amp; Culture",
+    "url": "https://www.balderton.com/resources/category/talent-culture/"
+  },
+  {
+    "investor": "Balderton",
+    "investor_url": "http://www.balderton.com",
+    "name": "Marketing",
+    "url": "https://www.balderton.com/resources/category/marketing/"
+  },
+  {
+    "investor": "Balderton",
+    "investor_url": "http://www.balderton.com",
+    "name": "Events",
+    "url": "https://www.balderton.com/news/category/events/"
+  }
+]

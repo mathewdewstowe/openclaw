@@ -1,14 +1,83 @@
 [
   {
+    "id": "goal-1773613936188",
+    "title": "Reach approve-and-action operating model",
+    "description": "Matthew reviews and approves AI-prepared work each morning. OpenClaw executes everything approved. Matthew spends time on customers, product, and thinking — not research, drafting, or admin. Target: 80% of daily operational work executed by agents without Matthew initiating it.",
+    "target": 80,
+    "current": 15,
+    "unit": "% automated",
+    "lastUpdated": "15/03/2026",
+    "createdAt": "2026-03-15T22:32:16.188Z"
+  },
+  {
+    "id": "goal-1773613045702",
+    "title": "Customer conversations this week",
+    "description": "Time freed by automation should go here. Direct conversations with potential Sonesse buyers and Nth Layer clients. Goal: replace research time with human time.",
+    "target": 5,
+    "current": 0,
+    "unit": "conversations",
+    "lastUpdated": "15/03/2026",
+    "createdAt": "2026-03-15T22:17:25.702Z"
+  },
+  {
+    "id": "goal-1773613045690",
+    "title": "Hours saved on repetitive work per week",
+    "description": "OpenClaw automation removes: manual prospecting, inbox triage, content writing, reporting, CRM updates. Time reclaimed goes to customers, product, fundraising.",
+    "target": 10,
+    "current": 0,
+    "unit": "hours",
+    "lastUpdated": "15/03/2026",
+    "createdAt": "2026-03-15T22:17:25.690Z"
+  },
+  {
+    "id": "goal-1773613045677",
+    "title": "Outreach messages drafted per week",
+    "description": "Founder outreach engine — personalised LinkedIn/email messages ready to send, comment responses, follow-ups tied to signals. You decide and send.",
+    "target": 10,
+    "current": 0,
+    "unit": "messages",
+    "lastUpdated": "15/03/2026",
+    "createdAt": "2026-03-15T22:17:25.677Z"
+  },
+  {
+    "id": "goal-1773613045664",
+    "title": "New qualified prospects per week",
+    "description": "Prospect discovery engine — Apollo + LinkedIn ICP matches, enriched with company size, tech stack, hiring roles, funding. Ranked by buying likelihood.",
+    "target": 20,
+    "current": 0,
+    "unit": "prospects",
+    "lastUpdated": "15/03/2026",
+    "createdAt": "2026-03-15T22:17:25.664Z"
+  },
+  {
+    "id": "goal-1773613045624",
+    "title": "Signals actioned per week",
+    "description": "Market and signal monitoring — LinkedIn posts, funding rounds, competitor moves, hiring spikes. Each signal should generate an outreach trigger or product idea.",
+    "target": 10,
+    "current": 0,
+    "unit": "signals",
+    "lastUpdated": "15/03/2026",
+    "createdAt": "2026-03-15T22:17:25.624Z"
+  },
+  {
+    "id": "goal-1773597567416",
+    "title": "Save 30,000 for a deposit",
+    "description": "",
+    "target": 30000,
+    "current": 0,
+    "unit": "Pounds",
+    "lastUpdated": "15/03/2026",
+    "createdAt": "2026-03-15T17:59:27.416Z"
+  },
+  {
     "id": "1",
     "title": "10 Hot Leads for Sonesse",
     "description": "Sonesse is an integration layer for conversational AI vendors (video/audio/chat) into Zoom and Microsoft Teams",
     "target": 10,
     "current": 0,
     "unit": "leads",
-    "quarter": "Q1 2026",
-    "status": "In Progress",
-    "lastUpdated": "2026-03-05"
+    "lastUpdated": "2026-03-05",
+    "createdAt": "2026-03-05"
   },
   {
     "id": "2",
@@ -17,8 +86,7 @@
     "target": 1,
     "current": 0,
     "unit": "deals",
-    "quarter": "Q1 2026",
-    "status": "In Progress",
-    "lastUpdated": "2026-03-05"
+    "lastUpdated": "2026-03-05",
+    "createdAt": "2026-03-05"
   }
 ]

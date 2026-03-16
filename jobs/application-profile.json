@@ -1,0 +1,65 @@
+{
+  "name": "Matthew Dewstowe",
+  "email": "matthewdewstowe@gmail.com",
+  "phone": "+447572869043",
+  "location": "Tenby, Wales",
+  "rightToWork": true,
+  "noticePeriod": "Immediate",
+  "salaryExpectation": {
+    "perm": "\u00a3150,000 + bonus",
+    "permMin": 150000,
+    "contract": "\u00a3700-800/day",
+    "contractMin": 700
+  },
+  "locationPreference": [
+    "Remote",
+    "Hybrid"
+  ],
+  "linkedIn": "https://www.linkedin.com/in/matthew-james-dewstowe-2a9a931bb",
+  "cv": "/home/matthewdewstowe/.openclaw/workspace/cv/Matthew_Dewstowe_CV.pdf",
+  "coverLetter": false,
+  "blacklist": [],
+  "skipTitles": [
+    "Product Manager",
+    "Senior Product Manager",
+    "Junior Product Manager",
+    "Associate Product Manager"
+  ],
+  "targetTitles": [
+    "Head of Product",
+    "Director of Product",
+    "VP of Product",
+    "CPO",
+    "Fractional",
+    "Interim",
+    "Principal Product",
+    "Product Strategy",
+    "Product Director"
+  ],
+  "keyStrengths": [
+    "AI-native product leader with exit (Innovantage \u2192 7-figure ARR)",
+    "Agentic AI, NLP, conversational AI",
+    "PE/VC-backed SaaS environments",
+    "Fractional CPO experience (Marlin PE)",
+    "TalentFlow launch \u2014 90% reduction in sourcing time",
+    "Scaled freelancer platform to 10,000+ members",
+    "Computer Science & Maths, University of Nottingham"
+  ],
+  "allowedTitles": [
+    "Head of Product",
+    "Director of Product",
+    "VP of Product",
+    "CPO",
+    "Chief Product Officer",
+    "Fractional CPO",
+    "Interim CPO",
+    "Principal Product",
+    "Product Director",
+    "Product Strategy",
+    "Group Product",
+    "Head of AI",
+    "Director of AI",
+    "Management Consultant",
+    "Strategy Consultant"
+  ]
+}

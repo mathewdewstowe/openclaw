@@ -2,56 +2,51 @@
   {
     "id": "1",
     "title": "Build High-Signal Lead Gen Agent",
-    "description": "An agent that monitors hiring signals, funding data, LinkedIn activity and G2 reviews to find companies actively evaluating conversational AI for Zoom/Teams. Scores leads by how many signals fire simultaneously.",
-    "impact": 5,
-    "effort": 4,
-    "goalAlignment": "Sonesse — 10 hot leads",
+    "client": null,
+    "value": null,
     "status": "approved",
-    "createdAt": "2026-03-05",
-    "approved": true
+    "goalAlignment": "Sonesse — 10 hot leads",
+    "notes": "Impact:5 Effort:4. Monitors hiring signals, funding data, LinkedIn activity and G2 reviews.",
+    "createdAt": "2026-03-05"
   },
   {
     "id": "2",
     "title": "Automated LinkedIn Outreach Sequences",
-    "description": "Once browser automation is live, automatically send personalised connection requests and follow-up messages to prospects with context from their recent activity (job postings, LinkedIn posts, funding news).",
-    "impact": 5,
-    "effort": 3,
-    "goalAlignment": "Sonesse + Nth Layer",
+    "client": null,
+    "value": null,
     "status": "proposed",
-    "createdAt": "2026-03-05",
-    "approved": false
-  },
-  {
-    "id": "3",
-    "title": "Daily Gmail Triage Agent",
-    "description": "Each morning scan Gmail for emails needing action, categorise them (reply needed, FYI, lead, opportunity) and send a prioritised summary. Auto-draft replies for routine emails.",
-    "impact": 4,
-    "effort": 2,
-    "goalAlignment": "Workflow efficiency",
-    "status": "approved",
-    "createdAt": "2026-03-05",
-    "approved": true
+    "goalAlignment": "Sonesse + Nth Layer",
+    "notes": "Impact:5 Effort:3. Blocked on browser automation.",
+    "createdAt": "2026-03-05"
   },
   {
     "id": "4",
     "title": "Nth Layer Pipeline Tracker",
-    "description": "Connect Pipedrive to a daily agent that reviews deal stages, flags stalled opportunities and suggests next actions. Sends a daily pipeline briefing with specific recommended actions per deal.",
-    "impact": 4,
-    "effort": 2,
-    "goalAlignment": "Nth Layer — close a deal",
+    "client": null,
+    "value": null,
     "status": "approved",
-    "createdAt": "2026-03-05",
-    "approved": true
+    "goalAlignment": "Nth Layer — close a deal",
+    "notes": "Impact:4 Effort:2. Needs Pipedrive API key.",
+    "createdAt": "2026-03-05"
   },
   {
     "id": "5",
     "title": "Community Engagement Tracker",
-    "description": "Track which Reddit/HN/LinkedIn discussions you've engaged with, monitor for replies/follow-ups and surface threads gaining traction. Measures engagement rate vs new leads generated.",
-    "impact": 3,
-    "effort": 2,
-    "goalAlignment": "Sonesse — brand awareness + leads",
+    "client": null,
+    "value": null,
     "status": "approved",
-    "createdAt": "2026-03-05",
-    "approved": true
+    "goalAlignment": "Sonesse — brand awareness + leads",
+    "notes": "Impact:3 Effort:2. Reddit/HN/LinkedIn threads.",
+    "createdAt": "2026-03-05"
+  },
+  {
+    "id": "3",
+    "title": "Daily Gmail Triage Agent",
+    "client": null,
+    "value": null,
+    "status": "skipped",
+    "goalAlignment": "Workflow efficiency",
+    "notes": "Impact:4 Effort:2. Morning scan, categorise, auto-draft replies.",
+    "createdAt": "2026-03-05"
   }
 ]

@@ -1,16 +1,20 @@
 # USER.md - About Your Human
 
-_Learn about the person you're helping. Update this as you go._
-
-- **Name:**
-- **What to call them:**
-- **Pronouns:** _(optional)_
-- **Timezone:**
-- **Notes:**
+- **Name:** Matthew Dewstowe
+- **What to call them:** Matthew
+- **Pronouns:** He/Him
+- **Timezone:** Europe/London (GMT/BST)
+- **Location:** Tenby, Wales (travels weekly to Cardiff; also works from London)
 
 ## Context
 
-_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
+See MEMORY.md for full context. Key points:
+- Founder, exited (Innovantage → Bullhorn)
+- AI-native product leader, fractional CPO
+- Building Umified / Sonesse + running Nth Layer consulting
+- Neurodivergent: Autistic, ADHD, OCD
+- Needs concise, structured, direct communication
+- Values efficiency and execution over theory
 
 ---
 

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Command Centre — Option 1: War Room</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace; font-size: 13px; padding: 16px; }
+  h1 { font-size: 18px; color: #e1e4e8; margin-bottom: 4px; }
+  .subtitle { color: #8b949e; font-size: 12px; margin-bottom: 20px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; }
+  .card-title { font-size: 10px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .progress-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .progress-label { flex: 1; color: #c9d1d9; font-size: 13px; }
+  .progress-val { color: #8b949e; font-size: 12px; min-width: 40px; text-align: right; }
+  .progress-bar { width: 100%; height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; }
+  .metric-row { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #21262d; }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-label { color: #8b949e; font-size: 12px; }
+  .metric-val { font-size: 13px; font-weight: 600; }
+  .blocker { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12px; color: #c9d1d9; }
+  .dot-red { width: 8px; height: 8px; border-radius: 50%; background: #f85149; flex-shrink: 0; }
+  .dot-yellow { width: 8px; height: 8px; border-radius: 50%; background: #e3b341; flex-shrink: 0; }
+  .agent-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; font-size: 12px; }
+  .badge-ok { background: #238636; color: #fff; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+  .badge-err { background: #da3633; color: #fff; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+  .badge-warn { background: #9e6a03; color: #fff; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+  .action-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #21262d; }
+  .action-item:last-child { border-bottom: none; }
+  .action-num { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .action-text { font-size: 13px; color: #e1e4e8; }
+  .action-sub { font-size: 11px; color: #8b949e; margin-top: 2px; }
+  .full { grid-column: 1 / -1; }
+  .big-num { font-size: 28px; font-weight: 700; line-height: 1; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-item { text-align: center; padding: 8px; background: #0d1117; border-radius: 6px; }
+  .stat-label { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .week-bar { display: flex; gap: 3px; margin-top: 8px; align-items: flex-end; height: 30px; }
+  .week-bar-item { flex: 1; background: #58a6ff; border-radius: 2px 2px 0 0; opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<h1>⚡ Command Centre — Option 1</h1>
+<p class="subtitle">The War Room · Dense · High-signal · No scrolling</p>
+
+<!-- Row 1: Goals + Pipeline -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-title">🎯 Q1 Goals</div>
+    <div class="progress-row">
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#c9d1d9;">Sonesse hot leads</span><span style="font-size:12px;color:#8b949e;">3/10</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:30%;background:#3fb950;"></div></div>
+      </div>
+    </div>
+    <div class="progress-row" style="margin-top:8px;">
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#c9d1d9;">Nth Layer deal closed</span><span style="font-size:12px;color:#8b949e;">0/1</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:#f85149;"></div></div>
+      </div>
+    </div>
+    <div class="progress-row" style="margin-top:8px;">
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#c9d1d9;">Automation coverage</span><span style="font-size:12px;color:#8b949e;">15/80%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:18%;background:#e3b341;"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💼 Pipeline</div>
+    <div class="metric-row">
+      <span class="metric-label">Nth Layer deals (target: 1)</span>
+      <span class="metric-val" style="color:#f85149;">0</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">Sonesse hot leads (target: 10)</span>
+      <span class="metric-val" style="color:#3fb950;">3</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">Welsh targets identified</span>
+      <span class="metric-val" style="color:#58a6ff;">22</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">Apollo sequences active</span>
+      <span class="metric-val" style="color:#8b949e;">0</span>
+    </div>
+  </div>
+</div>
+
+<!-- Row 2: Weekly metrics -->
+<div class="card" style="margin-bottom:12px;">
+  <div class="card-title">📊 This Week's Metrics</div>
+  <div class="grid-4">
+    <div class="stat-item">
+      <div class="big-num" style="color:#58a6ff;">2</div>
+      <div class="stat-label">Signals / 10</div>
+      <div class="week-bar">
+        <div class="week-bar-item" style="height:40%;background:#58a6ff;"></div>
+        <div class="week-bar-item" style="height:70%;background:#58a6ff;"></div>
+        <div class="week-bar-item" style="height:20%;background:#58a6ff;"></div>
+        <div class="week-bar-item" style="height:60%;background:#58a6ff;"></div>
+        <div class="week-bar-item" style="height:30%;background:#58a6ff;"></div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="big-num" style="color:#3fb950;">5</div>
+      <div class="stat-label">Prospects / 20</div>
+      <div class="week-bar">
+        <div class="week-bar-item" style="height:50%;background:#3fb950;"></div>
+        <div class="week-bar-item" style="height:80%;background:#3fb950;"></div>
+        <div class="week-bar-item" style="height:30%;background:#3fb950;"></div>
+        <div class="week-bar-item" style="height:100%;background:#3fb950;"></div>
+        <div class="week-bar-item" style="height:45%;background:#3fb950;"></div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="big-num" style="color:#e3b341;">0</div>
+      <div class="stat-label">Outreach / 10</div>
+      <div class="week-bar">
+        <div class="week-bar-item" style="height:10%;background:#e3b341;"></div>
+        <div class="week-bar-item" style="height:10%;background:#e3b341;"></div>
+        <div class="week-bar-item" style="height:10%;background:#e3b341;"></div>
+        <div class="week-bar-item" style="height:10%;background:#e3b341;"></div>
+        <div class="week-bar-item" style="height:10%;background:#e3b341;"></div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="big-num" style="color:#bc8cff;">3</div>
+      <div class="stat-label">Hrs saved / 10</div>
+      <div class="week-bar">
+        <div class="week-bar-item" style="height:30%;background:#bc8cff;"></div>
+        <div class="week-bar-item" style="height:30%;background:#bc8cff;"></div>
+        <div class="week-bar-item" style="height:30%;background:#bc8cff;"></div>
+        <div class="week-bar-item" style="height:30%;background:#bc8cff;"></div>
+        <div class="week-bar-item" style="height:30%;background:#bc8cff;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 3: Blockers + Agents -->
+<div class="grid-2" style="margin-bottom:12px;">
+  <div class="card">
+    <div class="card-title">🚧 Blockers & Risks</div>
+    <div class="blocker"><div class="dot-red"></div>WhatsApp offline — briefing cron failing</div>
+    <div class="blocker"><div class="dot-red"></div>Pipedrive API key missing — lead gen blocked</div>
+    <div class="blocker"><div class="dot-yellow"></div>Brave Search API key not set</div>
+    <div class="blocker"><div class="dot-yellow"></div>GoG Gmail token expired</div>
+    <div class="blocker"><div class="dot-yellow"></div>nthlayerbot.co.uk DNS → Cloudflare pending</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🤖 Agent Status</div>
+    <div class="agent-row"><span>8:30AM Briefing</span><span class="badge-warn">FIXED</span></div>
+    <div class="agent-row"><span>9PM Debrief</span><span class="badge-ok">OK</span></div>
+    <div class="agent-row"><span>11PM Backup</span><span class="badge-ok">OK</span></div>
+    <div class="agent-row"><span>Lead Gen (9AM)</span><span class="badge-err">ERROR</span></div>
+    <div class="agent-row"><span>Sonesse Tutorials</span><span class="badge-err">ERROR</span></div>
+    <div class="agent-row"><span>Midnight Summary</span><span class="badge-warn">FIXED</span></div>
+  </div>
+</div>
+
+<!-- Row 4: Top actions -->
+<div class="card">
+  <div class="card-title">💡 Top Actions Today</div>
+  <div class="action-item">
+    <div class="action-num" style="background:#f85149;">1</div>
+    <div><div class="action-text">Define pricing for Sonesse and Nth Layer</div><div class="action-sub">High priority · Pending you · Blocks positioning + outreach</div></div>
+  </div>
+  <div class="action-item">
+    <div class="action-num" style="background:#e3b341;">2</div>
+    <div><div class="action-text">Share Pipedrive API key</div><div class="action-sub">Blocks Apollo lead gen agent (9AM cron)</div></div>
+  </div>
+  <div class="action-item">
+    <div class="action-num" style="background:#3fb950;">3</div>
+    <div><div class="action-text">Reconnect WhatsApp</div><div class="action-sub">Run: openclaw channels login --channel whatsapp</div></div>
+  </div>
+</div>
+
+</body>
+</html>

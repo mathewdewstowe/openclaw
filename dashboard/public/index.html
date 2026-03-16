@@ -48,12 +48,35 @@
   .badge-live { background: #1a2f1a; color: #3fb950; }
 
   /* TASKS */
-  .task-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #21262d; }
+  .task-item { border-bottom: 1px solid #21262d; padding: 0; cursor:pointer; }
   .task-item:last-child { border-bottom: none; }
-  .task-item input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #238636; flex-shrink: 0; }
+  .task-item-header { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+  .task-item-header input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #238636; flex-shrink: 0; }
   .task-item .task-text { flex: 1; font-size: 14px; }
   .task-item.done .task-text { text-decoration: line-through; color: #8b949e; }
+  .task-expand-icon { font-size:11px;color:#8b949e;flex-shrink:0;transition:transform 0.15s; }
+  .task-item.expanded .task-expand-icon { transform: rotate(180deg); }
+  .task-detail { display:none; padding:0 0 14px 28px; }
+  .task-item.expanded .task-detail { display:block; }
+  .task-steps { list-style:none;padding:0;margin:0 0 10px; }
+  .task-steps li { font-size:13px;color:#c9d1d9;padding:5px 0;display:flex;gap:8px;line-height:1.5; }
+  .task-steps li::before { content:"→";color:#58a6ff;flex-shrink:0; }
+  .task-notes-area { width:100%;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:13px;padding:8px;resize:vertical;min-height:60px;font-family:inherit; }
+  .task-notes-area:focus { outline:none;border-color:#58a6ff; }
+  .task-detail-actions { display:flex;gap:8px;margin-top:8px;flex-wrap:wrap; }
+  @media(max-width:600px) { .task-item-header { padding:10px 0; } .task-detail { padding:0 0 12px 8px; } }
   .task-group-title { font-size: 11px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
+  .today-priority-item.open .today-priority-detail { display:block !important; }
+  .today-priority-item.open .today-chevron { transform:rotate(180deg); }
+  .kanban-col { min-height: 200px; }
+  .kanban-card { background: #21262d; border: 1px solid #30363d; border-radius:8px; padding:10px 12px; margin-bottom:8px; cursor:grab; font-size:13px; color:#c9d1d9; transition:border-color 0.15s; }
+  .kanban-card:hover { border-color:#58a6ff; }
+  .kanban-card.dragging { opacity:0.4; }
+  .kanban-cards.drag-over { background:#58a6ff10; border-radius:6px; }
+  .kanban-card .card-meta { font-size:11px;color:#8b949e;margin-top:6px;display:flex;gap:8px;flex-wrap:wrap; }
+  .kanban-card .card-badge { padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600; }
+  .task-item .task-due { font-size:11px;color:#8b949e;margin-left:auto;cursor:pointer; }
+  .task-item .task-due:hover { color:#58a6ff; }
   .add-task { display: flex; gap: 8px; margin-top: 16px; }
   .add-task input { flex: 1; padding: 8px 12px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #e1e4e8; font-size: 13px; outline: none; }
   .btn-sm { padding: 8px 16px; background: #238636; border: none; border-radius: 6px; color: white; font-size: 13px; cursor: pointer; }
@@ -175,7 +198,9 @@
   </header>
 
   <nav>
-    <button class="active" onclick="switchTab('tasks', this)">✅ Tasks</button>
+    <button class="active" onclick="switchTab('today', this)">⚡ Today</button>
+    <button onclick="switchTab('yesterday', this)">📅 Yesterday</button>
+    <button onclick="switchTab('tasks', this)">✅ Tasks</button>
     <button onclick="switchTab('agents', this)">🤖 Agents</button>
     <button onclick="switchTab('systems', this)">🔌 Systems</button>
     <button onclick="switchTab('memory', this)">🧠 Memory</button>
@@ -190,16 +215,57 @@
 
   <main>
     <!-- TASKS TAB -->
-    <div id="tab-tasks" class="tab-content active">
-      <div class="card">
-        <div class="section-title">Outstanding Tasks</div>
-        <div id="tasks-blocked"><div class="task-group-title">🔴 Blocked</div></div>
-        <div id="tasks-pending"><div class="task-group-title">🟡 Pending You</div></div>
-        <div id="tasks-progress"><div class="task-group-title">🔵 In Progress</div></div>
-        <div id="tasks-done" style="display:none"><div class="task-group-title">✅ Done</div></div>
-        <div class="add-task">
-          <input type="text" id="new-task-input" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addTask()" />
+    <div id="tab-tasks" class="tab-content">
+      <!-- Toolbar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <div style="display:flex;gap:8px;">
+          <button id="btn-list-view" onclick="setTaskView('list')" style="padding:6px 14px;border-radius:6px;border:1px solid #58a6ff;background:#58a6ff22;color:#58a6ff;font-size:12px;font-weight:600;cursor:pointer;">≡ List</button>
+          <button id="btn-kanban-view" onclick="setTaskView('kanban')" style="padding:6px 14px;border-radius:6px;border:1px solid #30363d;background:transparent;color:#8b949e;font-size:12px;font-weight:600;cursor:pointer;">⊞ Kanban</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="new-task-input" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addTask()" style="padding:6px 12px;border-radius:6px;border:1px solid #30363d;background:#161b22;color:#e1e4e8;font-size:13px;width:260px;"/>
           <button class="btn-sm" onclick="addTask()">Add</button>
+        </div>
+      </div>
+
+      <!-- LIST VIEW -->
+      <div id="tasks-list-view">
+        <div class="card">
+          <div id="tasks-blocked"><div class="task-group-title">🔴 Blocked</div></div>
+          <div id="tasks-pending"><div class="task-group-title">🟡 Pending You</div></div>
+          <div id="tasks-progress"><div class="task-group-title">🔵 In Progress</div></div>
+          <div id="tasks-done" style="display:none">
+            <div class="task-group-title" style="display:flex;align-items:center;justify-content:space-between;">
+              <span>✅ Done</span>
+              <button onclick="toggleDone()" id="toggle-done-btn" style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid #30363d;background:#161b22;color:#8b949e;cursor:pointer;">Hide</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KANBAN VIEW -->
+      <div id="tasks-kanban-view" style="display:none;">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:start;">
+          <div class="kanban-col" id="kanban-Urgent" data-col="Urgent">
+            <div style="font-size:11px;font-weight:700;color:#f85149;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:8px 12px;background:#f8514915;border-radius:6px;">🔥 Urgent</div>
+            <div class="kanban-cards" id="kanban-cards-Urgent"></div>
+          </div>
+          <div class="kanban-col" id="kanban-Today" data-col="Today">
+            <div style="font-size:11px;font-weight:700;color:#e3b341;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:8px 12px;background:#e3b34115;border-radius:6px;">⚡ Today</div>
+            <div class="kanban-cards" id="kanban-cards-Today"></div>
+          </div>
+          <div class="kanban-col" id="kanban-Later" data-col="Later">
+            <div style="font-size:11px;font-weight:700;color:#58a6ff;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:8px 12px;background:#58a6ff15;border-radius:6px;">📋 Later</div>
+            <div class="kanban-cards" id="kanban-cards-Later"></div>
+          </div>
+          <div class="kanban-col" id="kanban-Future" data-col="Future">
+            <div style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:8px 12px;background:#8b949e15;border-radius:6px;">🗓 Future</div>
+            <div class="kanban-cards" id="kanban-cards-Future"></div>
+          </div>
+          <div class="kanban-col" id="kanban-Completed" data-col="Completed">
+            <div style="font-size:11px;font-weight:700;color:#3fb950;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:8px 12px;background:#3fb95015;border-radius:6px;">✅ Completed</div>
+            <div class="kanban-cards" id="kanban-cards-Completed"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -227,6 +293,22 @@
     <!-- GOALS TAB -->
     <div id="tab-goals" class="tab-content">
       <div class="section-title">Q1 2026 Goals</div>
+
+      <!-- Add Goal Form -->
+      <div class="card" style="margin-bottom:20px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px">➕ Add New Goal</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <input type="text" id="new-goal-title" placeholder="Goal title (e.g. 10 hot leads)" style="padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none" />
+          <input type="text" id="new-goal-desc" placeholder="Description" style="padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+          <input type="number" id="new-goal-target" placeholder="Target (e.g. 10)" min="0" style="padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none" />
+          <input type="number" id="new-goal-current" placeholder="Current progress (0)" min="0" value="0" style="padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none" />
+          <input type="text" id="new-goal-unit" placeholder="Unit (e.g. leads, £, deals)" style="padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none" />
+        </div>
+        <button class="btn-sm" onclick="addGoal()">Add Goal</button>
+      </div>
+
       <div id="goals-list"></div>
     </div>
 
@@ -340,6 +422,16 @@
         </div>
       </div>
     </div>
+
+    <!-- YESTERDAY TAB -->
+    <div id="tab-yesterday" class="tab-content">
+      <div id="yesterday-content"></div>
+    </div>
+
+    <!-- TODAY TAB -->
+    <div id="tab-today" class="tab-content active">
+      <div id="today-content"></div>
+    </div>
   </main>
 </div>
 
@@ -356,7 +448,7 @@ async function loadBriefings() {
     return;
   }
   list.innerHTML = briefings.map((b, i) => `
-    <div class="card" style="margin-bottom:14px${i===0?';border-color:#238636':'}">
+    <div class="card" style="margin-bottom:14px${i===0?';border-color:#238636':''}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div style="font-size:15px;font-weight:700">${b.title || 'Daily Briefing'}</div>
         <div style="display:flex;gap:8px;align-items:center">
@@ -565,7 +657,7 @@ function showDashboard() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
-  loadTasks(); loadAgents(); loadSystems(); loadMemory(); loadGoals(); loadProposals(); loadUsage(); loadPosts(); loadICPs(); loadBriefings();
+  loadTasks(); loadAgents(); loadSystems(); loadMemory(); loadGoals(); loadProposals(); loadUsage(); loadPosts(); loadICPs(); loadBriefings(); loadYesterday(); loadToday();
 }
 
 function switchTab(name, btn) {
@@ -576,34 +668,171 @@ function switchTab(name, btn) {
 }
 
 // TASKS
+let currentTaskView = 'list';
+let allTasks = [];
+
+function setTaskView(view) {
+  currentTaskView = view;
+  document.getElementById('tasks-list-view').style.display = view === 'list' ? 'block' : 'none';
+  document.getElementById('tasks-kanban-view').style.display = view === 'kanban' ? 'block' : 'none';
+  document.getElementById('btn-list-view').style.cssText = view === 'list'
+    ? 'padding:6px 14px;border-radius:6px;border:1px solid #58a6ff;background:#58a6ff22;color:#58a6ff;font-size:12px;font-weight:600;cursor:pointer;'
+    : 'padding:6px 14px;border-radius:6px;border:1px solid #30363d;background:transparent;color:#8b949e;font-size:12px;font-weight:600;cursor:pointer;';
+  document.getElementById('btn-kanban-view').style.cssText = view === 'kanban'
+    ? 'padding:6px 14px;border-radius:6px;border:1px solid #58a6ff;background:#58a6ff22;color:#58a6ff;font-size:12px;font-weight:600;cursor:pointer;'
+    : 'padding:6px 14px;border-radius:6px;border:1px solid #30363d;background:transparent;color:#8b949e;font-size:12px;font-weight:600;cursor:pointer;';
+  renderTasks(allTasks);
+}
+
 async function loadTasks() {
-  const tasks = await api('GET', '/api/tasks');
-  if (!tasks) return;
+  allTasks = await api('GET', '/api/tasks') || [];
+  renderTasks(allTasks);
+}
+
+function renderTasks(tasks) {
+  if (currentTaskView === 'list') renderListView(tasks);
+  else renderKanbanView(tasks);
+}
+
+function renderListView(tasks) {
   const groups = { Blocked: document.getElementById('tasks-blocked'), 'Pending You': document.getElementById('tasks-pending'), 'In Progress': document.getElementById('tasks-progress') };
   Object.values(groups).forEach(g => { while(g.children.length > 1) g.removeChild(g.lastChild); });
-  let doneContainer = document.getElementById('tasks-done');
+  const doneContainer = document.getElementById('tasks-done');
   while(doneContainer.children.length > 1) doneContainer.removeChild(doneContainer.lastChild);
   let hasDone = false;
   tasks.forEach(task => {
     const el = document.createElement('div');
-    el.className = 'task-item' + (task.completed ? ' done' : '');
-    el.innerHTML = `<input type="checkbox" ${task.completed?'checked':''} onchange="toggleTask('${task.id}', this.checked)"><span class="task-text">${task.title}</span><span class="badge badge-${task.category==='Blocked'?'blocked':task.category==='Pending You'?'pending':'progress'}">${task.category}</span>`;
-    if (task.completed) { doneContainer.appendChild(el); hasDone = true; }
+    const taskTitle = task.title || task.text || '(no title)';
+    const taskDone = task.completed || task.done;
+    const col = task.kanban_column || 'Later';
+    const colBadge = `<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#30363d;color:#8b949e;">${col}</span>`;
+    const dueStr = task.dueDate
+      ? `<span class="task-due" onclick="event.stopPropagation();editDueDate('${task.id}','${task.dueDate}')" title="Edit due date">📅 ${task.dueDate}</span>`
+      : `<span class="task-due" onclick="event.stopPropagation();editDueDate('${task.id}','')" title="Set due date">+ date</span>`;
+
+    // Build steps from notes if they exist
+    const notes = task.notes || '';
+    const steps = notes.split('\n').map(s => s.replace(/^[-*\d.]+\s*/, '').trim()).filter(Boolean);
+    const stepsHtml = steps.length
+      ? `<ul class="task-steps">${steps.map(s => `<li>${s}</li>`).join('')}</ul>`
+      : '<p style="font-size:12px;color:#8b949e;margin:0 0 8px;">No steps yet — add notes below.</p>';
+
+    el.className = 'task-item' + (taskDone ? ' done' : '');
+    el.innerHTML = `
+      <div class="task-item-header">
+        <input type="checkbox" ${taskDone?'checked':''} onclick="event.stopPropagation()" onchange="toggleTask('${task.id}', this.checked)">
+        <span class="task-text">${taskTitle}</span>
+        <span class="badge badge-${task.category==='Blocked'?'blocked':task.category==='Pending You'?'pending':'progress'}">${task.category||''}</span>
+        ${colBadge}
+        ${dueStr}
+        <span class="task-expand-icon">▼</span>
+      </div>
+      <div class="task-detail">
+        ${stepsHtml}
+        <textarea class="task-notes-area" placeholder="Add steps or notes (one per line)..." onclick="event.stopPropagation()">${notes}</textarea>
+        <div class="task-detail-actions">
+          <button class="btn-sm" onclick="event.stopPropagation();saveTaskNotes('${task.id}', this)">Save notes</button>
+          <button class="btn-sm" style="background:#f8514922;color:#f85149;border-color:#f85149;" onclick="event.stopPropagation();deleteTask('${task.id}')">Delete</button>
+          <select onchange="event.stopPropagation();moveTaskKanban('${task.id}', this.value)" style="font-size:12px;background:#21262d;color:#c9d1d9;border:1px solid #30363d;border-radius:4px;padding:3px 6px;">
+            ${['Urgent','Today','Later','Future','Completed'].map(c => `<option value="${c}" ${c===col?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
+      </div>`;
+
+    el.querySelector('.task-item-header').addEventListener('click', () => {
+      el.classList.toggle('expanded');
+    });
+
+    if (taskDone) { doneContainer.appendChild(el); hasDone = true; }
     else if (groups[task.category]) groups[task.category].appendChild(el);
     else groups['In Progress'].appendChild(el);
   });
   doneContainer.style.display = hasDone ? 'block' : 'none';
 }
 
-async function toggleTask(id, completed) {
-  await api('PATCH', `/api/tasks/${id}`, { completed });
+function renderKanbanView(tasks) {
+  const cols = ['Urgent','Today','Later','Future','Completed'];
+  cols.forEach(col => {
+    const container = document.getElementById('kanban-cards-' + col);
+    container.innerHTML = '';
+    const colTasks = col === 'Completed'
+      ? tasks.filter(t => (t.done || t.completed) || t.kanban_column === 'Completed')
+      : tasks.filter(t => !(t.done || t.completed) && t.kanban_column !== 'Completed' && (t.kanban_column === col || (!t.kanban_column && col === 'Later')));
+    colTasks.forEach(task => {
+      const card = document.createElement('div');
+      card.className = 'kanban-card';
+      card.draggable = true;
+      card.dataset.id = task.id;
+      const title = task.title || task.text || '(no title)';
+      const catColor = task.category === 'Blocked' ? '#f85149' : task.category === 'Pending You' ? '#e3b341' : '#58a6ff';
+      card.innerHTML = `
+        <div>${title}</div>
+        <div class="card-meta">
+          <span class="card-badge" style="background:${catColor}22;color:${catColor};">${task.category||'Task'}</span>
+          ${task.dueDate ? `<span>📅 ${task.dueDate}</span>` : ''}
+          <span style="margin-left:auto;cursor:pointer;color:#8b949e;font-size:11px;" onclick="editDueDate('${task.id}','${task.dueDate||''}')">+ date</span>
+        </div>`;
+      card.addEventListener('dragstart', e => { e.dataTransfer.setData('taskId', task.id); card.classList.add('dragging'); });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+      container.appendChild(card);
+    });
+    // Drop zone
+    container.addEventListener('dragover', e => { e.preventDefault(); container.classList.add('drag-over'); });
+    container.addEventListener('dragleave', () => container.classList.remove('drag-over'));
+    container.addEventListener('drop', async e => {
+      e.preventDefault();
+      container.classList.remove('drag-over');
+      const taskId = e.dataTransfer.getData('taskId');
+      await api('PATCH', `/api/tasks/${taskId}`, { kanban_column: col });
+      await loadTasks();
+    });
+  });
+}
+
+async function editDueDate(id, current) {
+  const val = prompt('Set due date (YYYY-MM-DD or leave blank to clear):', current || '');
+  if (val === null) return;
+  await api('PATCH', `/api/tasks/${id}`, { dueDate: val.trim() || null });
   loadTasks();
+}
+
+async function saveTaskNotes(id, btn) {
+  const textarea = btn.closest('.task-detail').querySelector('.task-notes-area');
+  await api('PATCH', `/api/tasks/${id}`, { notes: textarea.value });
+  btn.textContent = '✓ Saved';
+  setTimeout(() => btn.textContent = 'Save notes', 1500);
+  loadTasks();
+}
+
+async function deleteTask(id) {
+  if (!confirm('Delete this task?')) return;
+  await api('DELETE', `/api/tasks/${id}`);
+  loadTasks();
+}
+
+async function moveTaskKanban(id, col) {
+  await api('PATCH', `/api/tasks/${id}`, { kanban_column: col });
+  loadTasks();
+}
+
+async function toggleTask(id, completed) {
+  await api('PATCH', `/api/tasks/${id}`, { done: completed ? 1 : 0 });
+  loadTasks();
+}
+
+let doneVisible = true;
+function toggleDone() {
+  doneVisible = !doneVisible;
+  const container = document.getElementById('tasks-done');
+  const items = container.querySelectorAll('.task-item');
+  items.forEach(el => el.style.display = doneVisible ? '' : 'none');
+  document.getElementById('toggle-done-btn').textContent = doneVisible ? 'Hide' : 'Show';
 }
 
 async function addTask() {
   const input = document.getElementById('new-task-input');
   if (!input.value.trim()) return;
-  await api('POST', '/api/tasks', { title: input.value.trim(), category: 'In Progress' });
+  await api('POST', '/api/tasks', { text: input.value.trim(), category: 'In Progress', kanban_column: 'Later' });
   input.value = '';
   loadTasks();
 }
@@ -655,33 +884,89 @@ async function loadMemory() {
 async function loadGoals() {
   const goals = await api('GET', '/api/goals');
   if (!goals) return;
-  document.getElementById('goals-list').innerHTML = goals.map(g => {
+  const container = document.getElementById('goals-list');
+  container.innerHTML = '';
+  for (const g of goals) {
     const pct = Math.min(100, Math.round((g.current / g.target) * 100));
-    return `
-    <div class="goal-card">
+    const history = await api('GET', `/api/goals/${g.id}/history`) || [];
+    const sparkline = renderSparkline(history, g.target);
+    const historyRows = history.slice(-10).reverse().map(h => {
+      const d = new Date(h.recordedAt).toLocaleDateString('en-GB', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      return `<div style="display:flex;justify-content:space-between;font-size:12px;color:#8b949e;padding:3px 0;border-bottom:1px solid #21262d;">
+        <span>${d}</span><span style="color:#c9d1d9;font-weight:600;">${h.value} ${g.unit}</span>${h.note ? `<span style="color:#8b949e;font-style:italic;">${h.note}</span>` : ''}
+      </div>`;
+    }).join('');
+
+    const card = document.createElement('div');
+    card.className = 'goal-card';
+    card.innerHTML = `
       <div class="goal-header">
         <div class="goal-title">${g.title}</div>
-        <span class="badge badge-progress">${g.quarter}</span>
+        <span class="badge badge-progress">${pct}%</span>
       </div>
-      <div class="goal-desc">${g.description}</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-      <div class="goal-stats">
-        <div class="goal-stat"><strong>${g.current}</strong> / ${g.target} ${g.unit}</div>
-        <div class="goal-stat"><strong>${pct}%</strong> complete</div>
-        <div class="goal-stat">Updated: <strong>${g.lastUpdated}</strong></div>
+      <div class="goal-desc">${g.description || ''}</div>
+      <div style="display:flex;align-items:center;gap:16px;margin:12px 0 6px;">
+        <div style="flex:1;"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div></div>
+        <div style="font-size:13px;color:#c9d1d9;white-space:nowrap;"><strong>${g.current}</strong> / ${g.target} ${g.unit}</div>
       </div>
-      <div class="goal-update">
-        <input type="number" id="goal-val-${g.id}" placeholder="${g.current}" min="0" max="${g.target}" />
-        <button class="btn-sm" onclick="updateGoal('${g.id}')">Update progress</button>
+      ${sparkline ? `<div style="margin:10px 0;">${sparkline}</div>` : ''}
+      <div class="goal-update" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+        <input type="number" id="goal-val-${g.id}" placeholder="New value" min="0" style="width:100px;"/>
+        <input type="text" id="goal-note-${g.id}" placeholder="Note (optional)" style="flex:1;min-width:120px;"/>
+        <button class="btn-sm" onclick="updateGoal('${g.id}')">Log progress</button>
       </div>
-    </div>`;
-  }).join('');
+      ${history.length ? `
+      <div style="margin-top:12px;cursor:pointer;" onclick="this.querySelector('.history-body').style.display=this.querySelector('.history-body').style.display==='none'?'block':'none'">
+        <div style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:1px;">📈 History (${history.length} entries) ▾</div>
+        <div class="history-body" style="display:none;margin-top:8px;">${historyRows}</div>
+      </div>` : ''}`;
+    container.appendChild(card);
+  }
+}
+
+function renderSparkline(history, target) {
+  if (history.length < 2) return '';
+  const w = 200, h = 40, pad = 4;
+  const vals = history.map(h => h.value);
+  const max = Math.max(target, ...vals);
+  const min = 0;
+  const points = vals.map((v, i) => {
+    const x = pad + (i / (vals.length - 1)) * (w - pad * 2);
+    const y = h - pad - ((v - min) / (max - min)) * (h - pad * 2);
+    return `${x},${y}`;
+  }).join(' ');
+  const lastVal = vals[vals.length - 1];
+  const lastY = h - pad - ((lastVal - min) / (max - min)) * (h - pad * 2);
+  return `<svg width="${w}" height="${h}" style="overflow:visible;">
+    <polyline points="${points}" fill="none" stroke="#238636" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="${pad + (w - pad*2)}" cy="${lastY}" r="3" fill="#238636"/>
+    <line x1="${pad}" y1="${h - pad - ((target-min)/(max-min))*(h-pad*2)}" x2="${w-pad}" y2="${h - pad - ((target-min)/(max-min))*(h-pad*2)}" stroke="#58a6ff" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+  </svg>`;
+}
+
+async function addGoal() {
+  const title = document.getElementById('new-goal-title').value.trim();
+  const description = document.getElementById('new-goal-desc').value.trim();
+  const target = parseInt(document.getElementById('new-goal-target').value) || 0;
+  const current = parseInt(document.getElementById('new-goal-current').value) || 0;
+  const unit = document.getElementById('new-goal-unit').value.trim() || 'units';
+  if (!title) { alert('Please enter a goal title'); return; }
+  await api('POST', '/api/goals', {
+    title, description, target, current, unit,
+    lastUpdated: new Date().toLocaleDateString('en-GB')
+  });
+  ['new-goal-title','new-goal-desc','new-goal-target','new-goal-unit'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('new-goal-current').value = '0';
+  loadGoals();
 }
 
 async function updateGoal(id) {
   const val = document.getElementById('goal-val-' + id).value;
+  const note = document.getElementById('goal-note-' + id)?.value || '';
   if (val === '') return;
-  await api('PATCH', `/api/goals/${id}`, { current: parseInt(val) });
+  await api('POST', `/api/goals/${id}/history`, { value: parseFloat(val), note });
+  document.getElementById('goal-val-' + id).value = '';
+  if (document.getElementById('goal-note-' + id)) document.getElementById('goal-note-' + id).value = '';
   loadGoals();
 }
 
@@ -721,10 +1006,137 @@ async function skipProposal(id) {
   loadProposals();
 }
 
+async function loadToday() {
+  const el = document.getElementById('today-content');
+  const data = await api('GET', '/api/today');
+  const todayStr = new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  if (!data || !data.headline) {
+    el.innerHTML = `
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <div style="font-size:18px;font-weight:700;color:#e1e4e8;">⚡ Today — ${todayStr}</div>
+            <div style="font-size:12px;color:#8b949e;margin-top:4px;">Generating your priorities...</div>
+          </div>
+          <button onclick="refreshToday()" style="font-size:12px;padding:6px 14px;border-radius:6px;border:1px solid #30363d;background:#21262d;color:#c9d1d9;cursor:pointer;">🔄 Refresh</button>
+        </div>
+        <div style="color:#8b949e;font-size:14px;">No priorities generated yet. The 8:30 AM briefing agent will populate this, or click Refresh to generate now.</div>
+      </div>`;
+    return;
+  }
+
+  let priorities = [], blockers = [];
+  try { priorities = JSON.parse(data.priorities || '[]'); } catch {}
+  try { blockers = JSON.parse(data.blockers || '[]'); } catch {}
+
+  const priorityColors = ['#f85149', '#e3b341', '#3fb950', '#58a6ff', '#bc8cff'];
+
+  el.innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#e1e4e8;">⚡ ${todayStr}</div>
+          <div style="font-size:13px;color:#8b949e;margin-top:4px;">Generated ${new Date(data.generatedAt).toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        <button onclick="refreshToday()" style="font-size:12px;padding:6px 14px;border-radius:6px;border:1px solid #30363d;background:#21262d;color:#c9d1d9;cursor:pointer;">🔄 Refresh</button>
+      </div>
+
+      <div style="font-size:15px;color:#c9d1d9;line-height:1.6;margin-bottom:24px;padding:16px;background:#161b22;border-radius:8px;border-left:3px solid #58a6ff;">
+        ${data.headline}
+      </div>
+
+      ${priorities.length ? `
+      <div style="margin-bottom:24px;">
+        <div style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">Priority Actions</div>
+        ${priorities.map((p, i) => {
+          const title = typeof p === 'object' ? p.title : p;
+          const detail = typeof p === 'object' ? (p.detail || '') : '';
+          const steps = detail.split(/\n|→/).map(s => s.trim()).filter(Boolean);
+          const stepsHtml = steps.length > 1
+            ? `<ul style="margin:8px 0 0 0;padding:0;list-style:none;">${steps.map(s => `<li style="font-size:13px;color:#8b949e;padding:3px 0;display:flex;gap:8px;"><span style="color:#58a6ff;flex-shrink:0;">→</span>${s}</li>`).join('')}</ul>`
+            : detail ? `<div style="font-size:13px;color:#8b949e;margin-top:6px;">${detail}</div>` : '';
+          return `
+          <div class="today-priority-item" style="border:1px solid #21262d;border-radius:8px;margin-bottom:10px;overflow:hidden;">
+            <div onclick="this.parentElement.classList.toggle('open')" style="display:flex;gap:14px;padding:12px 14px;align-items:center;cursor:pointer;background:#0d1117;">
+              <div style="min-width:24px;height:24px;border-radius:50%;background:${priorityColors[i] || '#58a6ff'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">${i+1}</div>
+              <div style="font-size:14px;color:#e1e4e8;font-weight:600;flex:1;">${title}</div>
+              <span style="font-size:11px;color:#8b949e;transition:transform 0.15s;" class="today-chevron">▼</span>
+            </div>
+            <div class="today-priority-detail" style="display:none;padding:0 14px 14px 52px;">${stepsHtml || '<span style="font-size:13px;color:#8b949e;">No additional detail.</span>'}</div>
+          </div>`;
+        }).join('')}
+      </div>` : ''}
+
+      ${blockers.length ? `
+      <div style="margin-bottom:24px;">
+        <div style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Blockers</div>
+        ${blockers.map(b => `<div style="display:flex;gap:10px;margin-bottom:8px;font-size:13px;color:#c9d1d9;"><span style="color:#f85149;">🔴</span>${b}</div>`).join('')}
+      </div>` : ''}
+
+      ${data.context ? `
+      <div style="margin-top:8px;padding:16px;background:#0d1117;border-radius:8px;border:1px solid #30363d;">
+        <div style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🤖 Agent Commentary</div>
+        <div style="font-size:13px;line-height:1.75;color:#8b949e;font-style:italic;">${data.context}</div>
+      </div>` : ''}
+    </div>`;
+}
+
+async function refreshToday() {
+  const el = document.getElementById('today-content');
+  el.innerHTML = '<div class="card"><div style="color:#8b949e;padding:20px;">Generating priorities... this takes a few seconds.</div></div>';
+  // Trigger via a background message — agent will POST back to /api/today
+  // For now just reload
+  await new Promise(r => setTimeout(r, 2000));
+  loadToday();
+}
+
 // Enter key for login
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') login();
 });
+
+async function loadYesterday() {
+  const el = document.getElementById('yesterday-content');
+  const data = await api('GET', '/api/daily-summary');
+  if (!data) return;
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const dateStr = yesterday.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  if (!data.summary) {
+    el.innerHTML = `
+      <div class="card">
+        <div class="empty-state" style="text-align:center;padding:40px;">
+          <div style="font-size:48px;margin-bottom:16px;">📅</div>
+          <h3 style="color:#e1e4e8;margin-bottom:8px;">${dateStr}</h3>
+          <p style="color:#8b949e;">No summary yet — the midnight agent will generate one tonight.</p>
+        </div>
+      </div>`;
+    return;
+  }
+
+  let achievements = [];
+  try { achievements = JSON.parse(data.achievements || '[]'); } catch {}
+
+  el.innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <div style="font-size:32px;">📅</div>
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#e1e4e8;">${dateStr}</div>
+          <div style="font-size:12px;color:#8b949e;">${data.tasksCompleted || 0} tasks completed</div>
+        </div>
+      </div>
+      <div style="font-size:14px;line-height:1.7;color:#c9d1d9;white-space:pre-wrap;">${data.summary}</div>
+      ${achievements.length ? `
+        <div style="margin-top:20px;">
+          <div style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Key Achievements</div>
+          ${achievements.map(a => `<div style="display:flex;gap:10px;margin-bottom:8px;font-size:13px;color:#c9d1d9;"><span style="color:#238636;">✅</span>${a}</div>`).join('')}
+        </div>` : ''}
+    </div>`;
+}
 </script>
 </body>
 </html>

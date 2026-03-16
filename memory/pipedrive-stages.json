@@ -1,0 +1,24 @@
+{
+  "_status": "PENDING_AUTH",
+  "_note": "Pipedrive API key returned 401. Run scripts/setup-pipedrive-pipeline.sh with a valid API key to populate this file.",
+  "pipeline_id": null,
+  "pipeline_name": "Sonesse Outbound",
+  "stages": {
+    "In Sequence": null,
+    "Opened Email": null,
+    "Replied - Interested": null,
+    "Meeting Booked": null,
+    "Proposal Sent": null,
+    "Closed Won": null,
+    "Closed Lost": null
+  },
+  "stage_probabilities": {
+    "In Sequence": 10,
+    "Opened Email": 20,
+    "Replied - Interested": 40,
+    "Meeting Booked": 60,
+    "Proposal Sent": 70,
+    "Closed Won": 100,
+    "Closed Lost": 0
+  }
+}

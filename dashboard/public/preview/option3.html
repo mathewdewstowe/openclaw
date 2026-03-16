@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Command Centre — Option 3: Founder Feed</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; padding: 20px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 18px; color: #e1e4e8; margin-bottom: 4px; }
+  .subtitle { color: #8b949e; font-size: 12px; margin-bottom: 20px; }
+
+  /* Momentum bar */
+  .momentum { background: linear-gradient(90deg, #58a6ff10, #3fb95010); border: 1px solid #58a6ff30; border-radius: 10px; padding: 12px 20px; margin-bottom: 16px; display: flex; align-items: center; gap: 24px; }
+  .mom-item { text-align: center; }
+  .mom-val { font-size: 22px; font-weight: 700; color: #e1e4e8; }
+  .mom-label { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+  .mom-divider { width: 1px; height: 36px; background: #30363d; }
+  .streak { display: flex; gap: 4px; align-items: center; margin-left: auto; }
+  .streak-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* Focus card */
+  .focus { background: #161b22; border: 1px solid #e3b34140; border-left: 4px solid #e3b341; border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
+  .focus-eyebrow { font-size: 10px; font-weight: 700; color: #e3b341; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .focus-text { font-size: 17px; font-weight: 700; color: #e1e4e8; line-height: 1.4; }
+  .focus-sub { font-size: 12px; color: #8b949e; margin-top: 6px; line-height: 1.5; }
+
+  /* Open threads */
+  .card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
+  .card-title { font-size: 11px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+  .thread-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #21262d; }
+  .thread-item:last-child { border-bottom: none; }
+  .thread-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+  .thread-title { font-size: 14px; color: #e1e4e8; font-weight: 600; margin-bottom: 3px; }
+  .thread-desc { font-size: 12px; color: #8b949e; line-height: 1.5; }
+  .thread-badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; margin-top: 5px; }
+  .badge-urgent { background: #f8514922; color: #f85149; }
+  .badge-today { background: #e3b34122; color: #e3b341; }
+  .badge-progress { background: #58a6ff22; color: #58a6ff; }
+
+  /* Goals — large & narrative -->
+  .goal-item { display: flex; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid #21262d; }
+  .goal-item:last-child { border-bottom: none; }
+  .goal-emoji { font-size: 28px; flex-shrink: 0; }
+  .goal-body { flex: 1; }
+  .goal-name { font-size: 14px; font-weight: 600; color: #e1e4e8; margin-bottom: 6px; }
+  .goal-bar-wrap { position: relative; }
+  .goal-bar { height: 8px; background: #21262d; border-radius: 4px; overflow: hidden; }
+  .goal-fill { height: 100%; border-radius: 4px; }
+  .goal-stat { font-size: 20px; font-weight: 700; flex-shrink: 0; text-align: right; line-height: 1; }
+  .goal-target-txt { font-size: 11px; color: #8b949e; text-align: right; margin-top: 2px; }
+
+  /* System health grid */
+  .health-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .health-item { background: #0d1117; border: 1px solid #21262d; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; }
+  .health-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .health-name { font-size: 12px; color: #c9d1d9; }
+  .health-status { font-size: 10px; color: #8b949e; margin-top: 1px; }
+
+  /* Activity feed */
+  .feed-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #21262d; font-size: 13px; }
+  .feed-item:last-child { border-bottom: none; }
+  .feed-time { font-size: 11px; color: #8b949e; white-space: nowrap; flex-shrink: 0; padding-top: 1px; }
+  .feed-text { color: #c9d1d9; line-height: 1.5; }
+  .feed-tag { display: inline-block; padding: 0px 5px; border-radius: 3px; font-size: 10px; font-weight: 600; background: #21262d; color: #8b949e; margin-right: 4px; }
+
+  @media (max-width: 600px) {
+    .health-grid { grid-template-columns: 1fr 1fr; }
+    .momentum { flex-wrap: wrap; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🚀 Command Centre — Option 3</h1>
+<p class="subtitle">The Founder Feed · Card-based · Mobile-friendly · Contextual narrative</p>
+
+<!-- Momentum bar -->
+<div class="momentum">
+  <div class="mom-item">
+    <div class="mom-val">11</div>
+    <div class="mom-label">Days active</div>
+  </div>
+  <div class="mom-divider"></div>
+  <div class="mom-item">
+    <div class="mom-val">24</div>
+    <div class="mom-label">Tasks open</div>
+  </div>
+  <div class="mom-divider"></div>
+  <div class="mom-item">
+    <div class="mom-val">7</div>
+    <div class="mom-label">Agents running</div>
+  </div>
+  <div class="mom-divider"></div>
+  <div class="mom-item">
+    <div class="mom-val">Wk 11</div>
+    <div class="mom-label">of Q1 2026</div>
+  </div>
+  <div class="streak">
+    <div class="streak-dot" style="background:#3fb950;"></div>
+    <div class="streak-dot" style="background:#3fb950;"></div>
+    <div class="streak-dot" style="background:#3fb950;"></div>
+    <div class="streak-dot" style="background:#3fb950;"></div>
+    <div class="streak-dot" style="background:#e3b341;"></div>
+    <div class="streak-dot" style="background:#30363d;"></div>
+    <div class="streak-dot" style="background:#30363d;"></div>
+    <span style="font-size:11px;color:#8b949e;margin-left:4px;">4-day streak</span>
+  </div>
+</div>
+
+<!-- Focus / Do This Now -->
+<div class="focus">
+  <div class="focus-eyebrow">⚡ Focus Now</div>
+  <div class="focus-text">Define pricing for Sonesse and Nth Layer</div>
+  <div class="focus-sub">This is the single most impactful thing you can do today. It unblocks positioning, outreach, and every sales conversation. Estimated time: 45 mins. I can model scenarios when you're ready.</div>
+</div>
+
+<!-- Open threads -->
+<div class="card">
+  <div class="card-title">🧵 Open Threads <span style="color:#58a6ff;font-size:12px;font-weight:400;text-transform:none;letter-spacing:0;">3 active</span></div>
+  <div class="thread-item">
+    <div class="thread-icon">💰</div>
+    <div>
+      <div class="thread-title">Pricing strategy — Sonesse + Nth Layer</div>
+      <div class="thread-desc">Not started. Per API call vs per bot-minute vs platform fee for Sonesse. Day rate already set for Nth Layer — need retainer/project model. I can model 3 scenarios.</div>
+      <div><span class="thread-badge badge-urgent">Urgent</span></div>
+    </div>
+  </div>
+  <div class="thread-item">
+    <div class="thread-icon">🖥️</div>
+    <div>
+      <div class="thread-title">Command Centre tab — design decision pending</div>
+      <div class="thread-desc">3 designs built. You're looking at Option 3 right now. Pick one and I'll integrate it into the main dashboard today.</div>
+      <div><span class="thread-badge badge-today">Today</span></div>
+    </div>
+  </div>
+  <div class="thread-item">
+    <div class="thread-icon">🤖</div>
+    <div>
+      <div class="thread-title">Lead gen agent — blocked on Pipedrive key</div>
+      <div class="thread-desc">Apollo is connected. Agent is built. Just needs your Pipedrive API key to start running automatically at 9AM daily and adding leads to your pipeline.</div>
+      <div><span class="thread-badge badge-progress">In Progress</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Goals -->
+<div class="card">
+  <div class="card-title">🎯 Q1 Goals — Week 11 of 13</div>
+  <div class="goal-item">
+    <div class="goal-emoji">🚀</div>
+    <div class="goal-body">
+      <div class="goal-name">Sonesse hot leads</div>
+      <div class="goal-bar"><div class="goal-fill" style="width:30%;background:linear-gradient(90deg,#3fb950,#58a6ff);"></div></div>
+    </div>
+    <div>
+      <div class="goal-stat" style="color:#3fb950;">3</div>
+      <div class="goal-target-txt">of 10</div>
+    </div>
+  </div>
+  <div class="goal-item">
+    <div class="goal-emoji">💼</div>
+    <div class="goal-body">
+      <div class="goal-name">Nth Layer deal closed</div>
+      <div class="goal-bar"><div class="goal-fill" style="width:3%;background:#f85149;"></div></div>
+    </div>
+    <div>
+      <div class="goal-stat" style="color:#f85149;">0</div>
+      <div class="goal-target-txt">of 1</div>
+    </div>
+  </div>
+  <div class="goal-item">
+    <div class="goal-emoji">⚡</div>
+    <div class="goal-body">
+      <div class="goal-name">Automation coverage</div>
+      <div class="goal-bar"><div class="goal-fill" style="width:18%;background:#e3b341;"></div></div>
+    </div>
+    <div>
+      <div class="goal-stat" style="color:#e3b341;">15%</div>
+      <div class="goal-target-txt">of 80%</div>
+    </div>
+  </div>
+</div>
+
+<!-- System health -->
+<div class="card">
+  <div class="card-title">🔌 System Health</div>
+  <div class="health-grid">
+    <div class="health-item"><div class="health-dot" style="background:#3fb950;"></div><div><div class="health-name">Dashboard</div><div class="health-status">Live · port 3737</div></div></div>
+    <div class="health-item"><div class="health-dot" style="background:#3fb950;"></div><div><div class="health-name">Cloudflare Tunnel</div><div class="health-status">Connected</div></div></div>
+    <div class="health-item"><div class="health-dot" style="background:#f85149;"></div><div><div class="health-name">WhatsApp</div><div class="health-status">Offline</div></div></div>
+    <div class="health-item"><div class="health-dot" style="background:#f85149;"></div><div><div class="health-name">GoG / Gmail</div><div class="health-status">Token expired</div></div></div>
+    <div class="health-item"><div class="health-dot" style="background:#3fb950;"></div><div><div class="health-name">9PM Debrief</div><div class="health-status">Running OK</div></div></div>
+    <div class="health-item"><div class="health-dot" style="background:#3fb950;"></div><div><div class="health-name">11PM Backup</div><div class="health-status">Running OK</div></div></div>
+    <div class="health-item"><div class="health-dot" style="background:#e3b341;"></div><div><div class="health-name">8:30AM Briefing</div><div class="health-status">Fixed → Slack</div></div></div>
+    <div class="health-item"><div class="health-dot" style="background:#f85149;"></div><div><div class="health-name">Lead Gen Agent</div><div class="health-status">Blocked</div></div></div>
+  </div>
+</div>
+
+<!-- Recent activity -->
+<div class="card">
+  <div class="card-title">📋 Recent Activity</div>
+  <div class="feed-item">
+    <div class="feed-time">Today</div>
+    <div class="feed-text"><span class="feed-tag">Dashboard</span>Kanban Completed column added. Cron delivery bugs fixed.</div>
+  </div>
+  <div class="feed-item">
+    <div class="feed-time">Today</div>
+    <div class="feed-text"><span class="feed-tag">LinkedIn</span>Alex Kavel profile pulled — Director of Product @ TalentMapper, Cardiff</div>
+  </div>
+  <div class="feed-item">
+    <div class="feed-time">Yesterday</div>
+    <div class="feed-text"><span class="feed-tag">Build</span>SQLite migration, feedback loop, kanban drag & drop, sparklines built</div>
+  </div>
+  <div class="feed-item">
+    <div class="feed-time">Yesterday</div>
+    <div class="feed-text"><span class="feed-tag">Research</span>22 Welsh companies with no product leadership identified as targets</div>
+  </div>
+  <div class="feed-item">
+    <div class="feed-time">Yesterday</div>
+    <div class="feed-text"><span class="feed-tag">Content</span>Sonesse Tutorial #1 written — Tavus + Teams integration guide</div>
+  </div>
+</div>
+
+</body>
+</html>
