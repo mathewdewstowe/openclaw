@@ -68,11 +68,12 @@
   .task-group-title { font-size: 11px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 8px; }
   .today-priority-item.open .today-priority-detail { display:block !important; }
   .today-priority-item.open .today-chevron { transform:rotate(180deg); }
-  .kanban-col { min-height: 200px; }
+  .kanban-col { min-height: 200px; display:flex; flex-direction:column; }
   .kanban-card { background: #21262d; border: 1px solid #30363d; border-radius:8px; padding:10px 12px; margin-bottom:8px; cursor:grab; font-size:13px; color:#c9d1d9; transition:border-color 0.15s; }
   .kanban-card:hover { border-color:#58a6ff; }
   .kanban-card.dragging { opacity:0.4; }
-  .kanban-cards.drag-over { background:#58a6ff10; border-radius:6px; }
+  .kanban-cards { min-height: 80px; flex:1; transition: background 0.15s, border 0.15s; border-radius:6px; border:2px dashed transparent; padding:4px; }
+  .kanban-cards.drag-over { background:#58a6ff10; border-color:#58a6ff44; }
   .kanban-card .card-meta { font-size:11px;color:#8b949e;margin-top:6px;display:flex;gap:8px;flex-wrap:wrap; }
   .kanban-card .card-badge { padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600; }
   .task-item .task-due { font-size:11px;color:#8b949e;margin-left:auto;cursor:pointer; }
@@ -141,6 +142,37 @@
 
   .empty-state { text-align: center; padding: 40px; color: #8b949e; font-size: 14px; }
 
+  /* COMMAND CENTRE */
+  .cc-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .cc-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .cc-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px; }
+  .cc-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px; }
+  .cc-card-title { font-size: 10px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .cc-progress-row { margin-bottom: 8px; }
+  .cc-progress-label { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 12px; color: #c9d1d9; }
+  .cc-progress-val { color: #8b949e; }
+  .cc-bar { width: 100%; height: 5px; background: #21262d; border-radius: 3px; overflow: hidden; }
+  .cc-fill { height: 100%; border-radius: 3px; }
+  .cc-metric-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #21262d; font-size: 12px; }
+  .cc-metric-row:last-child { border-bottom: none; }
+  .cc-metric-label { color: #8b949e; }
+  .cc-metric-val { font-weight: 600; }
+  .cc-action-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-bottom: 1px solid #21262d; font-size: 12px; color: #c9d1d9; }
+  .cc-action-item:last-child { border-bottom: none; }
+  .cc-num { width: 20px; height: 20px; border-radius: 50%; background: #238636; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .cc-blocker { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 12px; color: #c9d1d9; }
+  .cc-dot-red { width: 7px; height: 7px; border-radius: 50%; background: #f85149; flex-shrink: 0; }
+  .cc-dot-yellow { width: 7px; height: 7px; border-radius: 50%; background: #e3b341; flex-shrink: 0; }
+  .cc-stat-box { text-align: center; padding: 8px; background: #0d1117; border-radius: 6px; }
+  .cc-big-num { font-size: 26px; font-weight: 700; line-height: 1; }
+  .cc-stat-label { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+  .cc-apollo-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 6px; align-items: center; padding: 5px 0; border-bottom: 1px solid #21262d; font-size: 11px; }
+  .cc-apollo-row:last-child { border-bottom: none; }
+  .cc-apollo-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 6px; padding: 0 0 5px; border-bottom: 1px solid #30363d; font-size: 10px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .cc-badge-active { background: #1a2f1a; color: #3fb950; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+  .cc-badge-paused { background: #2d2208; color: #e3b341; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+  .cc-badge-draft { background: #1f2d3d; color: #58a6ff; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+
   /* RESPONSIVE */
   @media (max-width: 768px) {
     header { padding: 0 14px; }
@@ -198,10 +230,12 @@
   </header>
 
   <nav>
-    <button class="active" onclick="switchTab('today', this)">⚡ Today</button>
+    <button class="active" onclick="switchTab('command-centre', this)">⚡ Command Centre</button>
+    <button onclick="switchTab('today', this)">⚡ Today</button>
     <button onclick="switchTab('yesterday', this)">📅 Yesterday</button>
     <button onclick="switchTab('tasks', this)">✅ Tasks</button>
     <button onclick="switchTab('agents', this)">🤖 Agents</button>
+    <button onclick="switchTab('suggestions', this)">💡 Suggestions</button>
     <button onclick="switchTab('systems', this)">🔌 Systems</button>
     <button onclick="switchTab('memory', this)">🧠 Memory</button>
     <button onclick="switchTab('goals', this)">🎯 Goals</button>
@@ -214,6 +248,55 @@
   </nav>
 
   <main>
+    <!-- COMMAND CENTRE TAB -->
+    <div id="tab-command-centre" class="tab-content active">
+      <div id="cc-loading" style="color:#8b949e;font-size:13px;padding:20px 0;">Loading command centre data...</div>
+      <div id="cc-content" style="display:none;">
+        <!-- Row 1: Goals + Jobs + Task Stats -->
+        <div class="cc-grid-3">
+          <div class="cc-card" id="cc-goals-card">
+            <div class="cc-card-title">🎯 Q1 Goals</div>
+            <div id="cc-goals-list"><div style="color:#8b949e;font-size:12px;">Loading...</div></div>
+          </div>
+          <div class="cc-card">
+            <div class="cc-card-title">📋 Tasks Overview</div>
+            <div id="cc-task-stats"></div>
+          </div>
+          <div class="cc-card">
+            <div class="cc-card-title">💼 Job Applications</div>
+            <div id="cc-jobs-stats"></div>
+          </div>
+        </div>
+
+        <!-- Row 2: Today's Priorities + Blockers -->
+        <div class="cc-grid-2">
+          <div class="cc-card">
+            <div class="cc-card-title">⚡ Today's Priorities</div>
+            <div id="cc-priorities"></div>
+          </div>
+          <div class="cc-card">
+            <div class="cc-card-title">🔴 Blockers & Urgent</div>
+            <div id="cc-blockers"></div>
+          </div>
+        </div>
+
+        <!-- Row 3: Apollo Sequences -->
+        <div class="cc-card" style="margin-bottom:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div class="cc-card-title" style="margin-bottom:0;">🎯 Apollo Sequences</div>
+            <button onclick="loadCCApollo()" style="background:none;border:1px solid #30363d;color:#8b949e;padding:3px 10px;border-radius:5px;font-size:11px;cursor:pointer;">↺ Refresh</button>
+          </div>
+          <div id="cc-apollo-loading" style="font-size:12px;color:#8b949e;">Loading sequences...</div>
+          <div id="cc-apollo-table" style="display:none;">
+            <div class="cc-apollo-header">
+              <div>Campaign</div><div>Status</div><div>Contacts</div><div>Sent</div><div>Open Rate</div>
+            </div>
+            <div id="cc-apollo-rows"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- TASKS TAB -->
     <div id="tab-tasks" class="tab-content">
       <!-- Toolbar -->
@@ -224,28 +307,30 @@
         </div>
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="text" id="new-task-input" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addTask()" style="padding:6px 12px;border-radius:6px;border:1px solid #30363d;background:#161b22;color:#e1e4e8;font-size:13px;width:260px;"/>
+          <select id="new-task-goal" style="padding:6px 10px;border-radius:6px;border:1px solid #30363d;background:#161b22;color:#8b949e;font-size:12px;outline:none;max-width:180px;">
+            <option value="">🎯 No goal</option>
+          </select>
           <button class="btn-sm" onclick="addTask()">Add</button>
         </div>
       </div>
 
       <!-- LIST VIEW -->
       <div id="tasks-list-view">
+        <div id="tasks-debug" style="font-size:11px;color:#8b949e;padding:4px 8px;"></div>
         <div class="card">
           <div id="tasks-blocked"><div class="task-group-title">🔴 Blocked</div></div>
           <div id="tasks-pending"><div class="task-group-title">🟡 Pending You</div></div>
           <div id="tasks-progress"><div class="task-group-title">🔵 In Progress</div></div>
-          <div id="tasks-done" style="display:none">
-            <div class="task-group-title" style="display:flex;align-items:center;justify-content:space-between;">
-              <span>✅ Done</span>
-              <button onclick="toggleDone()" id="toggle-done-btn" style="font-size:11px;padding:2px 8px;border-radius:4px;border:1px solid #30363d;background:#161b22;color:#8b949e;cursor:pointer;">Hide</button>
-            </div>
-          </div>
         </div>
       </div>
 
       <!-- KANBAN VIEW -->
       <div id="tasks-kanban-view" style="display:none;">
-        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:start;">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:start;overflow-x:auto;">
+          <div class="kanban-col" id="kanban-Triage" data-col="Triage">
+            <div style="font-size:11px;font-weight:700;color:#bc8cff;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:8px 12px;background:#bc8cff15;border-radius:6px;">📥 Triage</div>
+            <div class="kanban-cards" id="kanban-cards-Triage"></div>
+          </div>
           <div class="kanban-col" id="kanban-Urgent" data-col="Urgent">
             <div style="font-size:11px;font-weight:700;color:#f85149;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:8px 12px;background:#f8514915;border-radius:6px;">🔥 Urgent</div>
             <div class="kanban-cards" id="kanban-cards-Urgent"></div>
@@ -262,15 +347,18 @@
             <div style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:8px 12px;background:#8b949e15;border-radius:6px;">🗓 Future</div>
             <div class="kanban-cards" id="kanban-cards-Future"></div>
           </div>
-          <div class="kanban-col" id="kanban-Completed" data-col="Completed">
-            <div style="font-size:11px;font-weight:700;color:#3fb950;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:8px 12px;background:#3fb95015;border-radius:6px;">✅ Completed</div>
-            <div class="kanban-cards" id="kanban-cards-Completed"></div>
-          </div>
+
         </div>
       </div>
     </div>
 
     <!-- AGENTS TAB -->
+    <div id="tab-suggestions" class="tab-content">
+      <div class="section-title">💡 Suggested Agents</div>
+      <div style="font-size:13px;color:#8b949e;margin-bottom:16px;">AI-recommended agents based on your goals. Click Activate to build, Dismiss to skip.</div>
+      <div id="suggestions-list"></div>
+    </div>
+
     <div id="tab-agents" class="tab-content">
       <div class="section-title">Active Agents</div>
       <div id="agents-list"></div>
@@ -437,6 +525,9 @@
 
 <script>
 let TOKEN = localStorage.getItem('dash_token');
+let allTasks = [];
+let allGoals = [];
+let currentTaskView = 'list';
 if (TOKEN) showDashboard();
 
 async function loadBriefings() {
@@ -632,13 +723,19 @@ async function loadUsage() {
 }
 
 async function api(method, path, body) {
-  const res = await fetch(path, {
-    method,
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
-    body: body ? JSON.stringify(body) : undefined
-  });
-  if (res.status === 401) { logout(); return; }
-  return res.json();
+  try {
+    const res = await fetch(path, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if (res.status === 401) { logout(); return null; }
+    if (!res.ok) { console.error(`API error ${res.status} on ${method} ${path}`); return null; }
+    return res.json();
+  } catch(e) {
+    console.error(`API fetch failed: ${method} ${path}`, e);
+    return null;
+  }
 }
 
 async function login() {
@@ -657,7 +754,7 @@ function showDashboard() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
-  loadTasks(); loadAgents(); loadSystems(); loadMemory(); loadGoals(); loadProposals(); loadUsage(); loadPosts(); loadICPs(); loadBriefings(); loadYesterday(); loadToday();
+  loadTasks(); loadAgents(); loadSystems(); loadMemory(); loadGoals(); loadProposals(); loadUsage(); loadPosts(); loadICPs(); loadBriefings(); loadYesterday(); loadToday(); loadSuggestions(); loadCommandCentre();
 }
 
 function switchTab(name, btn) {
@@ -667,9 +764,132 @@ function switchTab(name, btn) {
   btn.classList.add('active');
 }
 
+// COMMAND CENTRE
+async function loadCommandCentre() {
+  const loading = document.getElementById('cc-loading');
+  const content = document.getElementById('cc-content');
+  const data = await api('GET', '/api/command-centre');
+  if (!data) { if(loading) loading.textContent = 'Failed to load data.'; return; }
+  if (loading) loading.style.display = 'none';
+  if (content) content.style.display = 'block';
+
+  // Goals
+  const goalsList = document.getElementById('cc-goals-list');
+  if (goalsList && data.goals) {
+    if (!data.goals.length) { goalsList.innerHTML = '<div style="color:#8b949e;font-size:12px;">No goals set yet.</div>'; }
+    else {
+      goalsList.innerHTML = data.goals.map(g => {
+        const pct = g.target > 0 ? Math.min(100, Math.round((g.current / g.target) * 100)) : 0;
+        const col = pct >= 80 ? '#3fb950' : pct >= 40 ? '#e3b341' : '#f85149';
+        return `<div class="cc-progress-row">
+          <div class="cc-progress-label"><span>${g.title}</span><span class="cc-progress-val">${g.current}/${g.target} ${g.unit||''}</span></div>
+          <div class="cc-bar"><div class="cc-fill" style="width:${pct}%;background:${col};"></div></div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Task stats
+  const taskStats = document.getElementById('cc-task-stats');
+  if (taskStats && data.tasks) {
+    taskStats.innerHTML = `
+      <div class="cc-metric-row"><span class="cc-metric-label">Open tasks</span><span class="cc-metric-val" style="color:#58a6ff;">${data.tasks.open}</span></div>
+      <div class="cc-metric-row"><span class="cc-metric-label">Urgent / blocked</span><span class="cc-metric-val" style="color:#f85149;">${data.tasks.blocked}</span></div>
+      <div class="cc-metric-row"><span class="cc-metric-label">Due today</span><span class="cc-metric-val" style="color:#e3b341;">${data.tasks.today}</span></div>
+    `;
+  }
+
+  // Jobs
+  const jobsStats = document.getElementById('cc-jobs-stats');
+  if (jobsStats && data.jobs) {
+    jobsStats.innerHTML = `
+      <div class="cc-metric-row"><span class="cc-metric-label">Total applied</span><span class="cc-metric-val" style="color:#3fb950;">${data.jobs.total}</span></div>
+      <div class="cc-metric-row"><span class="cc-metric-label">This week</span><span class="cc-metric-val" style="color:#58a6ff;">${data.jobs.thisWeek}</span></div>
+    `;
+  }
+
+  // Today's priorities
+  const prioEl = document.getElementById('cc-priorities');
+  if (prioEl) {
+    const { headline, priorities, blockers } = data.today || {};
+    if (!priorities || !priorities.length) {
+      prioEl.innerHTML = '<div style="color:#8b949e;font-size:12px;">No priorities set for today. Use the Today tab to add them.</div>';
+    } else {
+      prioEl.innerHTML = (headline ? `<div style="font-size:12px;color:#e1e4e8;font-weight:600;margin-bottom:8px;">${headline}</div>` : '') +
+        priorities.map((p, i) => `<div class="cc-action-item"><div class="cc-num">${i+1}</div><div><div>${p.text || p}</div>${p.context ? `<div style="font-size:11px;color:#8b949e;margin-top:2px;">${p.context}</div>` : ''}</div></div>`).join('');
+    }
+    // Also show today's task items if no priorities
+    if ((!priorities || !priorities.length) && data.tasks && data.tasks.items && data.tasks.items.length) {
+      prioEl.innerHTML = data.tasks.items.map((t, i) => `<div class="cc-action-item"><div class="cc-num">${i+1}</div><div>${t.text}</div></div>`).join('');
+    }
+  }
+
+  // Blockers
+  const blockEl = document.getElementById('cc-blockers');
+  if (blockEl) {
+    const { blockers } = data.today || {};
+    let html = '';
+    if (blockers && blockers.length) {
+      html += blockers.map(b => `<div class="cc-blocker"><div class="cc-dot-red"></div><span>${b.text || b}</span></div>`).join('');
+    }
+    if (data.tasks && data.tasks.blockedItems && data.tasks.blockedItems.length) {
+      html += data.tasks.blockedItems.map(t => `<div class="cc-blocker"><div class="cc-dot-yellow"></div><span>${t.text}</span></div>`).join('');
+    }
+    blockEl.innerHTML = html || '<div style="color:#3fb950;font-size:12px;">✅ No blockers</div>';
+  }
+
+  // Load Apollo async
+  loadCCApollo();
+}
+
+async function loadCCApollo() {
+  const loadingEl = document.getElementById('cc-apollo-loading');
+  const tableEl = document.getElementById('cc-apollo-table');
+  const rowsEl = document.getElementById('cc-apollo-rows');
+  if (!rowsEl) return;
+  if (loadingEl) { loadingEl.style.display = 'block'; loadingEl.textContent = 'Loading sequences...'; }
+  if (tableEl) tableEl.style.display = 'none';
+
+  const campaigns = await api('GET', '/api/apollo/campaigns');
+  if (loadingEl) loadingEl.style.display = 'none';
+  if (!campaigns || !campaigns.length) {
+    if (loadingEl) { loadingEl.style.display = 'block'; loadingEl.textContent = 'No sequences found.'; }
+    return;
+  }
+  if (tableEl) tableEl.style.display = 'block';
+  rowsEl.innerHTML = campaigns.map(c => {
+    const statusBadge = c.status === 'active' || c.status === 'Active'
+      ? `<span class="cc-badge-active">ACTIVE</span>`
+      : c.status === 'paused' || c.status === 'Paused'
+        ? `<span class="cc-badge-paused">PAUSED</span>`
+        : `<span class="cc-badge-draft">${(c.status||'').toUpperCase()||'DRAFT'}</span>`;
+    const openRate = c.open_rate ? (c.open_rate * 100).toFixed(0) + '%' : '—';
+    return `<div class="cc-apollo-row">
+      <div style="color:#c9d1d9;">${c.name}</div>
+      <div>${statusBadge}</div>
+      <div style="color:#58a6ff;">${c.contacts}</div>
+      <div style="color:#8b949e;">${c.emails_sent}</div>
+      <div style="color:${c.open_rate > 0.3 ? '#3fb950' : c.open_rate > 0.1 ? '#e3b341' : '#8b949e'}">${openRate}</div>
+    </div>`;
+  }).join('');
+}
+
 // TASKS
-let currentTaskView = 'list';
-let allTasks = [];
+async function loadGoalsForTaskDropdown() {
+  try {
+    const goals = await api('GET', '/api/goals');
+    allGoals = Array.isArray(goals) ? goals : [];
+  } catch(e) { allGoals = []; }
+  const sel = document.getElementById('new-task-goal');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">🎯 No goal</option>';
+  allGoals.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g.id;
+    opt.textContent = '🎯 ' + g.title;
+    sel.appendChild(opt);
+  });
+}
 
 function setTaskView(view) {
   currentTaskView = view;
@@ -685,8 +905,13 @@ function setTaskView(view) {
 }
 
 async function loadTasks() {
-  allTasks = await api('GET', '/api/tasks') || [];
+  allGoals = allGoals || [];
+  const result = await api('GET', '/api/tasks');
+  allTasks = Array.isArray(result) ? result : [];
+  const dbg = document.getElementById('tasks-debug');
+  if (dbg) dbg.textContent = `${allTasks.filter(t=>!t.done).length} open tasks (${allTasks.length} total)`;
   renderTasks(allTasks);
+  loadGoalsForTaskDropdown().catch(() => {});
 }
 
 function renderTasks(tasks) {
@@ -695,69 +920,82 @@ function renderTasks(tasks) {
 }
 
 function renderListView(tasks) {
-  const groups = { Blocked: document.getElementById('tasks-blocked'), 'Pending You': document.getElementById('tasks-pending'), 'In Progress': document.getElementById('tasks-progress') };
-  Object.values(groups).forEach(g => { while(g.children.length > 1) g.removeChild(g.lastChild); });
-  const doneContainer = document.getElementById('tasks-done');
-  while(doneContainer.children.length > 1) doneContainer.removeChild(doneContainer.lastChild);
-  let hasDone = false;
-  tasks.forEach(task => {
-    const el = document.createElement('div');
-    const taskTitle = task.title || task.text || '(no title)';
-    const taskDone = task.completed || task.done;
-    const col = task.kanban_column || 'Later';
-    const colBadge = `<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:#30363d;color:#8b949e;">${col}</span>`;
-    const dueStr = task.dueDate
-      ? `<span class="task-due" onclick="event.stopPropagation();editDueDate('${task.id}','${task.dueDate}')" title="Edit due date">📅 ${task.dueDate}</span>`
-      : `<span class="task-due" onclick="event.stopPropagation();editDueDate('${task.id}','')" title="Set due date">+ date</span>`;
-
-    // Build steps from notes if they exist
-    const notes = task.notes || '';
-    const steps = notes.split('\n').map(s => s.replace(/^[-*\d.]+\s*/, '').trim()).filter(Boolean);
-    const stepsHtml = steps.length
-      ? `<ul class="task-steps">${steps.map(s => `<li>${s}</li>`).join('')}</ul>`
-      : '<p style="font-size:12px;color:#8b949e;margin:0 0 8px;">No steps yet — add notes below.</p>';
-
-    el.className = 'task-item' + (taskDone ? ' done' : '');
-    el.innerHTML = `
-      <div class="task-item-header">
-        <input type="checkbox" ${taskDone?'checked':''} onclick="event.stopPropagation()" onchange="toggleTask('${task.id}', this.checked)">
-        <span class="task-text">${taskTitle}</span>
-        <span class="badge badge-${task.category==='Blocked'?'blocked':task.category==='Pending You'?'pending':'progress'}">${task.category||''}</span>
-        ${colBadge}
-        ${dueStr}
-        <span class="task-expand-icon">▼</span>
-      </div>
-      <div class="task-detail">
-        ${stepsHtml}
-        <textarea class="task-notes-area" placeholder="Add steps or notes (one per line)..." onclick="event.stopPropagation()">${notes}</textarea>
-        <div class="task-detail-actions">
-          <button class="btn-sm" onclick="event.stopPropagation();saveTaskNotes('${task.id}', this)">Save notes</button>
-          <button class="btn-sm" style="background:#f8514922;color:#f85149;border-color:#f85149;" onclick="event.stopPropagation();deleteTask('${task.id}')">Delete</button>
-          <select onchange="event.stopPropagation();moveTaskKanban('${task.id}', this.value)" style="font-size:12px;background:#21262d;color:#c9d1d9;border:1px solid #30363d;border-radius:4px;padding:3px 6px;">
-            ${['Urgent','Today','Later','Future','Completed'].map(c => `<option value="${c}" ${c===col?'selected':''}>${c}</option>`).join('')}
-          </select>
-        </div>
-      </div>`;
-
-    el.querySelector('.task-item-header').addEventListener('click', () => {
-      el.classList.toggle('expanded');
+  try {
+    const groups = {
+      Blocked: document.getElementById('tasks-blocked'),
+      'Pending You': document.getElementById('tasks-pending'),
+      'In Progress': document.getElementById('tasks-progress')
+    };
+    Object.values(groups).forEach(g => { if (!g) return; while(g.children.length > 1) g.removeChild(g.lastChild); });
+    const cols = ['Triage','Urgent','Today','Later','Future'];
+    const safeGoals = Array.isArray(allGoals) ? allGoals : [];
+    let rendered = 0;
+    tasks.forEach(task => {
+      try {
+        if (task.done || task.completed) return;
+        const el = document.createElement('div');
+        const title = (task.title || task.text || '(no title)').replace(/'/g, '&#39;').replace(/`/g, '&#96;');
+        const col = task.kanban_column || 'Triage';
+        const notes = (task.notes || '').replace(/`/g, '&#96;');
+        const dueStr = task.dueDate
+          ? `<span class="task-due">📅 ${task.dueDate}</span>`
+          : '';
+        const goalObj = task.goal_id ? safeGoals.find(g => g.id === task.goal_id) : null;
+        const goalTag = goalObj ? `<span style="font-size:11px;background:#23863644;color:#aff5b4;border-radius:10px;padding:2px 8px;white-space:nowrap;flex-shrink:0;">🎯 ${goalObj.title}</span>` : '';
+        const colOpts = cols.map(c => `<option value="${c}"${c===col?' selected':''}>${c}</option>`).join('');
+        const goalOpts = '<option value="">No goal</option>' + safeGoals.map(g => `<option value="${g.id}"${task.goal_id===g.id?' selected':''}>${g.title}</option>`).join('');
+        el.className = 'task-item';
+        el.innerHTML =
+          '<div class="task-item-header">' +
+            '<input type="checkbox" onclick="event.stopPropagation()" onchange="toggleTask(\'' + task.id + '\',this.checked)">' +
+            '<span class="task-text">' + title + '</span>' +
+            goalTag +
+            '<select onclick="event.stopPropagation()" onchange="event.stopPropagation();moveTaskKanban(\'' + task.id + '\',this.value)" style="font-size:11px;background:#21262d;color:#c9d1d9;border:1px solid #30363d;border-radius:4px;padding:2px 5px;flex-shrink:0;">' + colOpts + '</select>' +
+            dueStr +
+            '<span class="task-expand-icon">▼</span>' +
+          '</div>' +
+          '<div class="task-detail">' +
+            '<textarea class="task-notes-area" placeholder="Notes..." onclick="event.stopPropagation()">' + notes + '</textarea>' +
+            '<div class="task-detail-actions">' +
+              '<button class="btn-sm" style="background:#23863644;color:#aff5b4;border-color:#238636;font-weight:700;" onclick="event.stopPropagation();toggleTask(\'' + task.id + '\',true)">✅ Complete</button>' +
+              '<button class="btn-sm" onclick="event.stopPropagation();saveTaskNotes(\'' + task.id + '\',this)">Save notes</button>' +
+              '<button class="btn-sm" style="background:#f8514922;color:#f85149;border-color:#f85149;" onclick="event.stopPropagation();deleteTask(\'' + task.id + '\')">Delete</button>' +
+              '<select onchange="event.stopPropagation();changeTaskGoal(\'' + task.id + '\',this.value)" style="font-size:12px;background:#21262d;color:#c9d1d9;border:1px solid #30363d;border-radius:4px;padding:3px 6px;">' + goalOpts + '</select>' +
+            '</div>' +
+          '</div>';
+        el.querySelector('.task-item-header').addEventListener('click', () => el.classList.toggle('expanded'));
+        if (groups[task.category]) groups[task.category].appendChild(el);
+        else groups['In Progress'].appendChild(el);
+        rendered++;
+      } catch(taskErr) {
+        console.error('Task render error', task.id, taskErr);
+      }
     });
-
-    if (taskDone) { doneContainer.appendChild(el); hasDone = true; }
-    else if (groups[task.category]) groups[task.category].appendChild(el);
-    else groups['In Progress'].appendChild(el);
-  });
-  doneContainer.style.display = hasDone ? 'block' : 'none';
+    const dbg = document.getElementById('tasks-debug');
+    if (dbg) dbg.textContent = rendered + ' tasks';
+  } catch(e) {
+    console.error('renderListView error:', e);
+    const dbg = document.getElementById('tasks-debug');
+    if (dbg) dbg.textContent = 'Render error: ' + e.message;
+  }
 }
 
 function renderKanbanView(tasks) {
-  const cols = ['Urgent','Today','Later','Future','Completed'];
+  const cols = ['Triage','Urgent','Today','Later','Future'];
   cols.forEach(col => {
-    const container = document.getElementById('kanban-cards-' + col);
+    const oldContainer = document.getElementById('kanban-cards-' + col);
+    if (!oldContainer) return;
+    // Clone to wipe stale drag/drop listeners
+    const container = oldContainer.cloneNode(false);
+    oldContainer.parentNode.replaceChild(container, oldContainer);
     container.innerHTML = '';
-    const colTasks = col === 'Completed'
-      ? tasks.filter(t => (t.done || t.completed) || t.kanban_column === 'Completed')
-      : tasks.filter(t => !(t.done || t.completed) && t.kanban_column !== 'Completed' && (t.kanban_column === col || (!t.kanban_column && col === 'Later')));
+    const colTasks = tasks.filter(t => !(t.done || t.completed) && (t.kanban_column || 'Triage') === col);
+    if (colTasks.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'color:#30363d;font-size:12px;text-align:center;padding:20px 8px;pointer-events:none;';
+      empty.textContent = 'Drop tasks here';
+      container.appendChild(empty);
+    }
     colTasks.forEach(task => {
       const card = document.createElement('div');
       card.className = 'kanban-card';
@@ -765,28 +1003,57 @@ function renderKanbanView(tasks) {
       card.dataset.id = task.id;
       const title = task.title || task.text || '(no title)';
       const catColor = task.category === 'Blocked' ? '#f85149' : task.category === 'Pending You' ? '#e3b341' : '#58a6ff';
-      card.innerHTML = `
-        <div>${title}</div>
-        <div class="card-meta">
-          <span class="card-badge" style="background:${catColor}22;color:${catColor};">${task.category||'Task'}</span>
-          ${task.dueDate ? `<span>📅 ${task.dueDate}</span>` : ''}
-          <span style="margin-left:auto;cursor:pointer;color:#8b949e;font-size:11px;" onclick="editDueDate('${task.id}','${task.dueDate||''}')">+ date</span>
-        </div>`;
-      card.addEventListener('dragstart', e => { e.dataTransfer.setData('taskId', task.id); card.classList.add('dragging'); });
+      card.innerHTML =
+        '<div style="display:flex;align-items:flex-start;gap:8px;">' +
+          '<input type="checkbox" onclick="event.stopPropagation()" onchange="toggleTaskKanban(\'' + task.id + '\',this.checked,\'' + col + '\')" style="margin-top:2px;accent-color:#238636;cursor:pointer;flex-shrink:0;">' +
+          '<span>' + title + '</span>' +
+        '</div>' +
+        '<div class="card-meta">' +
+          '<span class="card-badge" style="background:' + catColor + '22;color:' + catColor + ';">' + (task.category||'Task') + '</span>' +
+          (task.dueDate ? '<span>\u{1F4C5} ' + task.dueDate + '</span>' : '') +
+          '<button class=\'btn-sm\' style=\'margin-left:auto;font-size:11px;background:#23863644;color:#aff5b4;border-color:#238636;\' onclick=\'toggleTaskKanban(\\\'' + task.id + '\\\',true,\\\'' + col + '\\\')\'>\u2705</button>' +
+        '</div>';
+      card.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('taskId', task.id);
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => card.classList.add('dragging'), 0);
+      });
       card.addEventListener('dragend', () => card.classList.remove('dragging'));
       container.appendChild(card);
     });
-    // Drop zone
-    container.addEventListener('dragover', e => { e.preventDefault(); container.classList.add('drag-over'); });
-    container.addEventListener('dragleave', () => container.classList.remove('drag-over'));
+    // Use dragenter/dragleave counter to avoid flicker from child elements
+    let dragCounter = 0;
+    container.addEventListener('dragenter', e => {
+      e.preventDefault();
+      dragCounter++;
+      container.classList.add('drag-over');
+    });
+    container.addEventListener('dragleave', () => {
+      dragCounter--;
+      if (dragCounter <= 0) { dragCounter = 0; container.classList.remove('drag-over'); }
+    });
+    container.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
     container.addEventListener('drop', async e => {
       e.preventDefault();
+      dragCounter = 0;
       container.classList.remove('drag-over');
       const taskId = e.dataTransfer.getData('taskId');
-      await api('PATCH', `/api/tasks/${taskId}`, { kanban_column: col });
+      if (!taskId) return;
+      // Optimistic update
+      const task = allTasks.find(t => t.id === taskId);
+      if (task) task.kanban_column = col;
+      renderKanbanView(allTasks);
+      await api('PATCH', '/api/tasks/' + taskId, { kanban_column: col, done: 0 });
       await loadTasks();
     });
   });
+}
+
+async function toggleTaskKanban(id, checked, currentCol) {
+  const patch = { done: checked ? 1 : 0 };
+  if (!checked) patch.kanban_column = 'Triage';
+  await api('PATCH', `/api/tasks/${id}`, patch);
+  await loadTasks();
 }
 
 async function editDueDate(id, current) {
@@ -816,25 +1083,73 @@ async function moveTaskKanban(id, col) {
 }
 
 async function toggleTask(id, completed) {
-  await api('PATCH', `/api/tasks/${id}`, { done: completed ? 1 : 0 });
+  const patch = { done: completed ? 1 : 0 };
+  if (completed) patch.kanban_column = 'Completed';
+  // Immediately update local state for instant feedback
+  const task = allTasks.find(t => t.id === id);
+  if (task) { task.done = completed ? 1 : 0; if (completed) task.kanban_column = 'Completed'; }
+  renderTasks(allTasks);
+  await api('PATCH', `/api/tasks/${id}`, patch);
   loadTasks();
 }
 
-let doneVisible = true;
-function toggleDone() {
-  doneVisible = !doneVisible;
-  const container = document.getElementById('tasks-done');
-  const items = container.querySelectorAll('.task-item');
-  items.forEach(el => el.style.display = doneVisible ? '' : 'none');
-  document.getElementById('toggle-done-btn').textContent = doneVisible ? 'Hide' : 'Show';
+
+async function changeTaskGoal(id, goal_id) {
+  await api('PATCH', `/api/tasks/${id}`, { goal_id: goal_id || null });
+  loadTasks();
 }
 
 async function addTask() {
   const input = document.getElementById('new-task-input');
   if (!input.value.trim()) return;
-  await api('POST', '/api/tasks', { text: input.value.trim(), category: 'In Progress', kanban_column: 'Later' });
+  const goalSel = document.getElementById('new-task-goal');
+  const goal_id = goalSel ? goalSel.value || null : null;
+  await api('POST', '/api/tasks', { text: input.value.trim(), category: 'In Progress', kanban_column: 'Triage', goal_id });
   input.value = '';
   loadTasks();
+}
+
+// AGENT SUGGESTIONS
+async function loadSuggestions() {
+  const suggestions = await api('GET', '/api/agent-suggestions') || [];
+  const container = document.getElementById('suggestions-list');
+  if (!container) return;
+  const active = suggestions.filter(s => !s.dismissed);
+  if (!active.length) {
+    container.innerHTML = '<div class="card"><div class="empty-state">No suggestions right now — check back tomorrow.</div></div>';
+    return;
+  }
+  const impactColor = { high: '#3fb950', medium: '#e3b341', low: '#8b949e' };
+  container.innerHTML = active.map(s => `
+    <div class="card" style="margin-bottom:14px;border-left:3px solid ${impactColor[s.impact]||'#30363d'};">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <div>
+          <div style="font-size:15px;font-weight:700;">${s.title}</div>
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+            <span class="badge" style="background:${impactColor[s.impact]}22;color:${impactColor[s.impact]};">${s.impact} impact</span>
+            <span class="badge" style="background:#21262d;color:#8b949e;">${s.category}</span>
+            ${s.goalTitle ? `<span class="badge" style="background:#23863644;color:#aff5b4;">🎯 ${s.goalTitle}</span>` : ''}
+            <span style="font-size:12px;color:#8b949e;">⏱ Saves ~${s.estimatedTimesSaved}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          ${s.status !== 'active' ? `<button class="btn-sm" style="background:#23863644;color:#aff5b4;border-color:#238636;" onclick="activateSuggestion('${s.id}')">⚡ Activate</button>` : `<span class="badge badge-live">Active</span>`}
+          <button class="btn-sm" style="background:#21262d;color:#8b949e;" onclick="dismissSuggestion('${s.id}')">Dismiss</button>
+        </div>
+      </div>
+      <div style="font-size:13px;color:#c9d1d9;line-height:1.6;">${s.description}</div>
+    </div>
+  `).join('');
+}
+
+async function activateSuggestion(id) {
+  await api('POST', `/api/agent-suggestions/${id}/activate`, {});
+  loadSuggestions();
+}
+
+async function dismissSuggestion(id) {
+  await api('POST', `/api/agent-suggestions/${id}/dismiss`, {});
+  loadSuggestions();
 }
 
 // AGENTS
