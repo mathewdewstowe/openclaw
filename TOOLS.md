@@ -1,5 +1,21 @@
 # TOOLS.md - Local Notes
 
+## API Keys
+
+### EnrichLayer (LinkedIn enrichment)
+- Key: `oYC90qJpPVXV2rn3TyPfwQ`
+- Endpoint: `GET https://enrichlayer.com/api/v2/profile?profile_url=<linkedin_url>`
+- Header: `Authorization: Bearer oYC90qJpPVXV2rn3TyPfwQ`
+- Use for: enriching ICP profiles, LinkedIn lead data, company lookups
+- Also supports: `/api/v2/company` for company profiles
+
+### Apollo
+- Key: `V5ZsfKQ0dsCMCBum2wKEdA`
+
+### Readwise
+- Key: `mbQiKrmFxjmrymFwir29u050WFYF2EMhsvsJaFq1rjtRAFLmwl`
+
+
 Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your setup.
 
 ## What Goes Here
