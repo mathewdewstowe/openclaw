@@ -1,0 +1,353 @@
+{
+  "updatedAt": "2026-03-17T21:59:30.958Z",
+  "createdAt": "2026-03-17T21:59:30.958Z",
+  "id": "SlwSfPuVblWX3jkw",
+  "name": "\ud83d\udd2c Product Engine",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "p-sched",
+      "name": "\u23f0 10AM Weekdays",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        280
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "p-hook",
+      "name": "\ud83d\udd17 Manual Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        440
+      ],
+      "parameters": {
+        "path": "product-engine",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "p-start",
+      "name": "\ud83d\udce3 Product Engine \u2014 Starting",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        420,
+        360
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": "#claw-tasks-reminders",
+        "text": "\ud83d\udd2c *Product Engine running* \u2014 5 agents starting\n\n1\ufe0f\u20e3 Market Signal Aggregator\n2\ufe0f\u20e3 ICP Feedback Collector\n3\ufe0f\u20e3 Feature Prioritiser\n4\ufe0f\u20e3 Competitor Product Watch\n5\ufe0f\u20e3 Weekly Product Report\n\n_Running..._",
+        "authentication": "oAuth2"
+      }
+    },
+    {
+      "id": "p-a1",
+      "name": "\ud83d\udce1 Market Signal Aggregator",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        120
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'PRODUCT AGENT 1/5 \u2014 Market Signals: Aggregate product signals from: 1) Reddit posts mentioning Sonesse/Umified/meeting bots/Recall.ai, 2) Any community monitor results from /tmp/community-signals-*.json (last 7 days), 3) HN threads about meeting AI or developer tools. Categorise signals as: Feature Request, Bug Report, Competitor Win, Market Opportunity, or Churn Risk. Save top 10 to /tmp/product-signals-$(date +%Y-%m-%d).json.'"
+      }
+    },
+    {
+      "id": "p-a2",
+      "name": "\ud83d\udc65 ICP Feedback Collector",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        240
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'PRODUCT AGENT 2/5 \u2014 ICP Feedback: Review dashboard ICPs at http://localhost:3737/api/icps (JWT auth required). For ICPs with status \\'engaged\\' or \\'active\\', check if they have notes indicating feedback or feature requests. Also check Slack #claw-tasks-reminders for any product feedback mentions from Matthew in last 7 days. Compile a feedback summary per ICP segment (Sonesse vs Nth Layer). Post to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "p-a3",
+      "name": "\ud83c\udfaf Feature Prioritiser",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        360
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'PRODUCT AGENT 3/5 \u2014 Feature Prioritisation: Read /tmp/product-signals-$(date +%Y-%m-%d).json if available. Using RICE framework (Reach, Impact, Confidence, Effort), score the top 5 product opportunities identified. For Sonesse specifically: consider the Recall.ai competitor gaps, developer self-hosted demand, and enterprise data sovereignty use cases. Output a ranked feature list with RICE scores and post to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "p-a4",
+      "name": "\ud83d\udd2c Competitor Product Watch",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        480
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'PRODUCT AGENT 4/5 \u2014 Product Intelligence: Check product update pages, changelogs, and job postings for: Recall.ai, Otter.ai, Fireflies.ai, Grain, Fathom. Look for: new enterprise features, API changes, pricing model shifts, new integrations. Flag anything that impacts Sonesse positioning. Post findings to #claw-tasks-reminders with \\'so what\\' analysis.'"
+      }
+    },
+    {
+      "id": "p-a5",
+      "name": "\ud83d\udcca Sonesse Metrics Tracker",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        600
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'PRODUCT AGENT 5/5 \u2014 Sonesse Metrics: Check available metrics for Sonesse \u2014 any trial signups, tutorial views, demo requests, or inbound emails to matthewdewstowe@gmail.com about Sonesse. Update the Sonesse goal progress in the dashboard. Calculate week-on-week growth if prior data exists. Post metrics to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "p-wait",
+      "name": "\u23f3 Wait 2min",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        360
+      ],
+      "parameters": {
+        "amount": 120,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "p-summary",
+      "name": "\ud83d\udccb Product Summary",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        360
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'PRODUCT ENGINE SUMMARY \u2014 Compile today\\'s product report: \ud83d\udce1 Top market signals (with categories), \ud83c\udfaf Feature prioritisation (top 3 with RICE scores), \ud83d\udd2c Competitor intel, \ud83d\udcca Sonesse metrics. Format as a clean product digest and post to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "p-done",
+      "name": "\u2705 Product Engine \u2014 Complete",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1300,
+        360
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": "#claw-tasks-reminders",
+        "text": "\u2705 *Product Engine complete* \u2014 product digest ready. \ud83d\udd2c",
+        "authentication": "oAuth2"
+      }
+    }
+  ],
+  "connections": {
+    "\u23f0 10AM Weekdays": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udce3 Product Engine \u2014 Starting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udd17 Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udce3 Product Engine \u2014 Starting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udce3 Product Engine \u2014 Starting": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udce1 Market Signal Aggregator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udc65 ICP Feedback Collector",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83c\udfaf Feature Prioritiser",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udd2c Competitor Product Watch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udcca Sonesse Metrics Tracker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udce1 Market Signal Aggregator": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udc65 ICP Feedback Collector": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83c\udfaf Feature Prioritiser": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udd2c Competitor Product Watch": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udcca Sonesse Metrics Tracker": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u23f3 Wait 2min": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udccb Product Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udccb Product Summary": {
+      "main": [
+        [
+          {
+            "node": "\u2705 Product Engine \u2014 Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "c144fc14-e946-46ac-803d-e16a8b541573",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-17T21:59:30.961Z",
+      "createdAt": "2026-03-17T21:59:30.961Z",
+      "role": "workflow:owner",
+      "workflowId": "SlwSfPuVblWX3jkw",
+      "projectId": "hVEcS9HC2ymugmRE",
+      "project": {
+        "updatedAt": "2026-03-17T07:31:44.901Z",
+        "createdAt": "2026-03-17T07:31:12.644Z",
+        "id": "hVEcS9HC2ymugmRE",
+        "name": "Matthew Dewstowe <matthewdewstowe@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "448b876b-eeef-4938-9985-a5e28a2177f5"
+      }
+    }
+  ],
+  "tags": [],
+  "parentFolder": null,
+  "activeVersion": null,
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:unpublish",
+    "workflow:unshare",
+    "workflow:update",
+    "workflow:updateRedactionSetting"
+  ],
+  "checksum": "311810bd229b59f38e5a1b488fefaf482b003b2f3e1fe619c6018811ca6a239a"
+}

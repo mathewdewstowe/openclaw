@@ -1,0 +1,382 @@
+{
+  "updatedAt": "2026-03-17T21:59:31.009Z",
+  "createdAt": "2026-03-17T21:59:31.009Z",
+  "id": "jV6QmdHMRCqNiKaj",
+  "name": "\u2699\ufe0f Ops & Support Engine",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "o-sched",
+      "name": "\u23f0 8AM Daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        280
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "o-hook",
+      "name": "\ud83d\udd17 Manual Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        440
+      ],
+      "parameters": {
+        "path": "ops-engine",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "o-start",
+      "name": "\ud83d\udce3 Ops Engine \u2014 Starting",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        420,
+        360
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": "#claw-tasks-reminders",
+        "text": "\u2699\ufe0f *Ops Engine running* \u2014 6 agents starting\n\n1\ufe0f\u20e3 Daily Briefing\n2\ufe0f\u20e3 Job Search Agent\n3\ufe0f\u20e3 Email Triage\n4\ufe0f\u20e3 Calendar Check\n5\ufe0f\u20e3 System Health\n6\ufe0f\u20e3 Neuro Check-in\n\n_Running..._",
+        "authentication": "oAuth2"
+      }
+    },
+    {
+      "id": "o-a1",
+      "name": "\ud83d\udcc5 Daily Briefing Agent",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        80
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'OPS AGENT 1/6 \u2014 Daily Briefing: Generate today\\'s briefing for Matthew. Include: 1) Top 3 priorities for today based on open tasks, goals, and calendar, 2) Key metrics snapshot (Sonesse leads: X/10, Nth Layer deals: X/1, week hours: Xh/50h), 3) Any urgent items from overnight, 4) Weather for Tenby/Cardiff, 5) One motivational insight. Post to dashboard /api/today and send to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "o-a2",
+      "name": "\ud83d\udcbc Job Search Agent",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        200
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'OPS AGENT 2/6 \u2014 Job Search: Run daily job search for Matthew. Search LinkedIn, Indeed, and Technojobs for new VP Product, Director of Product, Head of Product, CPO roles in UK (London/Cardiff/Remote). Filter: salary \u00a3130k+ or \u00a3650+/day, posted in last 24h. For each new job not in the apply log, add to /home/matthewdewstowe/.openclaw/workspace/jobs/apply-log.json with status \\'pending\\'. Post top 5 matches to #claw-tasks-reminders with links.'"
+      }
+    },
+    {
+      "id": "o-a3",
+      "name": "\ud83d\udce7 Email Triage Agent",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        320
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'OPS AGENT 3/6 \u2014 Email Triage: Check Matthew\\'s Gmail (matthewdewstowe@gmail.com) for unread emails from last 24h. Categorise as: Urgent (needs reply today), Action (needs reply this week), FYI (no reply needed), Spam/Ignore. For Urgent and Action items, create tasks in dashboard /api/tasks. Post a triage summary to #claw-tasks-reminders. Flag anything from recruiters, Sonesse/Nth Layer prospects, or Bullhorn/Innovantage contacts.'"
+      }
+    },
+    {
+      "id": "o-a4",
+      "name": "\ud83d\udcc6 Calendar Agent",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        440
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'OPS AGENT 4/6 \u2014 Calendar: Check Google Calendar for today and tomorrow. For any meetings in next 48h: 1) Prepare a brief context note (who is the person, what company, what\\'s the likely agenda), 2) Flag any conflicts, 3) Set reminders for meetings without prep notes. Post meeting prep cards to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "o-a5",
+      "name": "\ud83d\udda5\ufe0f System Health Agent",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        560
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'OPS AGENT 5/6 \u2014 System Health: Check all services: 1) Dashboard (http://localhost:3737), 2) n8n (http://localhost:5678/healthz), 3) Cloudflare tunnel (cloudflared tunnel info 82ebc6e5-eeae-4532-8331-325d82345028), 4) Key cron jobs status. If anything is down, restart it and alert. Log results to SQLite uptime_incidents table if any failures found.'"
+      }
+    },
+    {
+      "id": "o-a6",
+      "name": "\ud83e\udde0 Neuro Morning Check-in",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        680
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'OPS AGENT 6/6 \u2014 Neuro Check-in: Send Matthew\\'s morning accountability check-in to #claw_neuro. Remind him of his commitments: move (exercise), eat well, read, no drinking, be kind to people. Include 5 specific genuine strengths from his background (founder exit, AI-native thinking, product depth, neurodivergent superpower, resilience). Add 3 kind but direct improvement nudges. Keep it punchy and energising.'"
+      }
+    },
+    {
+      "id": "o-wait",
+      "name": "\u23f3 Wait 2min",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        380
+      ],
+      "parameters": {
+        "amount": 120,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "o-summary",
+      "name": "\ud83d\udccb Ops Summary",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        380
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'OPS ENGINE SUMMARY \u2014 Compile morning ops report: \ud83d\udcc5 Top 3 priorities, \ud83d\udcbc New jobs found (count), \ud83d\udce7 Emails needing action (count + subjects), \ud83d\udcc6 Meetings today (count + times), \ud83d\udda5\ufe0f System status (all green/issues). Post clean digest to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "o-done",
+      "name": "\u2705 Ops Engine \u2014 Complete",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1300,
+        380
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": "#claw-tasks-reminders",
+        "text": "\u2705 *Ops Engine complete* \u2014 morning briefing ready. \u2699\ufe0f",
+        "authentication": "oAuth2"
+      }
+    }
+  ],
+  "connections": {
+    "\u23f0 8AM Daily": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udce3 Ops Engine \u2014 Starting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udd17 Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udce3 Ops Engine \u2014 Starting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udce3 Ops Engine \u2014 Starting": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udcc5 Daily Briefing Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udcbc Job Search Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udce7 Email Triage Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udcc6 Calendar Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udda5\ufe0f System Health Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83e\udde0 Neuro Morning Check-in",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udcc5 Daily Briefing Agent": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udcbc Job Search Agent": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udce7 Email Triage Agent": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udcc6 Calendar Agent": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udda5\ufe0f System Health Agent": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83e\udde0 Neuro Morning Check-in": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u23f3 Wait 2min": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udccb Ops Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udccb Ops Summary": {
+      "main": [
+        [
+          {
+            "node": "\u2705 Ops Engine \u2014 Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "15c88d31-e1cd-4fd8-a0cd-c1741ff03d27",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-17T21:59:31.011Z",
+      "createdAt": "2026-03-17T21:59:31.011Z",
+      "role": "workflow:owner",
+      "workflowId": "jV6QmdHMRCqNiKaj",
+      "projectId": "hVEcS9HC2ymugmRE",
+      "project": {
+        "updatedAt": "2026-03-17T07:31:44.901Z",
+        "createdAt": "2026-03-17T07:31:12.644Z",
+        "id": "hVEcS9HC2ymugmRE",
+        "name": "Matthew Dewstowe <matthewdewstowe@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "448b876b-eeef-4938-9985-a5e28a2177f5"
+      }
+    }
+  ],
+  "tags": [],
+  "parentFolder": null,
+  "activeVersion": null,
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:unpublish",
+    "workflow:unshare",
+    "workflow:update",
+    "workflow:updateRedactionSetting"
+  ],
+  "checksum": "ab93942cc332da1bc9d12f3c93e0fd77eb4286a421397ce7d8dab8966ba3f8ca"
+}

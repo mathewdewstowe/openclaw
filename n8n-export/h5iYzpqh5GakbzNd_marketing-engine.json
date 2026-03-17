@@ -1,0 +1,353 @@
+{
+  "updatedAt": "2026-03-17T21:59:30.903Z",
+  "createdAt": "2026-03-17T21:59:30.903Z",
+  "id": "h5iYzpqh5GakbzNd",
+  "name": "\ud83d\udce3 Marketing Engine",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "m-sched",
+      "name": "\u23f0 9AM Weekdays",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        280
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "m-hook",
+      "name": "\ud83d\udd17 Manual Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        440
+      ],
+      "parameters": {
+        "path": "marketing-engine",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "m-start",
+      "name": "\ud83d\udce3 Marketing Engine \u2014 Starting",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        420,
+        360
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": "#claw-tasks-reminders",
+        "text": "\ud83d\udce3 *Marketing Engine running* \u2014 5 agents starting\n\n1\ufe0f\u20e3 Sonesse Content Engine\n2\ufe0f\u20e3 SEO Tutorial Publisher\n3\ufe0f\u20e3 LinkedIn Post Drafter\n4\ufe0f\u20e3 Content Queue Manager\n5\ufe0f\u20e3 Readwise/Inspiration Feed\n\n_Running..._",
+        "authentication": "oAuth2"
+      }
+    },
+    {
+      "id": "m-a1",
+      "name": "\u270d\ufe0f Content Engine \u2014 Sonesse",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        120
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'MARKETING AGENT 1/5 \u2014 Sonesse Content Engine: Check /home/matthewdewstowe/.openclaw/workspace/sonesse-content/topic-queue.json for the next scheduled topic. Write a 600-800 word SEO tutorial following the Sonesse voice: practical, developer-friendly, no fluff. Target keyword density 1-2%. Add internal links to previous tutorials. Save to sonesse-content/ folder and update the queue. Output: title, word count, target keyword.'"
+      }
+    },
+    {
+      "id": "m-a2",
+      "name": "\ud83c\udf93 SEO Tutorial Publisher",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        240
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'MARKETING AGENT 2/5 \u2014 SEO Tutorial: Check if there\\'s a new Sonesse tutorial ready in /home/matthewdewstowe/.openclaw/workspace/sonesse-content/ that hasn\\'t been published yet (no published: true flag). If found, format it for publication and post a summary + the content to #claw-tasks-reminders for Matthew to review and publish. Also suggest 3 distribution channels (Reddit threads, LinkedIn, HN ShowHN).'"
+      }
+    },
+    {
+      "id": "m-a3",
+      "name": "\ud83d\udcdd LinkedIn Post Drafter",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        360
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'MARKETING AGENT 3/5 \u2014 LinkedIn Post Drafter: Draft 2 LinkedIn posts for today. Post 1: Thought leadership for Matthew (Nth Layer / AI-native product leadership angle, ~150 words, hook + insight + CTA). Post 2: Sonesse product post (practical use case, developer audience, ~120 words). Add to dashboard /api/posts as drafts. Post previews to #claw-tasks-reminders for approval.'"
+      }
+    },
+    {
+      "id": "m-a4",
+      "name": "\ud83d\udcc5 Content Queue Manager",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        480
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'MARKETING AGENT 4/5 \u2014 Content Queue: Review /home/matthewdewstowe/.openclaw/workspace/sonesse-content/topic-queue.json. Ensure 2 weeks of topics are queued. If fewer than 10 topics remain, generate 10 new SEO-optimised tutorial ideas based on: Sonesse/Umified use cases, competitor gaps (Recall.ai pain points), developer search intent. Add them to the queue file. Output: queue length, new topics added.'"
+      }
+    },
+    {
+      "id": "m-a5",
+      "name": "\ud83d\udcda Readwise Inspiration",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        600
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'MARKETING AGENT 5/5 \u2014 Readwise Inspiration: Fetch today\\'s Readwise highlights for Matthew. Identify any highlights relevant to: AI meeting infrastructure, developer tools, product-led growth, or sales automation. For each relevant highlight, suggest how it could become a LinkedIn post or Sonesse tutorial angle. Post top 3 ideas to #claw-reading-list.'"
+      }
+    },
+    {
+      "id": "m-wait",
+      "name": "\u23f3 Wait 2min",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        900,
+        360
+      ],
+      "parameters": {
+        "amount": 120,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "m-summary",
+      "name": "\ud83d\udccb Marketing Summary",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        360
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'MARKETING ENGINE SUMMARY \u2014 Compile today\\'s marketing report: \u270d\ufe0f Content created (title + word count), \ud83d\udcdd LinkedIn drafts ready for review, \ud83d\udcc5 Content queue status, \ud83d\udca1 Content ideas surfaced from Readwise. Post clean digest to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "m-done",
+      "name": "\u2705 Marketing Engine \u2014 Complete",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1300,
+        360
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": "#claw-tasks-reminders",
+        "text": "\u2705 *Marketing Engine complete* \u2014 content ready for review. \ud83d\udce3",
+        "authentication": "oAuth2"
+      }
+    }
+  ],
+  "connections": {
+    "\u23f0 9AM Weekdays": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udce3 Marketing Engine \u2014 Starting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udd17 Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udce3 Marketing Engine \u2014 Starting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udce3 Marketing Engine \u2014 Starting": {
+      "main": [
+        [
+          {
+            "node": "\u270d\ufe0f Content Engine \u2014 Sonesse",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83c\udf93 SEO Tutorial Publisher",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udcdd LinkedIn Post Drafter",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udcc5 Content Queue Manager",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udcda Readwise Inspiration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u270d\ufe0f Content Engine \u2014 Sonesse": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83c\udf93 SEO Tutorial Publisher": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udcdd LinkedIn Post Drafter": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udcc5 Content Queue Manager": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udcda Readwise Inspiration": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u23f3 Wait 2min": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udccb Marketing Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udccb Marketing Summary": {
+      "main": [
+        [
+          {
+            "node": "\u2705 Marketing Engine \u2014 Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "47b5163d-2a9f-4298-9079-a376fd814dce",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-17T21:59:30.906Z",
+      "createdAt": "2026-03-17T21:59:30.906Z",
+      "role": "workflow:owner",
+      "workflowId": "h5iYzpqh5GakbzNd",
+      "projectId": "hVEcS9HC2ymugmRE",
+      "project": {
+        "updatedAt": "2026-03-17T07:31:44.901Z",
+        "createdAt": "2026-03-17T07:31:12.644Z",
+        "id": "hVEcS9HC2ymugmRE",
+        "name": "Matthew Dewstowe <matthewdewstowe@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "448b876b-eeef-4938-9985-a5e28a2177f5"
+      }
+    }
+  ],
+  "tags": [],
+  "parentFolder": null,
+  "activeVersion": null,
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:unpublish",
+    "workflow:unshare",
+    "workflow:update",
+    "workflow:updateRedactionSetting"
+  ],
+  "checksum": "de7fe49be76d46b71aa992a241e57529425061e20b894a4c9ae38c24cd4acf6a"
+}
