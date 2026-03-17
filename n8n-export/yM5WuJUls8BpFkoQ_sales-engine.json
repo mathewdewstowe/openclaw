@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-03-17T21:59:30.842Z",
+  "updatedAt": "2026-03-17T22:03:13.000Z",
   "createdAt": "2026-03-17T21:50:16.238Z",
   "id": "yM5WuJUls8BpFkoQ",
   "name": "\ud83d\udcb0 Sales Engine",
@@ -157,11 +157,11 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1100,
+        1320,
         420
       ],
       "parameters": {
-        "command": "openclaw session send --label main 'SALES ENGINE SUMMARY \u2014 Compile today\\'s sales report from all 6 agents. Include: \ud83c\udfaf New prospects added (with names/companies), \ud83d\udcca Apollo sequence stats (sent/opened/clicked/replied), \ud83d\udcbc LinkedIn signals requiring action, \ud83d\udd0d Top community signals, \ud83d\udd75\ufe0f Competitor intel, \ud83d\udcc8 Goal progress (Sonesse: 10 hot leads, Nth Layer: 1 deal). Post to #claw-tasks-reminders as a clean daily sales digest.'"
+        "command": "openclaw session send --label main 'SALES ENGINE SUMMARY \u2014 Compile today\\'s full sales report. Read /tmp/lead-scores-$(date +%Y-%m-%d).json for lead scores. Include: \ud83d\udd25 Hot leads needing action today (name, company, score, top reason), \ud83c\udfaf New prospects added from Apollo, \ud83d\udcca Apollo sequence stats (sent/opened/clicked/replied), \ud83d\udcbc LinkedIn signals, \ud83d\udd0d Community signals, \ud83d\udd75\ufe0f Competitor intel, \ud83d\udcc8 Goal progress (Sonesse: 10 hot leads, Nth Layer: 1 deal). Post as a clean daily digest to #claw-tasks-reminders.'"
       }
     },
     {
@@ -170,7 +170,7 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.2,
       "position": [
-        1300,
+        1540,
         420
       ],
       "parameters": {
@@ -179,6 +179,32 @@
         "channel": "#claw-tasks-reminders",
         "text": "\u2705 *Sales Engine complete* \u2014 6 agents done. Sales digest posted above. \ud83d\udcb0",
         "authentication": "oAuth2"
+      }
+    },
+    {
+      "id": "s-scorer",
+      "name": "\ud83c\udfaf Lead Scorer",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        420
+      ],
+      "parameters": {
+        "command": "python3 /home/matthewdewstowe/.openclaw/workspace/scripts/lead-scorer.py"
+      }
+    },
+    {
+      "id": "s-ai-scorer",
+      "name": "\ud83e\udde0 AI Lead Enrichment",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        280
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'SALES AGENT \u2014 AI Lead Enrichment & Scoring: Load all ICPs from dashboard API. For any ICP missing title/company, enrich via EnrichLayer API (key: oYC90qJpPVXV2rn3TyPfwQ). Score each ICP using the model in /home/matthewdewstowe/.openclaw/workspace/scripts/lead-scorer-agent-prompt.md. Update dashboard /api/icps with new scores and notes. Output: X enriched, Y scored, top 3 hot leads with names and scores.'"
       }
     }
   ],
@@ -311,7 +337,12 @@
       "main": [
         [
           {
-            "node": "\ud83d\udccb Daily Sales Summary",
+            "node": "\ud83e\udde0 AI Lead Enrichment",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83c\udfaf Lead Scorer",
             "type": "main",
             "index": 0
           }
@@ -328,6 +359,28 @@
           }
         ]
       ]
+    },
+    "\ud83c\udfaf Lead Scorer": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udccb Daily Sales Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83e\udde0 AI Lead Enrichment": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udccb Daily Sales Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -339,31 +392,11 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "eed62acf-7fcf-4f7d-9967-d774f5d0820e",
+  "versionId": "2f2729d9-a10c-45b9-93d9-9b5e74f9a85e",
   "activeVersionId": null,
-  "versionCounter": 3,
+  "versionCounter": 5,
   "triggerCount": 0,
-  "shared": [
-    {
-      "updatedAt": "2026-03-17T21:50:16.245Z",
-      "createdAt": "2026-03-17T21:50:16.245Z",
-      "role": "workflow:owner",
-      "workflowId": "yM5WuJUls8BpFkoQ",
-      "projectId": "hVEcS9HC2ymugmRE",
-      "project": {
-        "updatedAt": "2026-03-17T07:31:44.901Z",
-        "createdAt": "2026-03-17T07:31:12.644Z",
-        "id": "hVEcS9HC2ymugmRE",
-        "name": "Matthew Dewstowe <matthewdewstowe@gmail.com>",
-        "type": "personal",
-        "icon": null,
-        "description": null,
-        "creatorId": "448b876b-eeef-4938-9985-a5e28a2177f5"
-      }
-    }
-  ],
   "tags": [],
-  "parentFolder": null,
   "activeVersion": null,
   "scopes": [
     "workflow:create",
@@ -380,5 +413,5 @@
     "workflow:update",
     "workflow:updateRedactionSetting"
   ],
-  "checksum": "d85a5fe2dc76b4229fda87b4f7a24deb4b71703df8f6b7ccedaaab76fce5c628"
+  "checksum": "9e13d21a1ac4cec44810b30532ab6b77b6c66ba4f7af29ee1160535b3645e679"
 }
