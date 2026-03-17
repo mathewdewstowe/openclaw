@@ -1,5 +1,33 @@
 [
   {
+    "id": "task-1773776429193",
+    "text": "SEO for Sonesse",
+    "done": 0,
+    "priority": "medium",
+    "category": "In Progress",
+    "kanban_column": "Triage",
+    "dueDate": null,
+    "createdAt": "2026-03-17T19:40:29.193Z",
+    "updatedAt": "2026-03-17T19:40:29.193Z",
+    "notes": null,
+    "completedAt": null,
+    "goal_id": "1"
+  },
+  {
+    "id": "task-1773776415521",
+    "text": "Finish white paper",
+    "done": 0,
+    "priority": "medium",
+    "category": "In Progress",
+    "kanban_column": "Triage",
+    "dueDate": null,
+    "createdAt": "2026-03-17T19:40:15.521Z",
+    "updatedAt": "2026-03-17T19:40:15.521Z",
+    "notes": null,
+    "completedAt": null,
+    "goal_id": null
+  },
+  {
     "id": "task-1773776346879",
     "text": "Pay Google",
     "done": 0,

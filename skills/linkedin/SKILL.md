@@ -1,31 +1,66 @@
 ---
 name: linkedin
-description: 'Search and scrape LinkedIn using your real Chrome session via CDP. Use when the user asks to: look up a LinkedIn profile, find someone on LinkedIn, search LinkedIn for people or companies, get profile details, or any LinkedIn research task. Connects to running Chrome — no separate login, no 2FA, no bot detection. Trigger on any mention of LinkedIn, looking up a contact, searching for people, or connection research.'
+description: 'Search and scrape LinkedIn using Camoufox stealth browser. Use when the user asks to: look up a LinkedIn profile, find someone on LinkedIn, search LinkedIn for people or companies, get profile details, or any LinkedIn research task. Uses Camoufox (patched Firefox) with C++ level anti-bot evasion. Trigger on any mention of LinkedIn, looking up a contact, searching for people, or connection research.'
 metadata:
   { "openclaw": { "emoji": "💼" } }
 ---
 
-# LinkedIn (Chrome CDP)
+# LinkedIn (Camoufox Stealth Browser)
 
-Connects to your **running Chrome browser** via remote debugging (CDP).
-Uses your real LinkedIn session — no separate login, no 2FA, no bot detection.
+Uses **Camoufox** — a custom Firefox fork with C++ level stealth patches.
+Persistent session stored at `~/.stealth-browser/profiles/linkedin/`.
+No Windows Chrome dependency. Runs natively in WSL.
 
-Script lives at `C:\Temp\li-win\linkedin.js` (Windows Node.js).
-WSL wrapper: `~/.openclaw/workspace/tools/browser/li.sh`
-
----
-
-## Step 1 — Launch Chrome in debug mode (once per Windows session)
-
-**Double-click `Chrome Debug Mode.bat` on your Desktop.**
-
-This closes any existing Chrome and relaunches it with `--remote-debugging-port=9222`
-using a dedicated debug profile at `C:\Temp\chrome-debug`.
-All your cookies (including LinkedIn) are pre-loaded.
+Script: `~/.openclaw/workspace/scripts/camoufox-linkedin.py`
 
 ---
 
-## Step 2 — Run commands from WSL
+## First-Time Setup
+
+Login requires a **headed browser** (needs display — use WSLg or X11 forwarding):
+
+```bash
+python3 ~/.openclaw/workspace/scripts/camoufox-linkedin.py --login
+```
+
+Log into LinkedIn in the browser window, then press Enter to save the session.
+
+---
+
+## Check Session Status
+
+```bash
+python3 ~/.openclaw/workspace/scripts/camoufox-linkedin.py --status
+```
+
+---
+
+## Fetch a LinkedIn Page
+
+```bash
+python3 ~/.openclaw/workspace/scripts/camoufox-linkedin.py --url "https://www.linkedin.com/in/someone" --output /tmp/profile.html
+python3 ~/.openclaw/workspace/scripts/camoufox-linkedin.py --url "https://www.linkedin.com/feed/" --screenshot /tmp/feed.png
+```
+
+---
+
+## Using Camoufox Directly in Python
+
+```python
+from camoufox.sync_api import Camoufox
+import os
+
+PROFILE = os.path.expanduser("~/.stealth-browser/profiles/linkedin")
+
+with Camoufox(headless=True, persistent_context=True, user_data_dir=PROFILE, humanize=True) as browser:
+    page = browser.new_page()
+    page.goto("https://www.linkedin.com/feed/", wait_until="networkidle")
+    # ... interact with page
+```
+
+---
+
+## Run commands from WSL
 
 ### Check LinkedIn session
 ```bash
