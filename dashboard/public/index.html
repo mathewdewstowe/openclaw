@@ -1578,10 +1578,39 @@ async function loadToday() {
 
 async function refreshToday() {
   const el = document.getElementById('today-content');
-  el.innerHTML = '<div class="card"><div style="color:#8b949e;padding:20px;">Generating priorities... this takes a few seconds.</div></div>';
-  // Trigger via a background message — agent will POST back to /api/today
-  // For now just reload
-  await new Promise(r => setTimeout(r, 2000));
+  el.innerHTML = '<div class="card"><div style="color:#8b949e;padding:20px;">🔄 Regenerating priorities from live data...</div></div>';
+  // Build priorities from live tasks + goals
+  try {
+    const [tasks, goals, risks] = await Promise.all([
+      api('GET', '/api/tasks'),
+      api('GET', '/api/goals'),
+      api('GET', '/api/risks')
+    ]);
+    const open = (tasks || []).filter(t => !t.done);
+    const urgent = open.filter(t => t.kanban_column === 'Urgent' || t.priority === 'high');
+    const blocked = open.filter(t => t.category === 'Blocked');
+    const highRisks = (risks || []).filter(r => r.severity === 'high' && r.status !== 'closed');
+
+    const priorities = urgent.slice(0, 5).map(t => ({ title: t.text, detail: t.notes || '' }));
+    if (priorities.length === 0) {
+      open.slice(0, 5).forEach(t => priorities.push({ title: t.text, detail: t.notes || '' }));
+    }
+
+    const blockerList = [
+      ...blocked.map(t => t.text),
+      ...highRisks.map(r => r.title)
+    ].slice(0, 4);
+
+    const goalProgress = (goals || []).slice(0, 2).map(g => `${g.title}: ${g.current}/${g.target} ${g.unit}`).join(' · ');
+    const headline = `${priorities.length} priorities · ${blockerList.length} blockers · ${goalProgress}`;
+
+    await api('POST', '/api/today', {
+      headline,
+      priorities,
+      blockers: blockerList,
+      context: `Auto-generated from ${open.length} open tasks and ${highRisks.length} high risks at ${new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'})}.`
+    });
+  } catch(e) { console.error('refreshToday error:', e); }
   loadToday();
 }
 

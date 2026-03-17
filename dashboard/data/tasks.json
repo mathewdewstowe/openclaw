@@ -1,5 +1,19 @@
 [
   {
+    "id": "task-1773776141048",
+    "text": "Complete all tasks in Apollo",
+    "done": 0,
+    "priority": "high",
+    "category": "Blocked",
+    "kanban_column": "Urgent",
+    "dueDate": null,
+    "createdAt": "2026-03-17T19:35:41.048Z",
+    "updatedAt": "2026-03-17T19:35:41.048Z",
+    "notes": null,
+    "completedAt": null,
+    "goal_id": null
+  },
+  {
     "id": "task-1773775249761",
     "text": "Complete tasks in Apollo",
     "done": 0,
