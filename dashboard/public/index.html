@@ -818,6 +818,9 @@ function switchTab(name, btn) {
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   btn.classList.add('active');
+  // Lazy-reload on tab switch
+  if (name === 'risks') loadRisks();
+  if (name === 'command-centre') loadCommandCentre();
 }
 
 // COMMAND CENTRE
@@ -1373,8 +1376,9 @@ function filterRisks(level, btn) {
 }
 
 function renderRisks(risks, goals) {
+  try {
   const el = document.getElementById('risks-list');
-  if (!el) return;
+  if (!el) { console.error('risks-list element not found'); return; }
   const sevColor = { high: '#f85149', medium: '#e3b341', low: '#3fb950' };
   const sevBg = { high: '#f8514915', medium: '#e3b34115', low: '#3fb95015' };
   const sevLabel = { high: '🔴 HIGH', medium: '🟡 MED', low: '🟢 LOW' };
@@ -1422,6 +1426,11 @@ function renderRisks(risks, goals) {
     html += '</div>';
   }
   el.innerHTML = html;
+  } catch(e) {
+    console.error('renderRisks error:', e);
+    const el2 = document.getElementById('risks-list');
+    if (el2) el2.innerHTML = '<div style="color:#f85149;font-size:12px;padding:16px;">Render error: ' + e.message + '</div>';
+  }
 }
 
 function riskCard(r, sevColor, sevBg, sevLabel) {
