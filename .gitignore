@@ -1,0 +1,19 @@
+# Sensitive — never commit
+MEMORY.md
+*.env
+.env*
+
+# Databases (binary, large)
+data/*.db
+data/*.db-shm
+data/*.db-wal
+dashboard/data/*.db
+dashboard/data/*.db-shm
+dashboard/data/*.db-wal
+
+# Logs
+memory/session-pruner.log
+/tmp/
+
+# Node
+node_modules/
