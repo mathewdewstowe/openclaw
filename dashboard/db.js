@@ -165,6 +165,17 @@ db.exec(`
     createdAt TEXT DEFAULT (datetime('now')),
     updatedAt TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS pending_questions (
+    id TEXT PRIMARY KEY,
+    question TEXT NOT NULL,
+    context TEXT,
+    slack_message_id TEXT,
+    slack_channel TEXT,
+    answer TEXT,
+    askedAt TEXT NOT NULL,
+    answeredAt TEXT
+  );
 `);
 
 // Migrate existing JSON data to SQLite

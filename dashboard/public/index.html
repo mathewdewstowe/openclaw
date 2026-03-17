@@ -245,6 +245,7 @@
     <button onclick="switchTab('posts', this)">✍️ LinkedIn Posts</button>
     <button onclick="switchTab('usage', this)">📊 Usage</button>
     <button onclick="switchTab('linkedin', this)">🔗 LinkedIn</button>
+    <button onclick="switchTab('questions', this)" id="questions-tab-btn">❓ Questions</button>
   </nav>
 
   <main>
@@ -555,6 +556,16 @@
     <div id="tab-today" class="tab-content active">
       <div id="today-content"></div>
     </div>
+
+    <div id="tab-questions" class="tab-content">
+      <div style="max-width:760px;margin:0 auto;padding:24px 0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <h2 style="margin:0;font-size:18px;font-weight:700">❓ Unanswered Questions</h2>
+          <span id="questions-count" style="font-size:13px;color:#8b949e"></span>
+        </div>
+        <div id="questions-list"><div class="card"><div class="empty-state">Loading…</div></div></div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -789,7 +800,7 @@ function showDashboard() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
-  loadTasks(); loadAgents(); loadSystems(); loadMemory(); loadGoals(); loadRisks(); loadProposals(); loadUsage(); loadPosts(); loadICPs(); loadBriefings(); loadYesterday(); loadToday(); loadSuggestions(); loadCommandCentre();
+  loadTasks(); loadAgents(); loadSystems(); loadMemory(); loadGoals(); loadRisks(); loadProposals(); loadUsage(); loadPosts(); loadICPs(); loadBriefings(); loadYesterday(); loadToday(); loadSuggestions(); loadCommandCentre(); loadQuestions();
 }
 
 function switchTab(name, btn) {
@@ -800,6 +811,7 @@ function switchTab(name, btn) {
   // Lazy-reload on tab switch
   if (name === 'risks') loadRisks();
   if (name === 'command-centre') loadCommandCentre();
+  if (name === 'questions') loadQuestions();
 }
 
 // COMMAND CENTRE
@@ -1679,6 +1691,68 @@ async function loadYesterday() {
           ${achievements.map(a => `<div style="display:flex;gap:10px;margin-bottom:8px;font-size:13px;color:#c9d1d9;"><span style="color:#238636;">✅</span>${a}</div>`).join('')}
         </div>` : ''}
     </div>`;
+}
+
+// PENDING QUESTIONS
+async function loadQuestions() {
+  const list = document.getElementById('questions-list');
+  const count = document.getElementById('questions-count');
+  if (!list) return;
+  list.innerHTML = '<div class="card"><div class="empty-state">Loading…</div></div>';
+  const questions = await api('GET', '/api/questions');
+  if (!questions) { list.innerHTML = '<div class="card"><div class="empty-state" style="color:#f85149">Failed to load.</div></div>'; return; }
+  if (count) count.textContent = questions.length ? `${questions.length} pending` : 'All clear!';
+
+  // Update nav badge
+  const tabBtn = document.getElementById('questions-tab-btn');
+  if (tabBtn) {
+    tabBtn.textContent = questions.length ? `❓ Questions (${questions.length})` : '❓ Questions';
+    tabBtn.style.color = questions.length ? '#f0883e' : '';
+  }
+
+  if (!questions.length) {
+    list.innerHTML = '<div class="card"><div class="empty-state">No unanswered questions — you\'re all caught up! 🎉</div></div>';
+    return;
+  }
+
+  list.innerHTML = questions.map(q => `
+    <div class="card" style="margin-bottom:14px;border-left:3px solid #f0883e" id="qcard-${q.id}">
+      <div style="font-size:14px;font-weight:600;color:#e1e4e8;margin-bottom:6px">${escapeHtml(q.question)}</div>
+      ${q.context ? `<div style="font-size:12px;color:#8b949e;margin-bottom:12px">${escapeHtml(q.context)}</div>` : ''}
+      <div style="font-size:11px;color:#8b949e;margin-bottom:14px">Asked ${new Date(q.askedAt).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <textarea id="qanswer-${q.id}" placeholder="Type your answer…" style="flex:1;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;padding:8px;font-size:13px;resize:vertical;min-height:60px;font-family:inherit" rows="2"></textarea>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button onclick="submitAnswer('${q.id}')" style="background:#238636;border:none;color:#fff;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap">✓ Submit</button>
+          <button onclick="dismissQuestion('${q.id}')" style="background:#21262d;border:1px solid #30363d;color:#8b949e;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">Dismiss</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function submitAnswer(id) {
+  const ta = document.getElementById('qanswer-' + id);
+  const answer = ta ? ta.value.trim() : '';
+  if (!answer) { ta.style.borderColor = '#f85149'; return; }
+  const res = await api('PATCH', `/api/questions/${id}/answer`, { answer });
+  if (res && res.ok) {
+    document.getElementById('qcard-' + id).remove();
+    loadQuestions();
+  }
+}
+
+async function dismissQuestion(id) {
+  const res = await api('DELETE', `/api/questions/${id}`);
+  if (res && res.ok) {
+    document.getElementById('qcard-' + id).remove();
+    loadQuestions();
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
 </body>

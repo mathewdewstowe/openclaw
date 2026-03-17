@@ -573,4 +573,35 @@ app.get('/api/command-centre', auth, async (req, res) => {
   }
 });
 
+// PENDING QUESTIONS
+app.get('/api/questions', auth, (req, res) => {
+  const rows = db.prepare('SELECT * FROM pending_questions WHERE answeredAt IS NULL ORDER BY askedAt DESC').all();
+  res.json(rows);
+});
+app.post('/api/questions', auth, (req, res) => {
+  const q = {
+    id: 'q-' + Date.now(),
+    askedAt: new Date().toISOString(),
+    answeredAt: null,
+    answer: null,
+    context: null,
+    slack_message_id: null,
+    slack_channel: null,
+    ...req.body
+  };
+  db.prepare('INSERT OR REPLACE INTO pending_questions (id, question, context, slack_message_id, slack_channel, answer, askedAt, answeredAt) VALUES (@id, @question, @context, @slack_message_id, @slack_channel, @answer, @askedAt, @answeredAt)').run(q);
+  res.json(q);
+});
+app.patch('/api/questions/:id/answer', auth, (req, res) => {
+  const { answer } = req.body;
+  if (!answer) return res.status(400).json({ error: 'answer required' });
+  db.prepare('UPDATE pending_questions SET answer = ?, answeredAt = ? WHERE id = ?')
+    .run(answer, new Date().toISOString(), req.params.id);
+  res.json({ ok: true });
+});
+app.delete('/api/questions/:id', auth, (req, res) => {
+  db.prepare('DELETE FROM pending_questions WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
 app.listen(PORT, '0.0.0.0', () => console.log(`Dashboard running on http://0.0.0.0:${PORT}`));
