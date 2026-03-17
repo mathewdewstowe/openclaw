@@ -148,7 +148,17 @@ db.exec(`
     summary TEXT,
     achievements TEXT,
     tasksCompleted INTEGER DEFAULT 0,
+    onlineHours REAL DEFAULT 0,
     createdAt TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS online_time_log (
+    date TEXT PRIMARY KEY,
+    hours REAL DEFAULT 0,
+    firstSeen TEXT,
+    lastSeen TEXT,
+    messageCount INTEGER DEFAULT 0,
+    updatedAt TEXT DEFAULT (datetime('now'))
   );
 
   CREATE TABLE IF NOT EXISTS risks (
@@ -202,6 +212,7 @@ try { db.exec(`ALTER TABLE tasks ADD COLUMN dueDate TEXT`); } catch(e) {}
 try { db.exec(`ALTER TABLE tasks ADD COLUMN notes TEXT`); } catch(e) {}
 try { db.exec(`ALTER TABLE tasks ADD COLUMN completedAt TEXT`); } catch(e) {}
 try { db.exec(`ALTER TABLE tasks ADD COLUMN goal_id TEXT`); } catch(e) {}
+try { db.exec(`ALTER TABLE daily_summaries ADD COLUMN onlineHours REAL DEFAULT 0`); } catch(e) {}
 
 // Fix any tasks still defaulting to 'Later' that were never explicitly set
 try { db.exec(`UPDATE tasks SET kanban_column = 'Triage' WHERE kanban_column IS NULL`); } catch(e) {}

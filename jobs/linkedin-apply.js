@@ -8,6 +8,7 @@
 
 const { chromium } = require('playwright');
 const fs = require('fs');
+const path = require('path');
 const { execSync } = require('child_process');
 
 const PROFILE = JSON.parse(fs.readFileSync('/home/matthewdewstowe/.openclaw/workspace/jobs/application-profile.json', 'utf8'));
@@ -16,6 +17,12 @@ const CDP_URL = 'http://localhost:9222';
 const SHEET_ID = '1Hv3Iccnhh81DbiJVHmHohwzg4CNDmEYbda8cwSnfpow';
 const GOG = 'GOG_KEYRING_PASSWORD=openclaw gog';
 const ACCOUNT = 'matthewdewstowe@gmail.com';
+
+// === RECORDING CONFIG ===
+const RECORDINGS_DIR = '/home/matthewdewstowe/.openclaw/workspace/jobs/recordings';
+const TRACES_DIR = '/home/matthewdewstowe/.openclaw/workspace/jobs/traces';
+fs.mkdirSync(RECORDINGS_DIR, { recursive: true });
+fs.mkdirSync(TRACES_DIR, { recursive: true });
 
 // === HUMAN-LIKE CONFIG ===
 const MAX_APPLICATIONS_PER_RUN = 15;
@@ -350,6 +357,15 @@ async function handleApplicationModal(page, jobTitle, company) {
         await humanClick(page, genericBtn);
       } else {
         console.log(`  ✗ No navigation button found at step ${stepCount}`);
+        // Screenshot the unknown step so we can learn from it
+        const unknownScreenshotPath = `/tmp/unknown-form-step-${Date.now()}.png`;
+        await page.screenshot({ path: unknownScreenshotPath, fullPage: false }).catch(() => {});
+        console.log(`  📸 Unknown step screenshot saved: ${unknownScreenshotPath}`);
+        // Log what was visible on the page
+        const visibleInputs = await page.locator('input:visible, textarea:visible, select:visible').evaluateAll(
+          els => els.map(el => ({ tag: el.tagName, type: el.type, label: el.getAttribute('aria-label') || el.getAttribute('placeholder') || el.getAttribute('name'), value: el.value?.slice(0, 50) }))
+        ).catch(() => []);
+        console.log(`  Visible inputs:`, JSON.stringify(visibleInputs.slice(0, 10)));
         const closeBtn = page.locator('button[aria-label*="Dismiss" i], button[aria-label*="Close" i]').first();
         await humanDelay(300, 600);
         await closeBtn.click().catch(() => {});
@@ -440,7 +456,39 @@ async function processJobList(page, totalApplied) {
     await humanClick(page, easyApplyBtn);
     await humanDelay(1500, 3000);
 
+    // === START RECORDING for this application ===
+    const safeTitle = title.split('\n')[0].replace(/[^a-zA-Z0-9 _-]/g, '').slice(0, 40).trim();
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const traceSlug = `${timestamp}_${jobId}_${safeTitle}`;
+    const tracePath = path.join(TRACES_DIR, `${traceSlug}.zip`);
+    const videoDir = path.join(RECORDINGS_DIR, traceSlug);
+    fs.mkdirSync(videoDir, { recursive: true });
+
+    // Record video on a fresh context page for this application
+    // (We capture the existing page by starting a trace on the existing context)
+    let traceStarted = false;
+    try {
+      await page.context().tracing.start({ screenshots: true, snapshots: true, sources: false });
+      traceStarted = true;
+    } catch(e) {
+      console.log(`  ⚠ Trace start failed: ${e.message?.slice(0, 60)}`);
+    }
+
     const success = await handleApplicationModal(page, title.split('\n')[0], company.split('\n')[0]);
+
+    // === STOP RECORDING ===
+    if (traceStarted) {
+      try {
+        await page.context().tracing.stop({ path: tracePath });
+        console.log(`  📹 Trace saved: ${path.basename(tracePath)}`);
+      } catch(e) {
+        console.log(`  ⚠ Trace save failed: ${e.message?.slice(0, 60)}`);
+      }
+    }
+
+    // Screenshot the final state (what did the page look like at end?)
+    const finalScreenshot = path.join(videoDir, 'final-state.png');
+    await page.screenshot({ path: finalScreenshot, fullPage: false }).catch(() => {});
     
     const entry = {
       jobId,
@@ -450,7 +498,9 @@ async function processJobList(page, totalApplied) {
       source: 'LinkedIn',
       appliedAt: new Date().toISOString(),
       status: success ? 'Applied' : 'Failed',
-      notes: success ? '' : 'Easy Apply failed — manual review needed',
+      notes: success ? 'Easy Apply via Chrome CDP' : 'Easy Apply failed — manual review needed',
+      trace: tracePath,
+      screenshot: finalScreenshot,
     };
     log.push(entry);
     appliedIds.add(jobId);
@@ -596,10 +646,30 @@ async function main() {
   console.log(`Already applied: ${totalResults.alreadyApplied}`);
   console.log(`Skipped:         ${totalResults.skipped}`);
   console.log(`Errors:          ${totalResults.errors}`);
+  console.log(`Traces saved to: ${TRACES_DIR}`);
   console.log(`Log saved to:    ${LOG_FILE}`);
 
   if (stopped) {
     console.log('\n⚠️  Run stopped early (cap reached or bot detection).');
+  }
+
+  // === POST-RUN: Write failure analysis for review ===
+  const thisRunFailed = log.filter(e => 
+    e.status === 'Failed' && 
+    e.trace && 
+    Date.now() - new Date(e.appliedAt).getTime() < 3600 * 1000
+  );
+  if (thisRunFailed.length > 0) {
+    const analysisFile = `/tmp/apply-failures-${new Date().toISOString().slice(0,10)}.json`;
+    fs.writeFileSync(analysisFile, JSON.stringify(thisRunFailed.map(e => ({
+      title: e.title,
+      company: e.company,
+      notes: e.notes,
+      trace: e.trace,
+      screenshot: e.screenshot,
+    })), null, 2));
+    console.log(`\n📋 ${thisRunFailed.length} failures logged for review: ${analysisFile}`);
+    console.log('   To inspect a trace: npx playwright show-trace <trace.zip>');
   }
 
   await browser.close().catch(() => {});

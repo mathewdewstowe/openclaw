@@ -395,16 +395,137 @@ app.post('/api/today', auth, (req, res) => {
 app.get('/api/daily-summary', auth, (req, res) => {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  const date = yesterday.toISOString().split('T')[0];
-  const row = db.prepare('SELECT * FROM daily_summaries WHERE date = ?').get(date);
-  res.json(row || { date, summary: null, achievements: null, tasksCompleted: 0 });
+  const date = req.query.date || yesterday.toISOString().split('T')[0];
+  let row = db.prepare('SELECT * FROM daily_summaries WHERE date = ?').get(date);
+  // Merge online time
+  const otRow = db.prepare('SELECT * FROM online_time_log WHERE date = ?').get(date);
+  res.json({ ...(row || { date, summary: null, achievements: null, tasksCompleted: 0 }), onlineHours: otRow?.hours || 0 });
 });
 app.post('/api/daily-summary', auth, (req, res) => {
-  const { date, summary, achievements, tasksCompleted } = req.body;
+  const { date, summary, achievements, tasksCompleted, onlineHours } = req.body;
   const achievementsStr = Array.isArray(achievements) ? JSON.stringify(achievements) : (achievements || '[]');
-  db.prepare('INSERT OR REPLACE INTO daily_summaries (date, summary, achievements, tasksCompleted, createdAt) VALUES (@date, @summary, @achievements, @tasksCompleted, @createdAt)')
-    .run({ date, summary, achievements: achievementsStr, tasksCompleted: tasksCompleted || 0, createdAt: new Date().toISOString() });
+  db.prepare('INSERT OR REPLACE INTO daily_summaries (date, summary, achievements, tasksCompleted, onlineHours, createdAt) VALUES (@date, @summary, @achievements, @tasksCompleted, @onlineHours, @createdAt)')
+    .run({ date, summary, achievements: achievementsStr, tasksCompleted: tasksCompleted || 0, onlineHours: onlineHours || 0, createdAt: new Date().toISOString() });
   res.json({ ok: true });
+});
+
+// ONLINE TIME
+// Calculate Matthew's online hours from OpenClaw session files
+function calcOnlineHours(dateStr) {
+  const sessionsDir = '/home/matthewdewstowe/.openclaw/agents/main/sessions/';
+  const allFiles = fs.readdirSync(sessionsDir);
+  const files = allFiles
+    .filter(f => f.endsWith('.jsonl') || f.includes('.jsonl.deleted.'))
+    .map(f => path.join(sessionsDir, f));
+  const timestamps = [];
+  for (const f of files) {
+    try {
+      const lines = fs.readFileSync(f, 'utf8').split('\n');
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const entry = JSON.parse(line);
+          if (entry.type === 'message') {
+            const msg = entry.message || {};
+            const tsStr = entry.timestamp;
+            if (msg.role === 'user' && tsStr) {
+              const dt = new Date(tsStr);
+              if (dt.toISOString().startsWith(dateStr)) {
+                const content = msg.content || [];
+                const text = Array.isArray(content) && content[0] ? (content[0].text || '') : String(content);
+                if (text.includes('U0AKBPS9K5E')) {
+                  timestamps.push(dt.getTime());
+                }
+              }
+            }
+          }
+        } catch {}
+      }
+    } catch {}
+  }
+  if (!timestamps.length) return { hours: 0, firstSeen: null, lastSeen: null, messageCount: 0 };
+  timestamps.sort((a, b) => a - b);
+  const hours = (timestamps[timestamps.length - 1] - timestamps[0]) / 3600000;
+  return {
+    hours: Math.round(hours * 10) / 10,
+    firstSeen: new Date(timestamps[0]).toISOString(),
+    lastSeen: new Date(timestamps[timestamps.length - 1]).toISOString(),
+    messageCount: timestamps.length
+  };
+}
+
+// Record or refresh online time for a given date
+function upsertOnlineTime(dateStr) {
+  const result = calcOnlineHours(dateStr);
+  db.prepare(`INSERT OR REPLACE INTO online_time_log (date, hours, firstSeen, lastSeen, messageCount, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?)`).run(dateStr, result.hours, result.firstSeen, result.lastSeen, result.messageCount, new Date().toISOString());
+  return result;
+}
+
+// GET /api/online-time?date=YYYY-MM-DD  (defaults to yesterday)
+app.get('/api/online-time', auth, (req, res) => {
+  const date = req.query.date || (() => {
+    const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().split('T')[0];
+  })();
+  // Try cache first, refresh if older than 10 min
+  let row = db.prepare('SELECT * FROM online_time_log WHERE date = ?').get(date);
+  const stale = !row || (Date.now() - new Date(row.updatedAt).getTime()) > 10 * 60 * 1000;
+  if (stale) { const fresh = upsertOnlineTime(date); row = db.prepare('SELECT * FROM online_time_log WHERE date = ?').get(date); }
+  res.json(row || { date, hours: 0 });
+});
+
+// GET /api/online-time/week  — current ISO week (Mon–Sun)
+app.get('/api/online-time/week', auth, (req, res) => {
+  const now = new Date();
+  const dayOfWeek = now.getUTCDay() || 7; // Mon=1 … Sun=7
+  const monday = new Date(now);
+  monday.setUTCDate(now.getUTCDate() - (dayOfWeek - 1));
+  monday.setUTCHours(0, 0, 0, 0);
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setUTCDate(monday.getUTCDate() + i);
+    const dateStr = d.toISOString().split('T')[0];
+    // Only calc past/today
+    if (d <= now) {
+      let row = db.prepare('SELECT * FROM online_time_log WHERE date = ?').get(dateStr);
+      if (!row || (Date.now() - new Date(row.updatedAt).getTime()) > 10 * 60 * 1000) {
+        upsertOnlineTime(dateStr);
+        row = db.prepare('SELECT * FROM online_time_log WHERE date = ?').get(dateStr);
+      }
+      days.push(row || { date: dateStr, hours: 0 });
+    } else {
+      days.push({ date: dateStr, hours: 0, future: true });
+    }
+  }
+  const totalHours = days.reduce((s, d) => s + (d.hours || 0), 0);
+  const weekGoal = 50;
+  res.json({
+    weekStart: monday.toISOString().split('T')[0],
+    days,
+    totalHours: Math.round(totalHours * 10) / 10,
+    weekGoal,
+    pct: Math.min(100, Math.round((totalHours / weekGoal) * 100))
+  });
+});
+
+// POST /api/online-time/refresh  — force recalculate all days this week
+app.post('/api/online-time/refresh', auth, (req, res) => {
+  const now = new Date();
+  const dayOfWeek = now.getUTCDay() || 7;
+  const monday = new Date(now);
+  monday.setUTCDate(now.getUTCDate() - (dayOfWeek - 1));
+  monday.setUTCHours(0, 0, 0, 0);
+  const results = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setUTCDate(monday.getUTCDate() + i);
+    if (d <= now) {
+      const dateStr = d.toISOString().split('T')[0];
+      results.push({ date: dateStr, ...upsertOnlineTime(dateStr) });
+    }
+  }
+  res.json({ ok: true, results });
 });
 
 // TOKEN USAGE
@@ -602,6 +723,73 @@ app.patch('/api/questions/:id/answer', auth, (req, res) => {
 app.delete('/api/questions/:id', auth, (req, res) => {
   db.prepare('DELETE FROM pending_questions WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
+});
+
+// ── JOB APPLY LAUNCHER ───────────────────────────────────────────────────────
+// Called from Google Sheet link: GET /api/apply?job_id=XXX&title=...&company=...&token=APPLY_TOKEN
+// Spawns codegen session in background, returns immediately
+const { spawn } = require('child_process');
+const APPLY_TOKEN = 'apply-md-2026'; // static token for sheet links — not sensitive, local only
+
+const activeCodegenSessions = new Map(); // jobId → { pid, startedAt }
+
+app.get('/api/apply', (req, res) => {
+  const { job_id, title, company, token } = req.query;
+  if (token !== APPLY_TOKEN) return res.status(401).send('Unauthorized');
+  if (!job_id) return res.status(400).send('Missing job_id');
+
+  // Check if already running for this job
+  if (activeCodegenSessions.has(job_id)) {
+    const s = activeCodegenSessions.get(job_id);
+    return res.send(`<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#eee">
+      <h2>⚠️ Already Running</h2>
+      <p>Codegen for <b>${title || job_id}</b> is already running (PID ${s.pid}).</p>
+      <p>Check your desktop for the Playwright window.</p>
+    </body></html>`);
+  }
+
+  const jobTitle = decodeURIComponent(title || 'Unknown Role');
+  const jobCompany = decodeURIComponent(company || 'Unknown Company');
+  const scriptPath = '/home/matthewdewstowe/.openclaw/workspace/jobs/apply-with-codegen.sh';
+
+  console.log(`[apply-launcher] Starting codegen: ${job_id} — ${jobTitle} @ ${jobCompany}`);
+
+  const proc = spawn('bash', [scriptPath, job_id, jobTitle, jobCompany], {
+    detached: true,
+    stdio: ['ignore',
+      fs.openSync(`/tmp/codegen-${job_id}.log`, 'a'),
+      fs.openSync(`/tmp/codegen-${job_id}.log`, 'a')
+    ],
+    env: { ...process.env, DISPLAY: ':0', XDG_RUNTIME_DIR: '/run/user/1000' }
+  });
+
+  proc.unref();
+  activeCodegenSessions.set(job_id, { pid: proc.pid, startedAt: new Date().toISOString(), title: jobTitle, company: jobCompany });
+
+  proc.on('exit', () => {
+    activeCodegenSessions.delete(job_id);
+    console.log(`[apply-launcher] Codegen ended for ${job_id}`);
+  });
+
+  res.send(`<html><body style="font-family:sans-serif;padding:40px;background:#1a1a2e;color:#eee;text-align:center">
+    <h1 style="color:#7c6bf8">🎬 Codegen Started!</h1>
+    <p style="font-size:1.2em"><b>${jobTitle}</b> @ <b>${jobCompany}</b></p>
+    <br>
+    <p>✅ A browser window is opening on your desktop now.</p>
+    <p>Apply to the job normally — every action is being recorded.</p>
+    <p style="color:#aaa;margin-top:30px">When you're done, <b>close the Playwright inspector window</b>.<br>
+    I'll be notified automatically and will save the recording.</p>
+    <br>
+    <p style="color:#555;font-size:0.85em">Log: /tmp/codegen-${job_id}.log</p>
+    <script>setTimeout(()=>window.close(),8000)</script>
+  </body></html>`);
+});
+
+app.get('/api/apply/status', (req, res) => {
+  const { token } = req.query;
+  if (token !== APPLY_TOKEN) return res.status(401).json({ error: 'Unauthorized' });
+  const sessions = [...activeCodegenSessions.entries()].map(([id, s]) => ({ jobId: id, ...s }));
+  res.json({ activeSessions: sessions.length, sessions });
 });
 
 app.listen(PORT, '0.0.0.0', () => console.log(`Dashboard running on http://0.0.0.0:${PORT}`));
