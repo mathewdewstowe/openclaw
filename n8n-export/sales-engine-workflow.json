@@ -1,0 +1,210 @@
+{
+  "name": "💰 Sales Engine — Unified Flow",
+  "nodes": [
+    {
+      "id": "trigger-daily",
+      "name": "⏰ Daily Trigger (9AM Weekdays)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "webhook-manual",
+      "name": "🔗 Manual Trigger (Webhook)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 480],
+      "parameters": {
+        "path": "sales-engine",
+        "httpMethod": "POST",
+        "responseMode": "onReceived",
+        "responseData": "firstEntryJson"
+      },
+      "webhookId": "sales-engine-manual"
+    },
+    {
+      "id": "merge-triggers",
+      "name": "Merge Triggers",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [460, 380],
+      "parameters": {
+        "mode": "chooseBranch",
+        "chooseBranch": {
+          "mode": "waitForAll"
+        }
+      }
+    },
+    {
+      "id": "slack-start",
+      "name": "📣 Slack — Sales Engine Starting",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [660, 380],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": "#claw-tasks-reminders",
+        "text": "💰 *Sales Engine starting* — running all sales agents in sequence\\n\\n*Stage 1:* Lead Gen (Apollo)\\n*Stage 2:* Sequence Monitor\\n*Stage 3:* LinkedIn Prospect Monitor\\n*Stage 4:* CRM Sync\\n*Stage 5:* Daily Summary\\n\\n_Running now..._",
+        "authentication": "oAuth2"
+      }
+    },
+    {
+      "id": "stage1-lead-gen",
+      "name": "🎯 Stage 1 — Apollo Lead Gen",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [880, 240],
+      "parameters": {
+        "command": "openclaw session send --label main 'SALES ENGINE — Stage 1/5: Run Apollo lead gen. Find 10 new prospects for Sonesse (talent teams, L&D buyers, HR tech) and 5 for Nth Layer (scale-up CTOs/CPOs). Enrich with LinkedIn URLs via EnrichLayer. Output: JSON list of prospects with name, company, email, linkedin_url, icp_fit_reason. Save to /tmp/sales-leads-$(date +%Y-%m-%d).json. Reply with count when done.'"
+      }
+    },
+    {
+      "id": "stage2-sequences",
+      "name": "🔄 Stage 2 — Apollo Sequence Monitor",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [880, 380],
+      "parameters": {
+        "command": "python3 /home/matthewdewstowe/.openclaw/workspace/scripts/apollo-sequence-poller.py"
+      }
+    },
+    {
+      "id": "stage3-linkedin",
+      "name": "🔗 Stage 3 — LinkedIn Prospect Monitor",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [880, 520],
+      "parameters": {
+        "command": "openclaw session send --label main 'SALES ENGINE — Stage 3/5: Check LinkedIn for any reply activity, connection requests accepted, or profile views from known ICPs in the last 24h. Cross-reference with /home/matthewdewstowe/.openclaw/workspace/data/icps.json. For anyone who viewed your profile or accepted a connection, draft a warm outreach opener and output as JSON. Save to /tmp/linkedin-signals-$(date +%Y-%m-%d).json.'"
+      }
+    },
+    {
+      "id": "stage4-crm-sync",
+      "name": "📊 Stage 4 — CRM & Dashboard Sync",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [880, 660],
+      "parameters": {
+        "command": "openclaw session send --label main 'SALES ENGINE — Stage 4/5: Read /tmp/sales-leads-$(date +%Y-%m-%d).json if it exists. For each prospect: 1) POST to dashboard /api/icps if not already there, 2) Update goal progress for Sonesse leads goal. Also read /tmp/linkedin-signals-$(date +%Y-%m-%d).json and post any warm outreach drafts to #claw-tasks-reminders Slack. Output: count of ICPs added/updated.'"
+      }
+    },
+    {
+      "id": "wait-stages",
+      "name": "⏳ Wait 90s (Agents Running)",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1100, 450],
+      "parameters": {
+        "amount": 90,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "stage5-summary",
+      "name": "📋 Stage 5 — Daily Sales Summary",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1320, 380],
+      "parameters": {
+        "command": "openclaw session send --label main 'SALES ENGINE — Stage 5/5: Generate today\\'s sales summary. Check: Apollo sequence stats (replies, opens, bounces), new ICPs added today, LinkedIn signals, goal progress (Sonesse: 10 hot leads target, Nth Layer: 1 deal closed). Post a clean summary to #claw-tasks-reminders Slack with: 🎯 Pipeline Status, 📊 Sequence Stats, 👥 New Prospects, ⚡ Actions Needed. Format nicely with emojis.'"
+      }
+    },
+    {
+      "id": "slack-complete",
+      "name": "✅ Slack — Sales Engine Complete",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [1540, 380],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": "#claw-tasks-reminders",
+        "text": "✅ *Sales Engine complete* — all 5 stages finished. Check above for today's summary.",
+        "authentication": "oAuth2"
+      }
+    },
+    {
+      "id": "error-handler",
+      "name": "🚨 Error Handler",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1100, 640],
+      "parameters": {
+        "command": "openclaw session send --label main 'SALES ENGINE ERROR: A stage failed. Error details: {{ $json.error.message }}. Check n8n logs at http://localhost:5678. Alert Matthew in Slack.'"
+      }
+    }
+  ],
+  "connections": {
+    "⏰ Daily Trigger (9AM Weekdays)": {
+      "main": [
+        [{ "node": "📣 Slack — Sales Engine Starting", "type": "main", "index": 0 }]
+      ]
+    },
+    "🔗 Manual Trigger (Webhook)": {
+      "main": [
+        [{ "node": "📣 Slack — Sales Engine Starting", "type": "main", "index": 0 }]
+      ]
+    },
+    "📣 Slack — Sales Engine Starting": {
+      "main": [
+        [
+          { "node": "🎯 Stage 1 — Apollo Lead Gen", "type": "main", "index": 0 },
+          { "node": "🔄 Stage 2 — Apollo Sequence Monitor", "type": "main", "index": 0 },
+          { "node": "🔗 Stage 3 — LinkedIn Prospect Monitor", "type": "main", "index": 0 },
+          { "node": "📊 Stage 4 — CRM & Dashboard Sync", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "🎯 Stage 1 — Apollo Lead Gen": {
+      "main": [
+        [{ "node": "⏳ Wait 90s (Agents Running)", "type": "main", "index": 0 }]
+      ]
+    },
+    "🔄 Stage 2 — Apollo Sequence Monitor": {
+      "main": [
+        [{ "node": "⏳ Wait 90s (Agents Running)", "type": "main", "index": 0 }]
+      ]
+    },
+    "🔗 Stage 3 — LinkedIn Prospect Monitor": {
+      "main": [
+        [{ "node": "⏳ Wait 90s (Agents Running)", "type": "main", "index": 0 }]
+      ]
+    },
+    "📊 Stage 4 — CRM & Dashboard Sync": {
+      "main": [
+        [{ "node": "⏳ Wait 90s (Agents Running)", "type": "main", "index": 0 }]
+      ]
+    },
+    "⏳ Wait 90s (Agents Running)": {
+      "main": [
+        [{ "node": "📋 Stage 5 — Daily Sales Summary", "type": "main", "index": 0 }]
+      ]
+    },
+    "📋 Stage 5 — Daily Sales Summary": {
+      "main": [
+        [{ "node": "✅ Slack — Sales Engine Complete", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": ["sales", "automation"],
+  "triggerCount": 2,
+  "active": false
+}
