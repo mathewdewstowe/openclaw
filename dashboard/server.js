@@ -454,28 +454,27 @@ app.get('/api/apollo/campaigns', auth, async (req, res) => {
     const campData = await campResp.json();
     const campaigns = campData.emailer_campaigns || [];
 
-    // For each campaign, get contact count
-    const enriched = await Promise.all(campaigns.map(async (c) => {
-      try {
-        const cResp = await fetch('https://api.apollo.io/v1/contacts/search', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey },
-          body: JSON.stringify({ per_page: 1, emailer_campaign_id: c.id })
-        });
-        const cData = await cResp.json();
-        return {
-          id: c.id,
-          name: c.name,
-          status: c.status,
-          contacts: cData.pagination?.total_entries || 0,
-          emails_sent: c.num_steps || c.emailer_steps_count || 0,
-          open_rate: c.open_rate || 0,
-          reply_rate: c.reply_rate || 0,
-          created_at: c.created_at
-        };
-      } catch(e) {
-        return { id: c.id, name: c.name, status: c.status, contacts: 0, emails_sent: 0, open_rate: 0, reply_rate: 0 };
-      }
+    const enriched = campaigns.map(c => ({
+      id: c.id,
+      name: c.name,
+      status: c.active ? 'active' : (c.archived ? 'archived' : 'inactive'),
+      // Correct contact counts directly from campaign object
+      scheduled: c.unique_scheduled || 0,
+      delivered: c.unique_delivered || 0,
+      opened: c.unique_opened || 0,
+      clicked: c.unique_clicked || 0,
+      bounced: c.unique_bounced || 0,
+      hard_bounced: c.unique_hard_bounced || 0,
+      replied: c.unique_replied || 0,
+      unsubscribed: c.unique_unsubscribed || 0,
+      // Rates (0–1 floats)
+      open_rate: c.open_rate || 0,
+      click_rate: c.click_rate || 0,
+      reply_rate: c.reply_rate || 0,
+      bounce_rate: c.bounce_rate || 0,
+      // Steps count
+      num_steps: c.num_steps || 0,
+      created_at: c.created_at
     }));
 
     res.json(enriched);

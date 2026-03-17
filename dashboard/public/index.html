@@ -166,9 +166,9 @@
   .cc-stat-box { text-align: center; padding: 8px; background: #0d1117; border-radius: 6px; }
   .cc-big-num { font-size: 26px; font-weight: 700; line-height: 1; }
   .cc-stat-label { font-size: 10px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
-  .cc-apollo-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 6px; align-items: center; padding: 5px 0; border-bottom: 1px solid #21262d; font-size: 11px; }
+  .cc-apollo-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr; gap: 6px; align-items: center; padding: 5px 0; border-bottom: 1px solid #21262d; font-size: 11px; }
   .cc-apollo-row:last-child { border-bottom: none; }
-  .cc-apollo-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 6px; padding: 0 0 5px; border-bottom: 1px solid #30363d; font-size: 10px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .cc-apollo-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr; gap: 6px; padding: 0 0 5px; border-bottom: 1px solid #30363d; font-size: 10px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
   .cc-badge-active { background: #1a2f1a; color: #3fb950; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 600; }
   .cc-badge-paused { background: #2d2208; color: #e3b341; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 600; }
   .cc-badge-draft { background: #1f2d3d; color: #58a6ff; padding: 1px 5px; border-radius: 3px; font-size: 10px; font-weight: 600; }
@@ -290,7 +290,7 @@
           <div id="cc-apollo-loading" style="font-size:12px;color:#8b949e;">Loading sequences...</div>
           <div id="cc-apollo-table" style="display:none;">
             <div class="cc-apollo-header">
-              <div>Campaign</div><div>Status</div><div>Contacts</div><div>Sent</div><div>Open Rate</div>
+              <div>Campaign</div><div>Status</div><div>Delivered</div><div>Opened</div><div>Clicked</div><div>Bounced</div><div>Replied</div><div>Open Rate</div>
             </div>
             <div id="cc-apollo-rows"></div>
           </div>
@@ -914,18 +914,26 @@ async function loadCCApollo() {
   }
   if (tableEl) tableEl.style.display = 'block';
   rowsEl.innerHTML = campaigns.map(c => {
-    const statusBadge = c.status === 'active' || c.status === 'Active'
+    const statusBadge = c.status === 'active'
       ? `<span class="cc-badge-active">ACTIVE</span>`
-      : c.status === 'paused' || c.status === 'Paused'
+      : c.status === 'paused'
         ? `<span class="cc-badge-paused">PAUSED</span>`
-        : `<span class="cc-badge-draft">${(c.status||'').toUpperCase()||'DRAFT'}</span>`;
-    const openRate = c.open_rate ? (c.open_rate * 100).toFixed(0) + '%' : '—';
+        : c.status === 'archived'
+          ? `<span class="cc-badge-draft" style="color:#8b949e;">ARCHIVED</span>`
+          : `<span class="cc-badge-draft">INACTIVE</span>`;
+    const pct = v => v > 0 ? (v * 100).toFixed(1) + '%' : '—';
+    const num = v => v > 0 ? v : '—';
+    const openCol = c.open_rate > 0.3 ? '#3fb950' : c.open_rate > 0.1 ? '#e3b341' : '#8b949e';
+    const bounceCol = c.bounce_rate > 0.1 ? '#f85149' : c.bounce_rate > 0.05 ? '#e3b341' : '#8b949e';
     return `<div class="cc-apollo-row">
-      <div style="color:#c9d1d9;">${c.name}</div>
+      <div style="color:#c9d1d9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${c.name}">${c.name}</div>
       <div>${statusBadge}</div>
-      <div style="color:#58a6ff;">${c.contacts}</div>
-      <div style="color:#8b949e;">${c.emails_sent}</div>
-      <div style="color:${c.open_rate > 0.3 ? '#3fb950' : c.open_rate > 0.1 ? '#e3b341' : '#8b949e'}">${openRate}</div>
+      <div style="color:#58a6ff;">${num(c.delivered)}</div>
+      <div style="color:${c.opened > 0 ? '#e3b341' : '#8b949e'}">${num(c.opened)}</div>
+      <div style="color:${c.clicked > 0 ? '#3fb950' : '#8b949e'}">${num(c.clicked)}</div>
+      <div style="color:${bounceCol}">${num(c.bounced)}</div>
+      <div style="color:${c.replied > 0 ? '#3fb950' : '#8b949e'}">${num(c.replied)}</div>
+      <div style="color:${openCol}">${pct(c.open_rate)}</div>
     </div>`;
   }).join('');
 }
