@@ -1550,12 +1550,14 @@ async function loadToday() {
           const stepsHtml = steps.length > 1
             ? `<ul style="margin:8px 0 0 0;padding:0;list-style:none;">${steps.map(s => `<li style="font-size:13px;color:#8b949e;padding:3px 0;display:flex;gap:8px;"><span style="color:#58a6ff;flex-shrink:0;">→</span>${s}</li>`).join('')}</ul>`
             : detail ? `<div style="font-size:13px;color:#8b949e;margin-top:6px;">${detail}</div>` : '';
+          const safeTitleAttr = title.replace(/'/g,"&#39;").replace(/"/g,"&quot;");
           return `
-          <div class="today-priority-item" style="border:1px solid #21262d;border-radius:8px;margin-bottom:10px;overflow:hidden;">
-            <div onclick="this.parentElement.classList.toggle('open')" style="display:flex;gap:14px;padding:12px 14px;align-items:center;cursor:pointer;background:#0d1117;">
+          <div class="today-priority-item" id="today-pri-${i}" style="border:1px solid #21262d;border-radius:8px;margin-bottom:10px;overflow:hidden;">
+            <div style="display:flex;gap:14px;padding:12px 14px;align-items:center;background:#0d1117;">
+              <input type="checkbox" onclick="event.stopPropagation()" onchange="completeTodayPriority(${i},'${safeTitleAttr}',this.checked)" style="width:16px;height:16px;accent-color:#238636;cursor:pointer;flex-shrink:0;" />
               <div style="min-width:24px;height:24px;border-radius:50%;background:${priorityColors[i] || '#58a6ff'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;">${i+1}</div>
-              <div style="font-size:14px;color:#e1e4e8;font-weight:600;flex:1;">${title}</div>
-              <span style="font-size:11px;color:#8b949e;transition:transform 0.15s;" class="today-chevron">▼</span>
+              <div id="today-pri-title-${i}" style="font-size:14px;color:#e1e4e8;font-weight:600;flex:1;cursor:pointer;" onclick="document.getElementById('today-pri-${i}').classList.toggle('open')">${title}</div>
+              <span style="font-size:11px;color:#8b949e;transition:transform 0.15s;cursor:pointer;" class="today-chevron" onclick="document.getElementById('today-pri-${i}').classList.toggle('open')">▼</span>
             </div>
             <div class="today-priority-detail" style="display:none;padding:0 14px 14px 52px;">${stepsHtml || '<span style="font-size:13px;color:#8b949e;">No additional detail.</span>'}</div>
           </div>`;
@@ -1574,6 +1576,24 @@ async function loadToday() {
         <div style="font-size:13px;line-height:1.75;color:#8b949e;font-style:italic;">${data.context}</div>
       </div>` : ''}
     </div>`;
+}
+
+async function completeTodayPriority(idx, title, checked) {
+  const titleEl = document.getElementById('today-pri-title-' + idx);
+  const card = document.getElementById('today-pri-' + idx);
+  if (checked) {
+    if (titleEl) titleEl.style.cssText = 'font-size:14px;color:#8b949e;font-weight:600;flex:1;cursor:pointer;text-decoration:line-through;';
+    if (card) card.style.opacity = '0.5';
+    // Try to find matching task in DB and mark done
+    try {
+      const tasks = await api('GET', '/api/tasks') || [];
+      const match = tasks.find(t => !t.done && t.text && t.text.toLowerCase().includes(title.toLowerCase().slice(0, 20)));
+      if (match) await api('PATCH', '/api/tasks/' + match.id, { done: 1 });
+    } catch(e) {}
+  } else {
+    if (titleEl) titleEl.style.cssText = 'font-size:14px;color:#e1e4e8;font-weight:600;flex:1;cursor:pointer;';
+    if (card) card.style.opacity = '1';
+  }
 }
 
 async function refreshToday() {

@@ -1,5 +1,19 @@
 [
   {
+    "id": "task-1773776346879",
+    "text": "Pay Google",
+    "done": 0,
+    "priority": "high",
+    "category": "Blocked",
+    "kanban_column": "Urgent",
+    "dueDate": null,
+    "createdAt": "2026-03-17T19:39:06.879Z",
+    "updatedAt": "2026-03-17T19:39:06.879Z",
+    "notes": null,
+    "completedAt": null,
+    "goal_id": null
+  },
+  {
     "id": "task-1773776141048",
     "text": "Complete all tasks in Apollo",
     "done": 0,
