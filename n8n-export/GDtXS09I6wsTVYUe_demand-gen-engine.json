@@ -1,0 +1,400 @@
+{
+  "updatedAt": "2026-03-17T22:04:35.717Z",
+  "createdAt": "2026-03-17T22:04:35.717Z",
+  "id": "GDtXS09I6wsTVYUe",
+  "name": "\ud83d\udcc8 Demand Gen Engine",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "d-sched",
+      "name": "\u23f0 8AM Weekdays",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        280
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1-5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "d-hook",
+      "name": "\ud83d\udd17 Manual Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        460
+      ],
+      "parameters": {
+        "path": "demand-gen-engine",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "d-start",
+      "name": "\ud83d\udce3 Demand Gen Engine \u2014 Starting",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        420,
+        370
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": "#claw-tasks-reminders",
+        "text": "\ud83d\udcc8 *Demand Gen Engine running* \u2014 7 agents starting\n\n1\ufe0f\u20e3 SEO Keyword Scout\n2\ufe0f\u20e3 Backlink Prospector\n3\ufe0f\u20e3 Content Distribution\n4\ufe0f\u20e3 SERP Rank Tracker\n5\ufe0f\u20e3 PR & Mention Monitor\n6\ufe0f\u20e3 Reddit/HN Seeding\n7\ufe0f\u20e3 AI Search Optimiser\n\n_Running..._",
+        "authentication": "oAuth2"
+      }
+    },
+    {
+      "id": "d-a1",
+      "name": "\ud83d\udd0d SEO Keyword Scout",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        80
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'DEMAND GEN AGENT 1/7 \u2014 SEO Keyword Scout: Find 10 high-opportunity keywords for Sonesse/Umified. Focus on: 1) Low-competition, high-intent keywords (meeting bot API, self-hosted meeting transcription, Recall.ai alternative, Zoom bot SDK, Teams bot developer), 2) Long-tail questions (how to add AI to Zoom meetings, meeting transcription on-premise, etc.), 3) Trending topics in AI meeting tools. For each keyword: estimated monthly searches, competition level, current Sonesse rank (check if any tutorials rank). Prioritise by opportunity score. Save to /tmp/seo-keywords-$(date +%Y-%m-%d).json. Output: top 5 keywords with opportunity scores.'"
+      }
+    },
+    {
+      "id": "d-a2",
+      "name": "\ud83d\udd17 Backlink Prospector",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        200
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'DEMAND GEN AGENT 2/7 \u2014 Backlink Prospector: Find 10 link-building opportunities for Sonesse. Search for: 1) Resource pages about meeting bot tools, developer APIs, or AI meeting tools (search: '\\''meeting bot tools resources'\\'' intitle:resources), 2) Blog posts comparing Recall.ai alternatives (could link to Sonesse tutorials), 3) Directories listing meeting AI tools or developer APIs, 4) Guest post opportunities on developer blogs (dev.to, Medium publications, Smashing Magazine), 5) Reddit/HN threads where a Sonesse tutorial link would be valuable. For each opportunity: URL, domain authority estimate, contact method, pitch angle. Save to /tmp/backlink-opps-$(date +%Y-%m-%d).json. Post top 3 to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "d-a3",
+      "name": "\ud83d\udce1 Content Distribution",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        320
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'DEMAND GEN AGENT 3/7 \u2014 Content Distribution: Check /home/matthewdewstowe/.openclaw/workspace/sonesse-content/ for any recently published tutorials (last 7 days). For each new tutorial: 1) Find 3 relevant Reddit threads where it adds value (search: subreddit + topic keyword), 2) Find 1-2 relevant Hacker News Show HN opportunities, 3) Draft a dev.to cross-post title and intro (first 100 words), 4) Identify LinkedIn groups or newsletters that cover this topic. Output distribution plan for each tutorial. Post actionable items (Reddit thread URLs) to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "d-a4",
+      "name": "\ud83d\udcca SERP Rank Tracker",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        440
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'DEMAND GEN AGENT 4/7 \u2014 SERP Rank Tracker: Check Google rankings for Sonesse target keywords. Search each of these and note where Sonesse/Umified content appears: '\\''meeting bot API'\\'', '\\''Recall.ai alternative'\\'', '\\''self-hosted meeting transcription'\\'', '\\''Zoom bot SDK'\\'', '\\''add AI to Zoom meetings'\\''. Also check if any published Sonesse tutorials appear in results. Compare to last week if /tmp/serp-ranks-*.json exists. Flag any ranking changes (up or down). Save results to /tmp/serp-ranks-$(date +%Y-%m-%d).json.'"
+      }
+    },
+    {
+      "id": "d-a5",
+      "name": "\ud83d\udcf0 PR & Brand Mention Monitor",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        560
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'DEMAND GEN AGENT 5/7 \u2014 PR & Brand Monitor: Search for recent mentions of: Sonesse, Umified, Matthew Dewstowe, Nth Layer, '\\''meeting bot startup'\\''. Check: Google News, Twitter/X search (web), Reddit, LinkedIn. Also check if any journalists or bloggers have written about meeting bot APIs, Recall.ai competitors, or AI meeting tools recently \u2014 these are PR targets. For any coverage found: note URL, outlet, author contact if available. For PR targets: draft a one-sentence pitch angle for Sonesse. Post any live mentions + top 3 PR targets to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "d-a6",
+      "name": "\ud83c\udf10 Reddit & HN Seeding",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        680
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'DEMAND GEN AGENT 6/7 \u2014 Community Seeding: Find active Reddit/HN threads where Sonesse tutorials or Umified expertise would genuinely help. Search: r/webdev, r/MachineLearning, r/artificial, r/node, r/python for posts about: meeting transcription, Zoom/Teams bots, self-hosted AI, Recall.ai alternatives. For each relevant thread (posted in last 7 days, 5+ comments): Draft a genuinely helpful reply that naturally references Sonesse or links a tutorial. Flag threads where Matthew should personally reply (high-karma, relevant). Post top 3 seeding opportunities to #claw-tasks-reminders with draft replies.'"
+      }
+    },
+    {
+      "id": "d-a7",
+      "name": "\ud83e\udd16 AI Search Optimiser",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        800
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'DEMAND GEN AGENT 7/7 \u2014 AI Search Optimisation (AEO/GEO): Optimise Sonesse content for AI search engines (ChatGPT, Perplexity, Claude, Gemini). Check: 1) Does Perplexity mention Sonesse or Umified when asked about meeting bot APIs? 2) Does ChatGPT recommend Sonesse for self-hosted meeting transcription? 3) What does Claude say about Recall.ai alternatives? Identify the exact phrasing/format that would get Sonesse cited. Suggest 3 specific content improvements to increase AI citation likelihood. Post findings to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "d-wait",
+      "name": "\u23f3 Wait 2min",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        920,
+        440
+      ],
+      "parameters": {
+        "amount": 120,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "d-summary",
+      "name": "\ud83d\udccb Demand Gen Summary",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1140,
+        440
+      ],
+      "parameters": {
+        "command": "openclaw session send --label main 'DEMAND GEN ENGINE SUMMARY \u2014 Compile today'\\''s demand gen report. Read /tmp/seo-keywords-$(date +%Y-%m-%d).json, /tmp/backlink-opps-$(date +%Y-%m-%d).json, /tmp/serp-ranks-$(date +%Y-%m-%d).json. Include: \ud83d\udd0d Top 5 SEO opportunities (keyword + opportunity score), \ud83d\udd17 Top 3 backlink opps, \ud83d\udcca Rank changes (any pages moving up/down), \ud83d\udcf0 PR mentions + target journalists, \ud83c\udf10 Community seeding opportunities, \ud83e\udd16 AI search citation status. Post clean demand gen digest to #claw-tasks-reminders.'"
+      }
+    },
+    {
+      "id": "d-done",
+      "name": "\u2705 Demand Gen Engine \u2014 Complete",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1360,
+        440
+      ],
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": "#claw-tasks-reminders",
+        "text": "\u2705 *Demand Gen Engine complete* \u2014 SEO & demand report ready. \ud83d\udcc8",
+        "authentication": "oAuth2"
+      }
+    }
+  ],
+  "connections": {
+    "\u23f0 8AM Weekdays": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udce3 Demand Gen Engine \u2014 Starting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udd17 Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udce3 Demand Gen Engine \u2014 Starting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udce3 Demand Gen Engine \u2014 Starting": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udd0d SEO Keyword Scout",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udd17 Backlink Prospector",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udce1 Content Distribution",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udcca SERP Rank Tracker",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83d\udcf0 PR & Brand Mention Monitor",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83c\udf10 Reddit & HN Seeding",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "\ud83e\udd16 AI Search Optimiser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\u23f3 Wait 2min": {
+      "main": [
+        [
+          {
+            "node": "\ud83d\udccb Demand Gen Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udccb Demand Gen Summary": {
+      "main": [
+        [
+          {
+            "node": "\u2705 Demand Gen Engine \u2014 Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udd0d SEO Keyword Scout": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udd17 Backlink Prospector": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udce1 Content Distribution": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udcca SERP Rank Tracker": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83d\udcf0 PR & Brand Mention Monitor": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83c\udf10 Reddit & HN Seeding": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "\ud83e\udd16 AI Search Optimiser": {
+      "main": [
+        [
+          {
+            "node": "\u23f3 Wait 2min",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "9172d312-caa2-492d-9734-f6cff0151ca2",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "tags": [],
+  "parentFolder": null,
+  "activeVersion": null,
+  "homeProject": {
+    "id": "hVEcS9HC2ymugmRE",
+    "type": "personal",
+    "name": "Matthew Dewstowe <matthewdewstowe@gmail.com>",
+    "icon": null
+  },
+  "sharedWithProjects": [],
+  "usedCredentials": [],
+  "scopes": [
+    "workflow:create",
+    "workflow:delete",
+    "workflow:execute",
+    "workflow:execute-chat",
+    "workflow:list",
+    "workflow:move",
+    "workflow:publish",
+    "workflow:read",
+    "workflow:share",
+    "workflow:unpublish",
+    "workflow:unshare",
+    "workflow:update",
+    "workflow:updateRedactionSetting"
+  ],
+  "checksum": "5ea6d1190dd9ec167815c428c60f6547650f6472d19f629ceefe17311d647dbf"
+}
