@@ -401,8 +401,9 @@ app.get('/api/daily-summary', auth, (req, res) => {
 });
 app.post('/api/daily-summary', auth, (req, res) => {
   const { date, summary, achievements, tasksCompleted } = req.body;
+  const achievementsStr = Array.isArray(achievements) ? JSON.stringify(achievements) : (achievements || '[]');
   db.prepare('INSERT OR REPLACE INTO daily_summaries (date, summary, achievements, tasksCompleted, createdAt) VALUES (@date, @summary, @achievements, @tasksCompleted, @createdAt)')
-    .run({ date, summary, achievements, tasksCompleted: tasksCompleted || 0, createdAt: new Date().toISOString() });
+    .run({ date, summary, achievements: achievementsStr, tasksCompleted: tasksCompleted || 0, createdAt: new Date().toISOString() });
   res.json({ ok: true });
 });
 
