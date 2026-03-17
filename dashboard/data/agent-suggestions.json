@@ -1,5 +1,70 @@
 [
   {
+    "id": "skill-sug-1",
+    "title": "Install: linkedin-outreach-automation",
+    "description": "Automates LinkedIn connection requests and follow-up messages to Sonesse/Nth Layer prospects. Direct fit for your 10 hot leads goal.",
+    "impact": "high",
+    "effort": "low",
+    "estimatedTimesSaved": "3h/week",
+    "category": "Skill",
+    "status": "suggested",
+    "dismissed": false,
+    "createdAt": "2026-03-17T19:55:32.335464+00:00",
+    "clawhub_slug": "linkedin-outreach-automation"
+  },
+  {
+    "id": "skill-sug-2",
+    "title": "Install: seo-competitor-analysis",
+    "description": "SEO intelligence and competitor analysis \u2014 useful for Sonesse.ai positioning against Recall.ai and other meeting bot competitors.",
+    "impact": "medium",
+    "effort": "low",
+    "estimatedTimesSaved": "2h/week",
+    "category": "Skill",
+    "status": "suggested",
+    "dismissed": false,
+    "createdAt": "2026-03-17T19:55:32.335464+00:00",
+    "clawhub_slug": "seo-competitor-analysis"
+  },
+  {
+    "id": "skill-sug-3",
+    "title": "Install: cold-email",
+    "description": "MachFive cold email sequences \u2014 builds and manages outbound email campaigns. Complement to Apollo for Nth Layer deal prospecting.",
+    "impact": "high",
+    "effort": "low",
+    "estimatedTimesSaved": "4h/week",
+    "category": "Skill",
+    "status": "suggested",
+    "dismissed": false,
+    "createdAt": "2026-03-17T19:55:32.335464+00:00",
+    "clawhub_slug": "cold-email"
+  },
+  {
+    "id": "skill-sug-4",
+    "title": "Install: abm-outbound",
+    "description": "Account-based marketing outbound \u2014 targets specific companies (PE firms, SaaS CEOs) with personalised campaigns. Fits Nth Layer ICP perfectly.",
+    "impact": "high",
+    "effort": "medium",
+    "estimatedTimesSaved": "3h/week",
+    "category": "Skill",
+    "status": "suggested",
+    "dismissed": false,
+    "createdAt": "2026-03-17T19:55:32.335464+00:00",
+    "clawhub_slug": "abm-outbound"
+  },
+  {
+    "id": "skill-sug-5",
+    "title": "Install: seo-article-gen",
+    "description": "Generates SEO-optimised blog articles automatically \u2014 could replace the manual Sonesse tutorial writing and scale content output.",
+    "impact": "medium",
+    "effort": "low",
+    "estimatedTimesSaved": "5h/week",
+    "category": "Skill",
+    "status": "suggested",
+    "dismissed": false,
+    "createdAt": "2026-03-17T19:55:32.335464+00:00",
+    "clawhub_slug": "seo-article-gen"
+  },
+  {
     "id": "sug-001",
     "title": "LinkedIn Outreach Agent",
     "description": "Daily personalised connection requests and messages to Sonesse/Nth Layer prospects. Targets CTOs, Heads of Product, and AI/Automation buyers at mid-market companies.",
@@ -57,7 +122,7 @@
   },
   {
     "id": "sug-005",
-    "title": "Meeting Notes → Tasks Agent",
+    "title": "Meeting Notes \u2192 Tasks Agent",
     "description": "Connects Granola meeting notes to OpenClaw. Extracts action items automatically and creates tasks in the dashboard within 5 minutes of a meeting ending.",
     "goalId": null,
     "goalTitle": null,
@@ -72,7 +137,7 @@
   {
     "id": "sug-006",
     "title": "Welsh CPO Market Map Agent",
-    "description": "Weekly scan of Welsh tech companies without a CPO or with a product gap. Builds a ranked outreach list — feeds directly into the Nth Layer pipeline.",
+    "description": "Weekly scan of Welsh tech companies without a CPO or with a product gap. Builds a ranked outreach list \u2014 feeds directly into the Nth Layer pipeline.",
     "goalId": "2",
     "goalTitle": "Close a Nth Layer Deal",
     "impact": "medium",

@@ -1,5 +1,19 @@
 [
   {
+    "id": "task-1773777357637",
+    "text": "Change sender email address on PE Talent Partners campaign",
+    "done": 0,
+    "priority": "medium",
+    "category": "In Progress",
+    "kanban_column": "Triage",
+    "dueDate": null,
+    "createdAt": "2026-03-17T19:55:57.637Z",
+    "updatedAt": "2026-03-17T19:55:57.637Z",
+    "notes": null,
+    "completedAt": null,
+    "goal_id": null
+  },
+  {
     "id": "task-1773776429193",
     "text": "SEO for Sonesse",
     "done": 0,
@@ -184,15 +198,15 @@
   {
     "id": "task-1773613170431",
     "text": "Build Command Centre dashboard tab — single view: goals, metrics, signals, pipeline, risks, blockers, weekly progress",
-    "done": 0,
+    "done": 1,
     "priority": "high",
     "category": "In Progress",
     "kanban_column": "Later",
     "dueDate": null,
     "createdAt": "2026-03-15T22:19:30.431Z",
-    "updatedAt": "2026-03-17T18:48:04.423Z",
+    "updatedAt": "2026-03-17T19:46:31.640Z",
     "notes": null,
-    "completedAt": null,
+    "completedAt": "2026-03-17T19:46:31.640Z",
     "goal_id": null
   },
   {
@@ -481,10 +495,10 @@
     "done": 0,
     "priority": "medium",
     "category": "Pending You",
-    "kanban_column": "Later",
+    "kanban_column": "Urgent",
     "dueDate": null,
     "createdAt": "2026-03-05",
-    "updatedAt": "2026-03-17T18:47:55.579Z",
+    "updatedAt": "2026-03-17T19:46:37.639Z",
     "notes": null,
     "completedAt": null,
     "goal_id": null
