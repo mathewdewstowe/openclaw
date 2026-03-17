@@ -239,6 +239,7 @@
     <button onclick="switchTab('systems', this)">🔌 Systems</button>
     <button onclick="switchTab('memory', this)">🧠 Memory</button>
     <button onclick="switchTab('goals', this)">🎯 Goals</button>
+          <button onclick="switchTab('risks', this)">⚠️ Risks</button>
     <button onclick="switchTab('proposals', this)">💡 Meta Agent</button>
     <button onclick="switchTab('briefings', this)">📰 Briefings</button>
     <button onclick="switchTab('icps', this)">🎯 ICPs</button>
@@ -398,6 +399,61 @@
       </div>
 
       <div id="goals-list"></div>
+    </div>
+
+    <!-- RISK REGISTER TAB -->
+    <div id="tab-risks" class="tab-content">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <div class="section-title" style="margin:0;">⚠️ Risk Register</div>
+        <button class="btn-sm" onclick="document.getElementById('add-risk-form').style.display=document.getElementById('add-risk-form').style.display==='none'?'block':'none'">+ Add Risk</button>
+      </div>
+
+      <!-- Add Risk Form -->
+      <div id="add-risk-form" style="display:none;" class="card" style="margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:#c9d1d9;">New Risk</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <input id="risk-title" placeholder="Risk title *" style="padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none;" />
+          <select id="risk-goal" style="padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#8b949e;font-size:13px;outline:none;">
+            <option value="">🎯 No specific goal</option>
+          </select>
+        </div>
+        <textarea id="risk-desc" placeholder="Description (optional)" rows="2" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none;resize:vertical;margin-bottom:10px;font-family:inherit;box-sizing:border-box;"></textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <div>
+            <label style="font-size:11px;color:#8b949e;display:block;margin-bottom:4px;">Likelihood</label>
+            <select id="risk-likelihood" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none;">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;color:#8b949e;display:block;margin-bottom:4px;">Impact</label>
+            <select id="risk-impact" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none;">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        <textarea id="risk-mitigation" placeholder="Mitigation suggestion (optional)" rows="2" style="width:100%;padding:8px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e1e4e8;font-size:13px;outline:none;resize:vertical;margin-bottom:12px;font-family:inherit;box-sizing:border-box;"></textarea>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-sm" style="background:#23863644;color:#aff5b4;border-color:#238636;" onclick="addRisk()">Save Risk</button>
+          <button class="btn-sm" onclick="document.getElementById('add-risk-form').style.display='none'">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+        <button id="risk-filter-all" onclick="filterRisks('all',this)" style="padding:4px 12px;border-radius:4px;border:1px solid #58a6ff;background:#58a6ff22;color:#58a6ff;font-size:11px;font-weight:600;cursor:pointer;">All</button>
+        <button id="risk-filter-high" onclick="filterRisks('high',this)" style="padding:4px 12px;border-radius:4px;border:1px solid #30363d;background:transparent;color:#8b949e;font-size:11px;font-weight:600;cursor:pointer;">🔴 High</button>
+        <button id="risk-filter-medium" onclick="filterRisks('medium',this)" style="padding:4px 12px;border-radius:4px;border:1px solid #30363d;background:transparent;color:#8b949e;font-size:11px;font-weight:600;cursor:pointer;">🟡 Medium</button>
+        <button id="risk-filter-low" onclick="filterRisks('low',this)" style="padding:4px 12px;border-radius:4px;border:1px solid #30363d;background:transparent;color:#8b949e;font-size:11px;font-weight:600;cursor:pointer;">🟢 Low</button>
+        <button id="risk-filter-closed" onclick="filterRisks('closed',this)" style="padding:4px 12px;border-radius:4px;border:1px solid #30363d;background:transparent;color:#8b949e;font-size:11px;font-weight:600;cursor:pointer;">✅ Closed</button>
+      </div>
+
+      <!-- Risk list grouped by goal -->
+      <div id="risks-list"></div>
     </div>
 
     <!-- PROPOSALS TAB -->
@@ -754,7 +810,7 @@ function showDashboard() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'});
-  loadTasks(); loadAgents(); loadSystems(); loadMemory(); loadGoals(); loadProposals(); loadUsage(); loadPosts(); loadICPs(); loadBriefings(); loadYesterday(); loadToday(); loadSuggestions(); loadCommandCentre();
+  loadTasks(); loadAgents(); loadSystems(); loadMemory(); loadGoals(); loadRisks(); loadProposals(); loadUsage(); loadPosts(); loadICPs(); loadBriefings(); loadYesterday(); loadToday(); loadSuggestions(); loadCommandCentre();
 }
 
 function switchTab(name, btn) {
@@ -1283,6 +1339,133 @@ async function updateGoal(id) {
   document.getElementById('goal-val-' + id).value = '';
   if (document.getElementById('goal-note-' + id)) document.getElementById('goal-note-' + id).value = '';
   loadGoals();
+}
+
+// RISK REGISTER
+let allRisks = [];
+let riskFilter = 'all';
+
+async function loadRisks() {
+  const [risks, goals] = await Promise.all([api('GET', '/api/risks'), api('GET', '/api/goals')]);
+  allRisks = Array.isArray(risks) ? risks : [];
+  // Populate goal dropdown in add form
+  const sel = document.getElementById('risk-goal');
+  if (sel && Array.isArray(goals)) {
+    sel.innerHTML = '<option value="">🎯 No specific goal</option>';
+    goals.forEach(g => { const o = document.createElement('option'); o.value = g.id; o.textContent = '🎯 ' + g.title; sel.appendChild(o); });
+  }
+  renderRisks(allRisks, Array.isArray(goals) ? goals : []);
+}
+
+function filterRisks(level, btn) {
+  riskFilter = level;
+  document.querySelectorAll('[id^="risk-filter-"]').forEach(b => b.style.cssText = 'padding:4px 12px;border-radius:4px;border:1px solid #30363d;background:transparent;color:#8b949e;font-size:11px;font-weight:600;cursor:pointer;');
+  if (btn) btn.style.cssText = 'padding:4px 12px;border-radius:4px;border:1px solid #58a6ff;background:#58a6ff22;color:#58a6ff;font-size:11px;font-weight:600;cursor:pointer;';
+  api('GET', '/api/goals').then(goals => renderRisks(allRisks, Array.isArray(goals) ? goals : []));
+}
+
+function renderRisks(risks, goals) {
+  const el = document.getElementById('risks-list');
+  if (!el) return;
+  const sevColor = { high: '#f85149', medium: '#e3b341', low: '#3fb950' };
+  const sevBg = { high: '#f8514915', medium: '#e3b34115', low: '#3fb95015' };
+  const sevLabel = { high: '🔴 HIGH', medium: '🟡 MED', low: '🟢 LOW' };
+
+  let filtered = risks;
+  if (riskFilter === 'closed') filtered = risks.filter(r => r.status === 'closed');
+  else if (riskFilter !== 'all') filtered = risks.filter(r => r.severity === riskFilter && r.status !== 'closed');
+  else filtered = risks.filter(r => r.status !== 'closed');
+
+  if (filtered.length === 0) {
+    el.innerHTML = '<div style="color:#8b949e;font-size:13px;padding:30px 0;text-align:center;">No risks logged. Click "+ Add Risk" to get started.</div>';
+    return;
+  }
+
+  // Group by goal
+  const goalMap = {};
+  goals.forEach(g => goalMap[g.id] = g.title);
+  const grouped = {};
+  filtered.forEach(r => {
+    const key = r.goal_id || '__none__';
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(r);
+  });
+
+  // Sort groups: high severity first
+  const sortRisks = arr => arr.sort((a,b) => {
+    const sev = { high: 3, medium: 2, low: 1 };
+    return (sev[b.severity] || 0) - (sev[a.severity] || 0);
+  });
+
+  let html = '';
+  // Goal-linked risks first
+  goals.forEach(g => {
+    if (!grouped[g.id]) return;
+    html += `<div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:700;color:#58a6ff;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:6px 10px;background:#58a6ff10;border-radius:6px;">🎯 ${g.title}</div>`;
+    sortRisks(grouped[g.id]).forEach(r => { html += riskCard(r, sevColor, sevBg, sevLabel); });
+    html += '</div>';
+  });
+  // Unlinked risks
+  if (grouped['__none__']) {
+    html += `<div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding:6px 10px;background:#8b949e10;border-radius:6px;">⚠️ General Risks</div>`;
+    sortRisks(grouped['__none__']).forEach(r => { html += riskCard(r, sevColor, sevBg, sevLabel); });
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+function riskCard(r, sevColor, sevBg, sevLabel) {
+  const c = sevColor[r.severity] || '#8b949e';
+  const bg = sevBg[r.severity] || '#8b949e10';
+  const lbl = sevLabel[r.severity] || r.severity.toUpperCase();
+  return `<div style="border:1px solid ${c}44;border-radius:8px;padding:12px 14px;margin-bottom:8px;background:${bg};">
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:6px;">
+      <span style="font-size:11px;font-weight:700;color:${c};background:${c}22;padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0;">${lbl}</span>
+      <span style="font-size:13px;font-weight:600;color:#c9d1d9;flex:1;">${r.title}</span>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button onclick="closeRisk('${r.id}')" class="btn-sm" style="font-size:11px;background:#23863644;color:#aff5b4;border-color:#238636;">✅ Close</button>
+        <button onclick="deleteRisk('${r.id}')" class="btn-sm" style="font-size:11px;background:#f8514922;color:#f85149;border-color:#f85149;">✕</button>
+      </div>
+    </div>
+    ${r.description ? `<div style="font-size:12px;color:#8b949e;margin-bottom:6px;">${r.description}</div>` : ''}
+    <div style="display:flex;gap:12px;font-size:11px;color:#8b949e;margin-bottom:6px;">
+      <span>Likelihood: <strong style="color:#c9d1d9;">${r.likelihood}</strong></span>
+      <span>Impact: <strong style="color:#c9d1d9;">${r.impact}</strong></span>
+    </div>
+    ${r.mitigation ? `<div style="font-size:12px;color:#58a6ff;padding:6px 10px;background:#58a6ff10;border-radius:4px;border-left:3px solid #58a6ff;">💡 <strong>Mitigation:</strong> ${r.mitigation}</div>` : ''}
+  </div>`;
+}
+
+async function addRisk() {
+  const title = document.getElementById('risk-title').value.trim();
+  if (!title) return alert('Risk title is required');
+  const r = {
+    title,
+    goal_id: document.getElementById('risk-goal').value || null,
+    description: document.getElementById('risk-desc').value.trim(),
+    likelihood: document.getElementById('risk-likelihood').value,
+    impact: document.getElementById('risk-impact').value,
+    mitigation: document.getElementById('risk-mitigation').value.trim()
+  };
+  await api('POST', '/api/risks', r);
+  document.getElementById('risk-title').value = '';
+  document.getElementById('risk-desc').value = '';
+  document.getElementById('risk-mitigation').value = '';
+  document.getElementById('add-risk-form').style.display = 'none';
+  loadRisks();
+}
+
+async function closeRisk(id) {
+  await api('PATCH', '/api/risks/' + id, { status: 'closed' });
+  loadRisks();
+}
+
+async function deleteRisk(id) {
+  if (!confirm('Delete this risk?')) return;
+  await api('DELETE', '/api/risks/' + id);
+  loadRisks();
 }
 
 // PROPOSALS

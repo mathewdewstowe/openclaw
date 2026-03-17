@@ -64,9 +64,9 @@ function writeTaskMarkdown() {
     const open = tasks.filter(t => !t.done);
     const done = tasks.filter(t => t.done);
     const lines = [`# Tasks — ${date}\n\nUpdated: ${new Date().toISOString()}\n\n## Open (${open.length})\n\n`];
-    open.forEach(t => lines.push(`- [ ] [${t.category||''}] [${t.kanban_column||'Later'}] ${t.text}${t.dueDate ? ' — 📅 '+t.dueDate : ''}\n`));
+    open.forEach(t => lines.push(`- [ ] [${t.category||''}] [${t.kanban_column||'Triage'}] ${t.text}${t.dueDate ? ' — 📅 '+t.dueDate : ''}\n`));
     lines.push(`\n## Done (${done.length})\n\n`);
-    done.forEach(t => lines.push(`- [x] ${t.text}\n`));
+    done.forEach(t => lines.push(`- [x] ${t.text}${t.completedAt ? ' — ✅ '+t.completedAt : ''}\n`));
     fs.writeFileSync(mdPath, lines.join(''));
   } catch(e) {}
 }
@@ -98,8 +98,14 @@ app.post('/api/login', (req, res) => {
 // TASKS
 app.get('/api/tasks', auth, (req, res) => res.json(db.prepare('SELECT * FROM tasks ORDER BY createdAt DESC').all()));
 app.post('/api/tasks', auth, (req, res) => {
-  const t = { id: 'task-' + Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), done: 0, priority: 'medium', category: 'general', kanban_column: 'Later', dueDate: null, notes: null, ...req.body };
-  db.prepare('INSERT OR REPLACE INTO tasks (id, text, done, priority, category, kanban_column, dueDate, notes, createdAt, updatedAt) VALUES (@id, @text, @done, @priority, @category, @kanban_column, @dueDate, @notes, @createdAt, @updatedAt)').run(t);
+  const t = { id: 'task-' + Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), done: 0, priority: 'medium', category: 'general', kanban_column: 'Triage', dueDate: null, notes: null, completedAt: null, goal_id: null, ...req.body };
+  // Deduplicate: if a task with the same text exists and is not done, skip
+  const existing = db.prepare('SELECT id, done FROM tasks WHERE text = ?').get(t.text);
+  if (existing && !existing.done) {
+    return res.json({ ...t, id: existing.id, duplicate: true });
+  }
+  // If exists but was done, allow re-creation (new task)
+  db.prepare('INSERT OR REPLACE INTO tasks (id, text, done, priority, category, kanban_column, dueDate, notes, createdAt, updatedAt, completedAt, goal_id) VALUES (@id, @text, @done, @priority, @category, @kanban_column, @dueDate, @notes, @createdAt, @updatedAt, @completedAt, @goal_id)').run(t);
   afterWrite('tasks');
   res.json(t);
 });
@@ -107,7 +113,13 @@ app.patch('/api/tasks/:id', auth, (req, res) => {
   const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.params.id);
   if (!task) return res.status(404).json({ error: 'Not found' });
   const updated = { ...task, ...req.body, updatedAt: new Date().toISOString() };
-  db.prepare('INSERT OR REPLACE INTO tasks (id, text, done, priority, category, kanban_column, dueDate, notes, createdAt, updatedAt) VALUES (@id, @text, @done, @priority, @category, @kanban_column, @dueDate, @notes, @createdAt, @updatedAt)').run(updated);
+  // Track when a task was completed
+  if (req.body.done === 1 && !task.done) {
+    updated.completedAt = new Date().toISOString();
+  } else if (req.body.done === 0 && task.done) {
+    updated.completedAt = null;
+  }
+  db.prepare('INSERT OR REPLACE INTO tasks (id, text, done, priority, category, kanban_column, dueDate, notes, createdAt, updatedAt, completedAt, goal_id) VALUES (@id, @text, @done, @priority, @category, @kanban_column, @dueDate, @notes, @createdAt, @updatedAt, @completedAt, @goal_id)').run(updated);
   afterWrite('tasks');
   res.json(updated);
 });
@@ -162,6 +174,38 @@ app.post('/api/goals/:id/history', auth, (req, res) => {
     afterWrite('goals');
   }
   res.json({ ok: true });
+});
+
+// Agent suggestions — generated based on goals, missing automations, usage patterns
+app.get('/api/agent-suggestions', auth, (req, res) => {
+  try {
+    const suggestions = JSON.parse(require('fs').readFileSync(path.join(DATA, 'agent-suggestions.json'), 'utf8'));
+    res.json(suggestions);
+  } catch(e) {
+    res.json([]);
+  }
+});
+
+app.post('/api/agent-suggestions/:id/dismiss', auth, (req, res) => {
+  try {
+    const data = JSON.parse(require('fs').readFileSync(path.join(DATA, 'agent-suggestions.json'), 'utf8'));
+    const updated = data.map(s => s.id === req.params.id ? { ...s, dismissed: true, dismissedAt: new Date().toISOString() } : s);
+    require('fs').writeFileSync(path.join(DATA, 'agent-suggestions.json'), JSON.stringify(updated, null, 2));
+    res.json({ ok: true });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/agent-suggestions/:id/activate', auth, (req, res) => {
+  try {
+    const data = JSON.parse(require('fs').readFileSync(path.join(DATA, 'agent-suggestions.json'), 'utf8'));
+    const updated = data.map(s => s.id === req.params.id ? { ...s, status: 'active', activatedAt: new Date().toISOString() } : s);
+    require('fs').writeFileSync(path.join(DATA, 'agent-suggestions.json'), JSON.stringify(updated, null, 2));
+    res.json({ ok: true });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // PROPOSALS
@@ -397,5 +441,136 @@ function getNextMondayUTC() {
   d.setUTCHours(0, 0, 0, 0);
   return d.toISOString();
 }
+
+// APOLLO CAMPAIGNS
+app.get('/api/apollo/campaigns', auth, async (req, res) => {
+  try {
+    const apiKey = process.env.APOLLO_API_KEY || 'V5ZsfKQ0dsCMCBum2wKEdA';
+    const campResp = await fetch('https://api.apollo.io/v1/emailer_campaigns/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey },
+      body: JSON.stringify({ per_page: 25 })
+    });
+    const campData = await campResp.json();
+    const campaigns = campData.emailer_campaigns || [];
+
+    // For each campaign, get contact count
+    const enriched = await Promise.all(campaigns.map(async (c) => {
+      try {
+        const cResp = await fetch('https://api.apollo.io/v1/contacts/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey },
+          body: JSON.stringify({ per_page: 1, emailer_campaign_id: c.id })
+        });
+        const cData = await cResp.json();
+        return {
+          id: c.id,
+          name: c.name,
+          status: c.status,
+          contacts: cData.pagination?.total_entries || 0,
+          emails_sent: c.num_steps || c.emailer_steps_count || 0,
+          open_rate: c.open_rate || 0,
+          reply_rate: c.reply_rate || 0,
+          created_at: c.created_at
+        };
+      } catch(e) {
+        return { id: c.id, name: c.name, status: c.status, contacts: 0, emails_sent: 0, open_rate: 0, reply_rate: 0 };
+      }
+    }));
+
+    res.json(enriched);
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// RISK REGISTER
+app.get('/api/risks', auth, (req, res) => res.json(db.prepare('SELECT * FROM risks ORDER BY createdAt DESC').all()));
+app.post('/api/risks', auth, (req, res) => {
+  const r = {
+    id: 'risk-' + Date.now(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    likelihood: 'medium', impact: 'medium', severity: 'medium',
+    status: 'open', owner: 'Matthew',
+    goal_id: null, description: null, mitigation: null,
+    ...req.body
+  };
+  r.goal_id = r.goal_id || null;
+  r.description = r.description || null;
+  r.mitigation = r.mitigation || null;
+  // Auto-calc severity from likelihood + impact
+  const scoreMap = { low: 1, medium: 2, high: 3 };
+  const score = (scoreMap[r.likelihood] || 2) * (scoreMap[r.impact] || 2);
+  r.severity = score >= 6 ? 'high' : score >= 3 ? 'medium' : 'low';
+  db.prepare('INSERT OR REPLACE INTO risks (id, goal_id, title, description, likelihood, impact, severity, mitigation, status, owner, createdAt, updatedAt) VALUES (@id, @goal_id, @title, @description, @likelihood, @impact, @severity, @mitigation, @status, @owner, @createdAt, @updatedAt)').run(r);
+  res.json(r);
+});
+app.patch('/api/risks/:id', auth, (req, res) => {
+  const risk = db.prepare('SELECT * FROM risks WHERE id = ?').get(req.params.id);
+  if (!risk) return res.status(404).json({ error: 'Not found' });
+  const updated = { ...risk, ...req.body, updatedAt: new Date().toISOString() };
+  updated.goal_id = updated.goal_id || null;
+  updated.description = updated.description || null;
+  updated.mitigation = updated.mitigation || null;
+  const scoreMap = { low: 1, medium: 2, high: 3 };
+  const score = (scoreMap[updated.likelihood] || 2) * (scoreMap[updated.impact] || 2);
+  updated.severity = score >= 6 ? 'high' : score >= 3 ? 'medium' : 'low';
+  db.prepare('INSERT OR REPLACE INTO risks (id, goal_id, title, description, likelihood, impact, severity, mitigation, status, owner, createdAt, updatedAt) VALUES (@id, @goal_id, @title, @description, @likelihood, @impact, @severity, @mitigation, @status, @owner, @createdAt, @updatedAt)').run(updated);
+  res.json(updated);
+});
+app.delete('/api/risks/:id', auth, (req, res) => {
+  db.prepare('DELETE FROM risks WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});
+
+// COMMAND CENTRE — aggregated war room data
+app.get('/api/command-centre', auth, async (req, res) => {
+  try {
+    // Goals
+    const goals = db.prepare('SELECT * FROM goals ORDER BY createdAt DESC').all();
+
+    // Tasks
+    const allTasksOpen = db.prepare('SELECT * FROM tasks WHERE done = 0 ORDER BY createdAt DESC').all();
+    const blockedTasks = allTasksOpen.filter(t => t.kanban_column === 'Urgent' || t.priority === 'high');
+    const todayItems = allTasksOpen.filter(t => t.kanban_column === 'Today' || t.kanban_column === 'Urgent');
+
+    // Today priorities
+    const date = new Date().toISOString().split('T')[0];
+    const todayRow = db.prepare('SELECT * FROM today_priorities WHERE date = ?').get(date);
+    let priorities = [], blockers = [], headline = null;
+    if (todayRow) {
+      try { priorities = JSON.parse(todayRow.priorities || '[]'); } catch {}
+      try { blockers = JSON.parse(todayRow.blockers || '[]'); } catch {}
+      headline = todayRow.headline;
+    }
+
+    // Job applications
+    const applyLogPath = '/home/matthewdewstowe/.openclaw/workspace/jobs/apply-log.json';
+    let totalApplied = 0, thisWeek = 0;
+    try {
+      const applyLog = JSON.parse(fs.readFileSync(applyLogPath, 'utf8'));
+      totalApplied = applyLog.length;
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      thisWeek = applyLog.filter(j => new Date(j.appliedAt) >= weekAgo).length;
+    } catch(e) {}
+
+    res.json({
+      goals,
+      tasks: {
+        open: allTasksOpen.length,
+        blocked: blockedTasks.length,
+        today: todayItems.length,
+        items: todayItems.slice(0, 8),
+        blockedItems: blockedTasks.slice(0, 5)
+      },
+      today: { headline, priorities, blockers },
+      jobs: { total: totalApplied, thisWeek }
+    });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 app.listen(PORT, '0.0.0.0', () => console.log(`Dashboard running on http://0.0.0.0:${PORT}`));

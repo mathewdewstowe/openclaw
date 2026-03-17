@@ -20,7 +20,7 @@ db.exec(`
     done INTEGER DEFAULT 0,
     priority TEXT DEFAULT 'medium',
     category TEXT DEFAULT 'general',
-    kanban_column TEXT DEFAULT 'Later',
+    kanban_column TEXT DEFAULT 'Triage',
     dueDate TEXT,
     createdAt TEXT DEFAULT (datetime('now')),
     updatedAt TEXT DEFAULT (datetime('now'))
@@ -150,6 +150,21 @@ db.exec(`
     tasksCompleted INTEGER DEFAULT 0,
     createdAt TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS risks (
+    id TEXT PRIMARY KEY,
+    goal_id TEXT,
+    title TEXT NOT NULL,
+    description TEXT,
+    likelihood TEXT DEFAULT 'medium',
+    impact TEXT DEFAULT 'medium',
+    severity TEXT DEFAULT 'medium',
+    mitigation TEXT,
+    status TEXT DEFAULT 'open',
+    owner TEXT DEFAULT 'Matthew',
+    createdAt TEXT DEFAULT (datetime('now')),
+    updatedAt TEXT DEFAULT (datetime('now'))
+  );
 `);
 
 // Migrate existing JSON data to SQLite
@@ -171,9 +186,14 @@ function migrateFromJSON(jsonFile, table, transform) {
 }
 
 // Schema migrations
-try { db.exec(`ALTER TABLE tasks ADD COLUMN kanban_column TEXT DEFAULT 'Later'`); } catch(e) {}
+try { db.exec(`ALTER TABLE tasks ADD COLUMN kanban_column TEXT DEFAULT 'Triage'`); } catch(e) {}
 try { db.exec(`ALTER TABLE tasks ADD COLUMN dueDate TEXT`); } catch(e) {}
 try { db.exec(`ALTER TABLE tasks ADD COLUMN notes TEXT`); } catch(e) {}
+try { db.exec(`ALTER TABLE tasks ADD COLUMN completedAt TEXT`); } catch(e) {}
+try { db.exec(`ALTER TABLE tasks ADD COLUMN goal_id TEXT`); } catch(e) {}
+
+// Fix any tasks still defaulting to 'Later' that were never explicitly set
+try { db.exec(`UPDATE tasks SET kanban_column = 'Triage' WHERE kanban_column IS NULL`); } catch(e) {}
 
 // Run migrations
 const tasksMigrated = migrateFromJSON('tasks.json', 'tasks', (item) =>
