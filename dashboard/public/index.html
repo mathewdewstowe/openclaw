@@ -237,11 +237,10 @@
     <button onclick="switchTab('agents', this)">🤖 Agents</button>
     <button onclick="switchTab('suggestions', this)">💡 Suggestions</button>
     <button onclick="switchTab('systems', this)">🔌 Systems</button>
-    <button onclick="switchTab('memory', this)">🧠 Memory</button>
+
     <button onclick="switchTab('goals', this)">🎯 Goals</button>
           <button onclick="switchTab('risks', this)">⚠️ Risks</button>
-    <button onclick="switchTab('proposals', this)">💡 Meta Agent</button>
-    <button onclick="switchTab('briefings', this)">📰 Briefings</button>
+
     <button onclick="switchTab('icps', this)">🎯 ICPs</button>
     <button onclick="switchTab('posts', this)">✍️ LinkedIn Posts</button>
     <button onclick="switchTab('usage', this)">📊 Usage</button>
@@ -372,12 +371,7 @@
     </div>
 
     <!-- MEMORY TAB -->
-    <div id="tab-memory" class="tab-content">
-      <div class="card">
-        <div class="section-title">🧠 Memory</div>
-        <div class="memory-content" id="memory-content">Loading...</div>
-      </div>
-    </div>
+    <div id="tab-memory" class="tab-content" style="display:none!important;"></div>
 
     <!-- GOALS TAB -->
     <div id="tab-goals" class="tab-content">
@@ -457,20 +451,8 @@
     </div>
 
     <!-- PROPOSALS TAB -->
-    <div id="tab-proposals" class="tab-content">
-      <div class="section-title">💡 Meta Agent Proposals</div>
-      <p style="color:#8b949e;font-size:13px;margin-bottom:20px">Select proposals to approve and develop. Rated by impact (⭐) and effort required.</p>
-      <div id="proposals-list"></div>
-    </div>
-
-    <!-- BRIEFINGS TAB -->
-    <div id="tab-briefings" class="tab-content">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
-        <div class="section-title" style="margin:0">📰 Daily OpenClaw Briefings</div>
-        <span style="font-size:12px;color:#8b949e">Delivered 8:30 AM daily</span>
-      </div>
-      <div id="briefings-list"></div>
-    </div>
+    <div id="tab-proposals" class="tab-content" style="display:none!important;"></div>
+    <div id="tab-briefings" class="tab-content" style="display:none!important;"></div>
 
     <!-- ICP TAB -->
     <div id="tab-icps" class="tab-content">
