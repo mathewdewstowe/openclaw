@@ -21,6 +21,7 @@ function rateLimit(ip) {
 
 const app = express();
 const PORT = 3737;
+const BIND = process.env.BIND || '127.0.0.1';
 const JWT_SECRET = 'md-dashboard-secret-2026-sonesse';
 
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -801,4 +802,25 @@ app.get('/api/apply/status', (req, res) => {
   res.json({ activeSessions: sessions.length, sessions });
 });
 
-app.listen(PORT, '0.0.0.0', () => console.log(`Dashboard running on http://0.0.0.0:${PORT}`));
+const server = app.listen(PORT, BIND, () => console.log(`Dashboard running on http://${BIND}:${PORT}`));
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 66000;
+
+function shutdown(signal) {
+  console.log(`[shutdown] received ${signal}`);
+  server.close(() => {
+    try { db.close(); } catch {}
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(1), 10000).unref();
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('unhandledRejection', (error) => {
+  console.error('[unhandledRejection]', error);
+});
+process.on('uncaughtException', (error) => {
+  console.error('[uncaughtException]', error);
+  process.exit(1);
+});
