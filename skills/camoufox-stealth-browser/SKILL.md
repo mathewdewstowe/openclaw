@@ -1,13 +1,6 @@
 ---
 name: camoufox-stealth-browser
-homepage: https://github.com/kesslerio/camoufox-stealth-browser-clawhub-skill
 description: C++ level anti-bot browser automation using Camoufox (patched Firefox) in isolated containers. Bypasses Cloudflare Turnstile, Datadome, Airbnb, Yelp. Superior to Chrome-based solutions (undetected-chromedriver, puppeteer-stealth) which only patch at JS level. Use when standard Playwright/Selenium gets blocked.
-metadata:
-  openclaw:
-    emoji: "🦊"
-    requires:
-      bins: ["distrobox"]
-      env: []
 ---
 
 # Camoufox Stealth Browser 🦊

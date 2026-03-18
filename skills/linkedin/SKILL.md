@@ -1,31 +1,32 @@
 ---
 name: linkedin
-description: 'Search and scrape LinkedIn using Camoufox stealth browser. Use when the user asks to: look up a LinkedIn profile, find someone on LinkedIn, search LinkedIn for people or companies, get profile details, or any LinkedIn research task. Uses Camoufox (patched Firefox) with C++ level anti-bot evasion. Trigger on any mention of LinkedIn, looking up a contact, searching for people, or connection research.'
-metadata:
-  { "openclaw": { "emoji": "💼" } }
+description: Search and review LinkedIn profiles, companies, and search results using the local Camoufox-based LinkedIn workflow. Use when the user asks to look up a person or company on LinkedIn, inspect a LinkedIn profile, search LinkedIn for prospects, or do LinkedIn research.
 ---
 
-# LinkedIn (Camoufox Stealth Browser)
+# LinkedIn
 
-Uses **Camoufox** — a custom Firefox fork with C++ level stealth patches.
-Persistent session stored at `~/.stealth-browser/profiles/linkedin/`.
-No Windows Chrome dependency. Runs natively in WSL.
+Use the local Camoufox workflow. Do not mix this skill with legacy Chrome remote-debugging instructions.
 
-Script: `~/.openclaw/workspace/scripts/camoufox-linkedin.py`
+## Canonical Workflow
 
----
+Primary script:
+- `~/.openclaw/workspace/scripts/camoufox-linkedin.py`
 
-## First-Time Setup
+Primary profile/session location:
+- `~/.stealth-browser/profiles/linkedin/`
 
-Login requires a **headed browser** (needs display — use WSLg or X11 forwarding):
+## First-Time Login
+
+Login requires a headed browser session:
 
 ```bash
 python3 ~/.openclaw/workspace/scripts/camoufox-linkedin.py --login
 ```
 
-Log into LinkedIn in the browser window, then press Enter to save the session.
-
----
+Then:
+1. sign into LinkedIn in the opened browser
+2. complete any checkpoint/CAPTCHA manually
+3. press Enter when prompted so the session is saved
 
 ## Check Session Status
 
@@ -33,77 +34,42 @@ Log into LinkedIn in the browser window, then press Enter to save the session.
 python3 ~/.openclaw/workspace/scripts/camoufox-linkedin.py --status
 ```
 
----
-
-## Fetch a LinkedIn Page
+## Fetch a Profile or Page
 
 ```bash
 python3 ~/.openclaw/workspace/scripts/camoufox-linkedin.py --url "https://www.linkedin.com/in/someone" --output /tmp/profile.html
 python3 ~/.openclaw/workspace/scripts/camoufox-linkedin.py --url "https://www.linkedin.com/feed/" --screenshot /tmp/feed.png
 ```
 
----
+## Convenience Wrapper
 
-## Using Camoufox Directly in Python
+If present, use:
 
-```python
-from camoufox.sync_api import Camoufox
-import os
-
-PROFILE = os.path.expanduser("~/.stealth-browser/profiles/linkedin")
-
-with Camoufox(headless=True, persistent_context=True, user_data_dir=PROFILE, humanize=True) as browser:
-    page = browser.new_page()
-    page.goto("https://www.linkedin.com/feed/", wait_until="networkidle")
-    # ... interact with page
-```
-
----
-
-## Run commands from WSL
-
-### Check LinkedIn session
 ```bash
 ~/.openclaw/workspace/tools/browser/li.sh check
-```
-
-### Look up a profile
-```bash
 ~/.openclaw/workspace/tools/browser/li.sh profile "https://www.linkedin.com/in/username"
-```
-
-### Search for people
-```bash
 ~/.openclaw/workspace/tools/browser/li.sh search-people "keywords" "job title" "company" 10
-```
-Example:
-```bash
-~/.openclaw/workspace/tools/browser/li.sh search-people "conversational AI" "VP Customer Experience" "" 10
-```
-
-### Search for companies
-```bash
 ~/.openclaw/workspace/tools/browser/li.sh search-companies "contact centre AI" 10
 ```
 
----
+## Working Rules
 
-## How it works
-
-- `Chrome Debug Mode.bat` launches Chrome with `--remote-debugging-port=9222` + dedicated profile
-- `li.sh` calls Windows Node.js (`node.exe`) via WSL interop (`cmd.exe /c`)
-- The Node.js script connects directly to Chrome on `127.0.0.1:9222` (Windows localhost)
-- LinkedIn sees your real Chrome browser — same fingerprint, same session, no bot detection
-
----
+- Run lightly; repeated aggressive LinkedIn automation triggers defenses
+- Prefer one focused research pass over many repeated runs
+- If CAPTCHA or checkpoint appears, stop and ask for manual intervention
+- Keep output concise: person, role, company, location, notable signals
 
 ## Troubleshooting
 
-**"Could not connect to Chrome"**
-→ Run `Chrome Debug Mode.bat` on your Desktop first
+**Not logged in**
+- Run the login flow again and save the session
 
-**"Not logged into LinkedIn"**
-→ Open Chrome, go to linkedin.com, log in manually — session persists in `C:\Temp\chrome-debug`
+**Checkpoint / CAPTCHA**
+- Complete it manually in the headed browser, then retry
 
-**Session expired after Windows restart**
-→ Run `Chrome Debug Mode.bat` again — cookies persist in the debug profile
+**Session expired**
+- Re-run `--login`
+
+## Important
+
+This skill is Camoufox-based. Ignore old Chrome debug mode guidance unless a future workflow explicitly reintroduces it.

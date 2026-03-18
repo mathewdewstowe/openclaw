@@ -1,16 +1,6 @@
 ---
 name: openclaw-workspace-pro
 description: Production-ready workspace setup for OpenClaw agents. Implements artifact workflows, secrets management, memory compaction, and long-running agent patterns based on OpenAI's Shell + Skills best practices. One-command installation transforms your workspace into a production-ready environment.
-version: 1.0.0
-author: Eugene Devyatyh
-repository: https://github.com/Eugene9D/openclaw-workspace-pro
-metadata:
-  openclaw:
-    install:
-      - id: setup
-        kind: script
-        script: ./install.sh
-        label: Install Workspace Pro enhancements
 ---
 
 # OpenClaw Workspace Pro

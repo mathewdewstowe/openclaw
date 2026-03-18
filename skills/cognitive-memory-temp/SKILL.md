@@ -19,7 +19,7 @@ Creates directory structure, initializes git for audit tracking, copies all temp
 
 ### 2. Update config
 
-Add to `~/.clawdbot/clawdbot.json` (or `moltbot.json`):
+Add the relevant memory configuration to your current OpenClaw config rather than old Clawdbot/Moltbot paths. Use the live OpenClaw config schema and patch flow instead of assuming a legacy file location:
 
 ```json
 {

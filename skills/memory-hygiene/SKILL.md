@@ -1,82 +1,97 @@
 ---
 name: memory-hygiene
-description: Audit, clean, and optimize Clawdbot's vector memory (LanceDB). Use when memory is bloated with junk, token usage is high from irrelevant auto-recalls, or setting up memory maintenance automation.
-homepage: https://github.com/xdylanbaker/memory-hygiene
+description: Audit, clean, and reduce OpenClaw memory and session bloat safely. Use when memory recall is noisy, context usage is creeping up, old session files are piling up, heartbeat maintenance needs tightening, or the user asks to prune/compact memory without losing important context.
 ---
 
 # Memory Hygiene
 
-Keep vector memory lean. Prevent token waste from junk memories.
+Keep memory useful and boring. Prefer safer retention rules over destructive cleanup.
 
-## Quick Commands
+## Priorities
 
-**Audit:** Check what's in memory
-```
-memory_recall query="*" limit=50
-```
+1. Stop destructive pruning first.
+2. Reduce noisy inputs before deleting anything.
+3. Preserve recent and high-value context.
+4. Archive before removal whenever possible.
 
-**Wipe:** Clear all vector memory
-```bash
-rm -rf ~/.clawdbot/memory/lancedb/
-```
-Then restart gateway: `clawdbot gateway restart`
+## What Usually Causes Bloat
 
-**Reseed:** After wipe, store key facts from MEMORY.md
-```
-memory_store text="<fact>" category="preference|fact|decision" importance=0.9
-```
+- Oversized session files that get repeatedly reloaded
+- Heartbeats logging low-value noise
+- Old maintenance rules that delete by size alone
+- Stale long-form notes never being distilled into `MEMORY.md`
+- Broad recall of weak or transient memory entries
 
-## Config: Disable Auto-Capture
+## Safe Cleanup Order
 
-The main source of junk is `autoCapture: true`. Disable it:
+### 1. Fix pruning rules
 
-```json
-{
-  "plugins": {
-    "entries": {
-      "memory-lancedb": {
-        "config": {
-          "autoCapture": false,
-          "autoRecall": true
-        }
-      }
-    }
-  }
-}
-```
+When session cleanup is involved:
+- Never delete active or locked sessions
+- Never delete recent sessions just because they are large
+- Preserve a recent working set
+- Prefer gzip archival over deletion
 
-Use `gateway action=config.patch` to apply.
+Use `scripts/prune-sessions.sh` as the canonical session hygiene script.
 
-## What to Store (Intentionally)
+### 2. Tighten heartbeat behavior
 
-✅ Store:
-- User preferences (tools, workflows, communication style)
-- Key decisions (project choices, architecture)
-- Important facts (accounts, credentials locations, contacts)
-- Lessons learned
+Heartbeat checks should:
+- avoid logging repetitive "all clear" noise
+- only alert on real issues
+- avoid creating memory entries for transient status unless action was needed
 
-❌ Never store:
-- Heartbeat status ("HEARTBEAT_OK", "No new messages")
-- Transient info (current time, temp states)
-- Raw message logs (already in files)
-- OAuth URLs or tokens
+### 3. Distill memory instead of hoarding it
 
-## Monthly Maintenance Cron
+When daily memory files grow noisy:
+- keep raw notes in `memory/YYYY-MM-DD.md`
+- move only durable facts, decisions, and preferences into `MEMORY.md`
+- remove or ignore transient operational chatter
 
-Set up a monthly wipe + reseed:
+### 4. Review recall quality
 
-```
-cron action=add job={
-  "name": "memory-maintenance",
-  "schedule": "0 4 1 * *",
-  "text": "Monthly memory maintenance: 1) Wipe ~/.clawdbot/memory/lancedb/ 2) Parse MEMORY.md 3) Store key facts to fresh LanceDB 4) Report completion"
-}
-```
+If memory recall is returning junk:
+- keep only durable facts and decisions in long-term memory
+- avoid saving ephemeral runtime state
+- prefer fewer high-signal entries over many low-signal ones
 
-## Storage Guidelines
+## Store This
 
-When using memory_store:
-- Keep text concise (<100 words)
-- Use appropriate category
-- Set importance 0.7-1.0 for valuable info
-- One concept per memory entry
+- durable preferences
+- recurring workflows
+- important decisions
+- contact/context worth reusing
+- lessons that prevent future mistakes
+
+## Do Not Store This
+
+- heartbeat acknowledgements
+- repetitive service health checks with no action
+- temporary statuses
+- raw message dumps already preserved elsewhere
+- secrets unless explicitly required and safely handled
+
+## Recommended Maintenance Pattern
+
+Use an archive-first policy:
+- active sessions: untouched
+- recent sessions: untouched
+- stale + very large sessions: archive
+- long-term notes: curate into `MEMORY.md`
+
+## When the User Says “Fix the Bloat”
+
+Do this in order:
+1. inspect current pruning and heartbeat rules
+2. make cleanup non-destructive
+3. remove stale/legacy memory instructions
+4. trim noisy agent instructions
+5. commit the changes
+
+## Output Standard
+
+Report:
+- root cause
+- what was made safer
+- what was removed or archived
+- what policy now prevents recurrence
