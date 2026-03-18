@@ -1,0 +1,82 @@
+---
+layout: layouts/base.njk
+title: Use cases
+description: Selected Nth Layer engagements and outcomes.
+usecases:
+  - title: Board-level strategy reset in a crowded market
+    challenge:
+      - A detailed roadmap existed, but it was feature-heavy rather than outcome-led.
+      - Leadership alignment across product, commercial, and technical teams was inconsistent.
+      - Differentiation was difficult to articulate and strategic risks were not formalised.
+    approach:
+      - Ran leadership workshops to shift thinking from operational delivery to strategic outcomes.
+      - Used SWOT analysis and the Airbnb 11-star exercise to force sharper strategic choices.
+      - Built a board-ready narrative linking strategic bets to measurable business impact.
+    result: The roadmap evolved from a list of initiatives into a strategy tied to clear commercial outcomes, with board backing and stronger differentiation.
+  - title: Repositioning from intranet provider to employee experience platform
+    challenge:
+      - The business had extensive research but no clear strategic direction.
+      - Existing buyer personas reinforced legacy positioning while the market moved on.
+      - Leadership lacked a structured path to evolve the ICP and expand into North America.
+    approach:
+      - Distilled research into a small set of strategic priorities.
+      - Anchored decisions in commercial evidence, including win/loss analysis across 3,000+ opportunities.
+      - Defined four strategic bets and an evidence-based roadmap for ICP evolution.
+    result: Leadership gained a documented path to reposition the business, focus investment, and make deliberate trade-offs in a changing market.
+  - title: Conversational voice AI MVP for engagement validation
+    challenge:
+      - A Web3 jobs platform wanted to test whether voice interaction could increase engagement and improve matching quality.
+      - The hypothesis needed validating quickly without disrupting the existing product.
+    approach:
+      - Mapped the value chain and identified where conversational AI could fit naturally.
+      - Built and tested a voice AI MVP focused on user interaction and engagement behaviour.
+      - Used rapid feedback loops to decide whether broader investment was justified.
+    result: The team got fast, real-world signal on engagement behaviour and a clearer basis for deciding where conversational AI should sit in the product.
+  - title: AI operating model redesign with commercial accountability
+    challenge:
+      - AI had been announced, but the operating model was still designed for predictable software.
+      - Initiatives were not tied to revenue, margin, cost efficiency, or retention metrics.
+      - Ownership, evaluation, and governance were fragmented and reactive.
+    approach:
+      - Reframed AI initiatives as outcome-based bets with explicit value hypotheses.
+      - Introduced ROI tracking, live evaluation loops, and model tuning cycles.
+      - Clarified ownership across product, engineering, and data while embedding governance into delivery.
+    result: AI investment shifted from vague activity to initiatives tied to core business metrics, with structured oversight and continuous performance improvement.
+---
+<section class="section">
+  <div class="container">
+    <div class="kicker">Use cases</div>
+    <h1 style="font-size:clamp(2.8rem, 6vw, 4.6rem);max-width:12ch;">Selected strategic and product transformation work</h1>
+    <p style="max-width:65ch;">I pulled the substance from the live site and cleaned it into a more readable case-study format. The current source content has a few duplicated sections and mismatched result copy, so this version deliberately normalises it.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container usecase-grid">
+    {% for item in usecases %}
+      <article class="usecase">
+        <div class="kicker">0{{ loop.index }}</div>
+        <h2 style="font-size:1.7rem;max-width:none;">{{ item.title }}</h2>
+        <h3>Challenge</h3>
+        <ul class="clean">
+          {% for point in item.challenge %}<li>{{ point }}</li>{% endfor %}
+        </ul>
+        <h3 style="margin-top:1.2rem;">Approach</h3>
+        <ul class="clean">
+          {% for point in item.approach %}<li>{{ point }}</li>{% endfor %}
+        </ul>
+        <h3 style="margin-top:1.2rem;">Result</h3>
+        <p>{{ item.result }}</p>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="cta">
+  <div class="container panel">
+    <div class="kicker">Next step</div>
+    <h2 style="max-width:none;">Want me to turn this into the production Nth Layer site?</h2>
+    <p style="max-width:58ch;margin:0 auto 1.5rem;">What I’ve built here is a clean 11ty baseline. Next obvious move is adding brand assets, proper contact flow, richer case-study pages, and deployment.</p>
+    <a class="button" href="{{ site.ctaHref }}">{{ site.ctaLabel }}</a>
+  </div>
+</section>

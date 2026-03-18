@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if title %}{{ title }} · {% endif %}{{ site.name }}</title>
+    <meta name="description" content="{{ description or site.tagline }}">
+    <link rel="stylesheet" href="/assets/css/site.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <a class="brand" href="/">{{ site.name }}</a>
+        <nav>
+          <a href="/">Home</a>
+          <a href="/usecases/">Use cases</a>
+          <a class="button button--small" href="{{ site.ctaHref }}">{{ site.ctaLabel }}</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      {{ content | safe }}
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <strong>{{ site.name }}</strong>
+          <p>{{ site.tagline }}</p>
+        </div>
+        <div>
+          <a href="/usecases/">Use cases</a>
+          <a href="{{ site.ctaHref }}">Contact</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

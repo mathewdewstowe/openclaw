@@ -1,0 +1,13 @@
+{
+  "name": "nthlayer-11ty",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nth Layer marketing site rebuilt with Eleventy",
+  "scripts": {
+    "start": "eleventy --serve",
+    "build": "eleventy"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.0.0"
+  }
+}
