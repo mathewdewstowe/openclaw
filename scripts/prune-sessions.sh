@@ -47,10 +47,7 @@ done
 log "Done. Pruned: $PRUNED | Skipped (active): $SKIPPED"
 
 if [ "$PRUNED" -gt 0 ]; then
-  log "Restarting gateway to clear stale state..."
-  openclaw gateway restart >> "$LOG" 2>&1
-  sleep 3
-  log "Gateway restarted."
+  log "Prune complete. No gateway restart needed."
 fi
 
 exit 0
