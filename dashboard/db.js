@@ -176,6 +176,18 @@ db.exec(`
     updatedAt TEXT DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS assets (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    url TEXT NOT NULL,
+    type TEXT DEFAULT 'link',
+    category TEXT DEFAULT 'general',
+    icon TEXT DEFAULT '🔗',
+    createdAt TEXT DEFAULT (datetime('now')),
+    updatedAt TEXT DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS pending_questions (
     id TEXT PRIMARY KEY,
     question TEXT NOT NULL,
@@ -268,8 +280,8 @@ reconcileFromJson('proposals.json',
   item => ({ id: item.id, title: item.title || '', client: item.client || '', value: item.value || 0, status: item.status || 'draft', goalAlignment: item.goalAlignment || '', notes: item.notes || item.description || '', createdAt: item.createdAt || new Date().toISOString() })
 );
 reconcileFromJson('icps.json',
-  'INSERT OR IGNORE INTO icps (id, name, title, company, email, linkedin, notes, status, score, createdAt, updatedAt) VALUES (@id, @name, @title, @company, @email, @linkedin, @notes, @status, @score, @createdAt, @updatedAt)',
-  item => ({ id: item.id, name: item.name || '', title: item.title || '', company: item.company || '', email: item.email || '', linkedin: item.linkedin || '', notes: item.notes || '', status: item.status || 'new', score: item.score || 0, createdAt: item.createdAt || new Date().toISOString(), updatedAt: item.updatedAt || new Date().toISOString() })
+  'INSERT OR IGNORE INTO icps (id, name, title, company, email, linkedin, notes, sector, company_size, persona, value_prop, problem_statements, how_we_help, buying_trigger, status, score, createdAt, updatedAt) VALUES (@id, @name, @title, @company, @email, @linkedin, @notes, @sector, @company_size, @persona, @value_prop, @problem_statements, @how_we_help, @buying_trigger, @status, @score, @createdAt, @updatedAt)',
+  item => ({ id: item.id, name: item.name || '', title: item.title || '', company: item.company || '', email: item.email || '', linkedin: item.linkedin || '', notes: item.notes || '', sector: item.sector || '', company_size: item.company_size || '', persona: item.persona || '', value_prop: item.value_prop || '', problem_statements: Array.isArray(item.problem_statements) ? JSON.stringify(item.problem_statements) : (item.problem_statements || '[]'), how_we_help: item.how_we_help || '', buying_trigger: item.buying_trigger || '', status: item.status || 'new', score: item.score || 0, createdAt: item.createdAt || new Date().toISOString(), updatedAt: item.updatedAt || new Date().toISOString() })
 );
 reconcileFromJson('posts.json',
   'INSERT OR IGNORE INTO posts (id, content, status, scheduledFor, publishedAt, impressions, createdAt) VALUES (@id, @content, @status, @scheduledFor, @publishedAt, @impressions, @createdAt)',
@@ -295,3 +307,4 @@ function writeTaskMarkdown() {
 writeTaskMarkdown();
 
 module.exports = db;
+

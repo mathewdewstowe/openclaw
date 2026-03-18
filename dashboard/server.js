@@ -281,20 +281,39 @@ app.post('/api/briefings', auth, (req, res) => {
 });
 
 // ICPs
-app.get('/api/icps', auth, (req, res) => res.json(db.prepare('SELECT * FROM icps ORDER BY createdAt DESC').all()));
+app.get('/api/icps', auth, (req, res) => {
+  const rows = db.prepare('SELECT * FROM icps ORDER BY createdAt DESC').all().map(row => ({
+    ...row,
+    problem_statements: (() => {
+      try { return JSON.parse(row.problem_statements || '[]'); } catch { return []; }
+    })()
+  }));
+  res.json(rows);
+});
 app.post('/api/icps', auth, (req, res) => {
-  const icp = { id: 'icp-' + Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), status: 'new', score: 0, ...req.body };
-  db.prepare('INSERT OR REPLACE INTO icps (id, name, title, company, email, linkedin, notes, status, score, createdAt, updatedAt) VALUES (@id, @name, @title, @company, @email, @linkedin, @notes, @status, @score, @createdAt, @updatedAt)').run(icp);
+  const icp = {
+    id: 'icp-' + Date.now(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    status: 'new',
+    score: 0,
+    sector: '', company_size: '', persona: '', value_prop: '', how_we_help: '', buying_trigger: '',
+    problem_statements: '[]',
+    ...req.body
+  };
+  icp.problem_statements = Array.isArray(icp.problem_statements) ? JSON.stringify(icp.problem_statements) : (icp.problem_statements || '[]');
+  db.prepare('INSERT OR REPLACE INTO icps (id, name, title, company, email, linkedin, notes, sector, company_size, persona, value_prop, problem_statements, how_we_help, buying_trigger, status, score, createdAt, updatedAt) VALUES (@id, @name, @title, @company, @email, @linkedin, @notes, @sector, @company_size, @persona, @value_prop, @problem_statements, @how_we_help, @buying_trigger, @status, @score, @createdAt, @updatedAt)').run(icp);
   afterWrite('icps');
-  res.json(icp);
+  res.json({ ...icp, problem_statements: JSON.parse(icp.problem_statements) });
 });
 app.patch('/api/icps/:id', auth, (req, res) => {
   const icp = db.prepare('SELECT * FROM icps WHERE id = ?').get(req.params.id);
   if (!icp) return res.status(404).json({ error: 'Not found' });
   const updated = { ...icp, ...req.body, updatedAt: new Date().toISOString() };
-  db.prepare('INSERT OR REPLACE INTO icps (id, name, title, company, email, linkedin, notes, status, score, createdAt, updatedAt) VALUES (@id, @name, @title, @company, @email, @linkedin, @notes, @status, @score, @createdAt, @updatedAt)').run(updated);
+  updated.problem_statements = Array.isArray(updated.problem_statements) ? JSON.stringify(updated.problem_statements) : (updated.problem_statements || '[]');
+  db.prepare('INSERT OR REPLACE INTO icps (id, name, title, company, email, linkedin, notes, sector, company_size, persona, value_prop, problem_statements, how_we_help, buying_trigger, status, score, createdAt, updatedAt) VALUES (@id, @name, @title, @company, @email, @linkedin, @notes, @sector, @company_size, @persona, @value_prop, @problem_statements, @how_we_help, @buying_trigger, @status, @score, @createdAt, @updatedAt)').run(updated);
   afterWrite('icps');
-  res.json(updated);
+  res.json({ ...updated, problem_statements: JSON.parse(updated.problem_statements) });
 });
 app.delete('/api/icps/:id', auth, (req, res) => {
   db.prepare('DELETE FROM icps WHERE id = ?').run(req.params.id);
@@ -409,75 +428,46 @@ app.post('/api/daily-summary', auth, (req, res) => {
   res.json({ ok: true });
 });
 
-// ONLINE TIME
-// Calculate Matthew's online hours from OpenClaw session files
-function calcOnlineHours(dateStr) {
-  const sessionsDir = '/home/matthewdewstowe/.openclaw/agents/main/sessions/';
-  const allFiles = fs.readdirSync(sessionsDir);
-  const files = allFiles
-    .filter(f => f.endsWith('.jsonl') || f.includes('.jsonl.deleted.'))
-    .map(f => path.join(sessionsDir, f));
-  const timestamps = [];
-  for (const f of files) {
-    try {
-      const lines = fs.readFileSync(f, 'utf8').split('\n');
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        try {
-          const entry = JSON.parse(line);
-          if (entry.type === 'message') {
-            const msg = entry.message || {};
-            const tsStr = entry.timestamp;
-            if (msg.role === 'user' && tsStr) {
-              const dt = new Date(tsStr);
-              if (dt.toISOString().startsWith(dateStr)) {
-                const content = msg.content || [];
-                const text = Array.isArray(content) && content[0] ? (content[0].text || '') : String(content);
-                if (text.includes('U0AKBPS9K5E')) {
-                  timestamps.push(dt.getTime());
-                }
-              }
-            }
-          }
-        } catch {}
-      }
-    } catch {}
+// ONLINE TIME — powered by RescueTime API
+const RESCUETIME_KEY = 'B6384SrpleyLx3tj1O6yFJ3e13F4w5DYI4EYxO3t';
+
+async function calcOnlineHours(dateStr) {
+  try {
+    const url = `https://www.rescuetime.com/anapi/data?key=${RESCUETIME_KEY}&perspective=interval&restrict_kind=overview&interval=day&restrict_begin=${dateStr}&restrict_end=${dateStr}&format=json`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+    const totalSec = (data.rows || []).reduce((sum, r) => sum + r[1], 0);
+    const hours = Math.round((totalSec / 3600) * 10) / 10;
+    return { hours, firstSeen: null, lastSeen: null, messageCount: 0, source: 'rescuetime' };
+  } catch (e) {
+    console.error('RescueTime API error:', e.message);
+    return { hours: 0, firstSeen: null, lastSeen: null, messageCount: 0, source: 'error' };
   }
-  if (!timestamps.length) return { hours: 0, firstSeen: null, lastSeen: null, messageCount: 0 };
-  timestamps.sort((a, b) => a - b);
-  const hours = (timestamps[timestamps.length - 1] - timestamps[0]) / 3600000;
-  return {
-    hours: Math.round(hours * 10) / 10,
-    firstSeen: new Date(timestamps[0]).toISOString(),
-    lastSeen: new Date(timestamps[timestamps.length - 1]).toISOString(),
-    messageCount: timestamps.length
-  };
 }
 
 // Record or refresh online time for a given date
-function upsertOnlineTime(dateStr) {
-  const result = calcOnlineHours(dateStr);
+async function upsertOnlineTime(dateStr) {
+  const result = await calcOnlineHours(dateStr);
   db.prepare(`INSERT OR REPLACE INTO online_time_log (date, hours, firstSeen, lastSeen, messageCount, updatedAt)
     VALUES (?, ?, ?, ?, ?, ?)`).run(dateStr, result.hours, result.firstSeen, result.lastSeen, result.messageCount, new Date().toISOString());
   return result;
 }
 
 // GET /api/online-time?date=YYYY-MM-DD  (defaults to yesterday)
-app.get('/api/online-time', auth, (req, res) => {
+app.get('/api/online-time', auth, async (req, res) => {
   const date = req.query.date || (() => {
     const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().split('T')[0];
   })();
-  // Try cache first, refresh if older than 10 min
   let row = db.prepare('SELECT * FROM online_time_log WHERE date = ?').get(date);
   const stale = !row || (Date.now() - new Date(row.updatedAt).getTime()) > 10 * 60 * 1000;
-  if (stale) { const fresh = upsertOnlineTime(date); row = db.prepare('SELECT * FROM online_time_log WHERE date = ?').get(date); }
+  if (stale) { await upsertOnlineTime(date); row = db.prepare('SELECT * FROM online_time_log WHERE date = ?').get(date); }
   res.json(row || { date, hours: 0 });
 });
 
 // GET /api/online-time/week  — current ISO week (Mon–Sun)
-app.get('/api/online-time/week', auth, (req, res) => {
+app.get('/api/online-time/week', auth, async (req, res) => {
   const now = new Date();
-  const dayOfWeek = now.getUTCDay() || 7; // Mon=1 … Sun=7
+  const dayOfWeek = now.getUTCDay() || 7;
   const monday = new Date(now);
   monday.setUTCDate(now.getUTCDate() - (dayOfWeek - 1));
   monday.setUTCHours(0, 0, 0, 0);
@@ -486,11 +476,10 @@ app.get('/api/online-time/week', auth, (req, res) => {
     const d = new Date(monday);
     d.setUTCDate(monday.getUTCDate() + i);
     const dateStr = d.toISOString().split('T')[0];
-    // Only calc past/today
     if (d <= now) {
       let row = db.prepare('SELECT * FROM online_time_log WHERE date = ?').get(dateStr);
       if (!row || (Date.now() - new Date(row.updatedAt).getTime()) > 10 * 60 * 1000) {
-        upsertOnlineTime(dateStr);
+        await upsertOnlineTime(dateStr);
         row = db.prepare('SELECT * FROM online_time_log WHERE date = ?').get(dateStr);
       }
       days.push(row || { date: dateStr, hours: 0 });
@@ -510,7 +499,7 @@ app.get('/api/online-time/week', auth, (req, res) => {
 });
 
 // POST /api/online-time/refresh  — force recalculate all days this week
-app.post('/api/online-time/refresh', auth, (req, res) => {
+app.post('/api/online-time/refresh', auth, async (req, res) => {
   const now = new Date();
   const dayOfWeek = now.getUTCDay() || 7;
   const monday = new Date(now);
@@ -522,7 +511,8 @@ app.post('/api/online-time/refresh', auth, (req, res) => {
     d.setUTCDate(monday.getUTCDate() + i);
     if (d <= now) {
       const dateStr = d.toISOString().split('T')[0];
-      results.push({ date: dateStr, ...upsertOnlineTime(dateStr) });
+      const r = await upsertOnlineTime(dateStr);
+      results.push({ date: dateStr, ...r });
     }
   }
   res.json({ ok: true, results });
@@ -603,6 +593,25 @@ app.get('/api/apollo/campaigns', auth, async (req, res) => {
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
+});
+
+// ASSETS
+app.get('/api/assets', auth, (req, res) => res.json(db.prepare('SELECT * FROM assets ORDER BY createdAt DESC').all()));
+app.post('/api/assets', auth, (req, res) => {
+  const a = { id: 'asset-' + Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), type: 'link', category: 'general', icon: '🔗', ...req.body };
+  db.prepare('INSERT OR REPLACE INTO assets (id, name, description, url, type, category, icon, createdAt, updatedAt) VALUES (@id, @name, @description, @url, @type, @category, @icon, @createdAt, @updatedAt)').run(a);
+  res.json(a);
+});
+app.patch('/api/assets/:id', auth, (req, res) => {
+  const asset = db.prepare('SELECT * FROM assets WHERE id = ?').get(req.params.id);
+  if (!asset) return res.status(404).json({ error: 'Not found' });
+  const updated = { ...asset, ...req.body, updatedAt: new Date().toISOString() };
+  db.prepare('INSERT OR REPLACE INTO assets (id, name, description, url, type, category, icon, createdAt, updatedAt) VALUES (@id, @name, @description, @url, @type, @category, @icon, @createdAt, @updatedAt)').run(updated);
+  res.json(updated);
+});
+app.delete('/api/assets/:id', auth, (req, res) => {
+  db.prepare('DELETE FROM assets WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
 });
 
 // RISK REGISTER
