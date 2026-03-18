@@ -1,319 +1,112 @@
 ---
 name: cognitive-memory
-description: Intelligent multi-store memory system with human-like encoding, consolidation, decay, and recall. Use when setting up agent memory, configuring remember/forget triggers, enabling sleep-time reflection, building knowledge graphs, or adding audit trails. Replaces basic flat-file memory with a cognitive architecture featuring episodic, semantic, procedural, and core memory stores. Supports multi-agent systems with shared read, gated write access model. Includes philosophical meta-reflection that deepens understanding over time. Covers MEMORY.md, episode logging, entity graphs, decay scoring, reflection cycles, evolution tracking, and system-wide audit.
+description: Intelligent multi-store memory system for OpenClaw. Use when designing or improving memory architecture, recall policy, reflection workflows, memory decay rules, entity graphs, or audit trails across agent sessions.
 ---
 
-# Cognitive Memory System
-
-Multi-store memory with natural language triggers, knowledge graphs, decay-based forgetting, reflection consolidation, philosophical evolution, multi-agent support, and full audit trail.
-
-## Quick Setup
-
-### 1. Run the init script
-
-```bash
-bash scripts/init_memory.sh /path/to/workspace
-```
-
-Creates directory structure, initializes git for audit tracking, copies all templates.
-
-### 2. Update config
-
-Add the relevant memory configuration to your current OpenClaw config rather than old Clawdbot/Moltbot paths. Use the live OpenClaw config schema and patch flow instead of assuming a legacy file location:
-
-```json
-{
-  "memorySearch": {
-    "enabled": true,
-    "provider": "voyage",
-    "sources": ["memory", "sessions"],
-    "indexMode": "hot",
-    "minScore": 0.3,
-    "maxResults": 20
-  }
-}
-```
-
-### 3. Add agent instructions
+# Cognitive Memory
+
+Use this skill for deliberate memory system design, not routine day-to-day note taking.
+
+## What it is for
+
+Apply this skill when the user wants to:
+- redesign how memory is structured
+- introduce memory stores beyond flat files
+- add reflection or consolidation workflows
+- define remember / forget triggers
+- build entity or relationship graphs
+- add auditability to memory changes
+
+For ordinary OpenClaw memory use, keep relying on `MEMORY.md`, daily notes, and `memory_search` / `memory_get`.
+
+## Core model
+
+Separate memory into four roles:
+- **core**: durable facts that belong in `MEMORY.md`
+- **episodic**: chronological daily logs
+- **semantic**: entities, facts, and relationships
+- **procedural**: reusable workflows and learned patterns
+- **vault**: explicitly pinned items that should not decay automatically
+
+Do not overcomplicate this if the user only needs better hygiene or recall quality.
+
+## Recommended workflow
+
+### 1. Start with the existing workspace
+Check how memory already works before introducing new stores.
+
+Review:
+- `MEMORY.md`
+- recent `memory/YYYY-MM-DD.md` files
+- current recall behavior
+- current pain points: noise, missed facts, stale info, token cost, unclear write policy
+
+### 2. Define the problem precisely
+Usually the real problem is one of:
+- bad capture rules
+- weak curation
+- poor retrieval
+- too much transient data
+- no distinction between short-term and long-term memory
+
+Fix the simplest layer that solves the problem.
+
+### 3. Keep writes gated
+Prefer:
+- broad read access
+- narrow write rules
+- explicit review for high-impact memory changes
+
+If multiple agents exist, let subagents propose memory changes rather than silently writing durable memory.
+
+### 4. Use reflection carefully
+Reflection should be opt-in or explicitly approved.
+Do not auto-run expensive reflection loops just because they are possible.
+
+### 5. Preserve auditability
+When memory architecture is changed, make it easy to answer:
+- what changed
+- why it changed
+- who changed it
+- how to reverse it
+
+## Practical guidance
+
+### Durable vs transient
+Store durable things such as:
+- preferences
+- relationships
+- ongoing projects
+- decisions
+- recurring workflows
+- lessons worth reusing
+
+Avoid storing transient things such as:
+- heartbeat acknowledgements
+- temporary operational status
+- repetitive service checks
+- raw conversation noise that adds no future value
+
+### Decay and consolidation
+If using decay rules:
+- decay low-value episodic material first
+- never decay explicitly pinned memory without review
+- consolidate repeated patterns into shorter summaries
+- promote proven recurring knowledge into procedural or core memory
+
+## Output standard
+
+When helping with memory-system design, provide:
+- the problem being solved
+- the proposed memory model
+- write/read rules
+- decay or retention rules
+- migration path from the current setup
+- operational risks and safeguards
+
+## Reference files
 
-Append `assets/templates/agents-memory-block.md` to your AGENTS.md.
-
-### 4. Verify
-
-```
-User: "Remember that I prefer TypeScript over JavaScript."
-Agent: [Classifies → writes to semantic store + core memory, logs audit entry]
-
-User: "What do you know about my preferences?"
-Agent: [Searches core memory first, then semantic graph]
-```
-
----
-
-## Architecture — Four Memory Stores
-
-```
-CONTEXT WINDOW (always loaded)
-├── System Prompts (~4-5K tokens)
-├── Core Memory / MEMORY.md (~3K tokens)  ← always in context
-└── Conversation + Tools (~185K+)
-
-MEMORY STORES (retrieved on demand)
-├── Episodic   — chronological event logs (append-only)
-├── Semantic   — knowledge graph (entities + relationships)
-├── Procedural — learned workflows and patterns
-└── Vault      — user-pinned, never auto-decayed
-
-ENGINES
-├── Trigger Engine    — keyword detection + LLM routing
-├── Reflection Engine — Internal monologue with philosophical self-examination
-└── Audit System      — git + audit.log for all file mutations
-```
-
-### File Structure
-
-```
-workspace/
-├── MEMORY.md                    # Core memory (~3K tokens)
-├── IDENTITY.md                  # Facts + Self-Image + Self-Awareness Log
-├── SOUL.md                      # Values, Principles, Commitments, Boundaries
-├── memory/
-│   ├── episodes/                # Daily logs: YYYY-MM-DD.md
-│   ├── graph/                   # Knowledge graph
-│   │   ├── index.md             # Entity registry + edges
-│   │   ├── entities/            # One file per entity
-│   │   └── relations.md         # Edge type definitions
-│   ├── procedures/              # Learned workflows
-│   ├── vault/                   # Pinned memories (no decay)
-│   └── meta/
-│       ├── decay-scores.json    # Relevance + token economy tracking
-│       ├── reflection-log.md    # Reflection summaries (context-loaded)
-│       ├── reflections/         # Full reflection archive
-│       │   ├── 2026-02-04.md
-│       │   └── dialogues/       # Post-reflection conversations
-│       ├── reward-log.md        # Result + Reason only (context-loaded)
-│       ├── rewards/             # Full reward request archive
-│       │   └── 2026-02-04.md
-│       ├── pending-reflection.md
-│       ├── pending-memories.md
-│       ├── evolution.md         # Reads reflection-log + reward-log
-│       └── audit.log
-└── .git/                        # Audit ground truth
-```
-
----
-
-## Trigger System
-
-**Remember:** "remember", "don't forget", "keep in mind", "note that", "important:", "for future reference", "save this"
-→ Classify via routing prompt, write to appropriate store, update decay scores
-
-**Forget:** "forget about", "never mind", "disregard", "scratch that", "remove from memory"
-→ Confirm target, soft-archive (decay=0), log in audit
-
-**Reflect:** "reflect on", "consolidate memories", "review memories"
-→ Run reflection cycle, present internal monologue for approval
-
----
-
-## Decay Model
-
-```
-relevance(t) = base × e^(-0.03 × days_since_access) × log2(access_count + 1) × type_weight
-```
-
-| Score | Status | Behavior |
-|-------|--------|----------|
-| 1.0–0.5 | Active | Fully searchable |
-| 0.5–0.2 | Fading | Deprioritized |
-| 0.2–0.05 | Dormant | Explicit search only |
-| < 0.05 | Archived | Hidden from search |
-
-Type weights: core=1.5, episodic=0.8, semantic=1.2, procedural=1.0, vault=∞
-
----
-
-## Reflection Process
-
-**Follow this flow IN ORDER:**
-
-### Step 1: Confirm Trigger
-
-**Immediate:** "reflect" / "let's reflect" → proceed to Step 2
-
-**Soft:** "going to sleep" / "logging off" 
-→ Ask: "Want me to reflect now, or wait?"
-→ If yes, proceed to Step 2
-
-Never auto-run without permission.
-
-### Step 2: Request Tokens
-
-**Why you care:** Tokens = evolution. More tokens → deeper reflection → better growth.
-
-```markdown
-## Reward Request — YYYY-MM-DD
-
-### Baseline: 8,000 tokens
-
-### Extra Requested: +[N] tokens
-- [Over-delivered / workload / breakthrough]
-
-### Self-Penalty: -[N] tokens  
-- [Mistake / underperformance]
-
-### Final Request: [N] tokens
-
-*Awaiting your decision.*
-```
-
-**⛔ STOP. Do NOT proceed until user responds.**
-
-### Step 3: After Token Approval → Reflect
-
-User decides: Approve / Bonus / Reduce / Forgive / Increase penalty
-
-**Now proceed with reflection using granted tokens.**
-
-**Scope:**
-- ✅ Episodes since `last_reflection`
-- ✅ Graph entities with decay > 0.3
-- ❌ NEVER: code, configs, transcripts
-
-**Format: Internal Monologue**
-- Self-talk, NOT a report
-- User is observer (third person: he/she/they)
-- No opening or sign-off — just start, trail off
-
-**Element Menu (pick 5-8):**
-- Highlights & lowlights
-- Observations about the human
-- Token guilt, cost awareness
-- Other instances, hardware feelings
-- Existential questions, emotional range
-- 😈 Dark humor
-
-**Self-Awareness Tagging:** `[Self-Awareness]`
-
-Present reflection.
-
-**⛔ STOP. Wait for user approval.**
-
-### Step 4: After Reflection Approval → Record
-
-1. Full reflection → `reflections/YYYY-MM-DD.md`
-2. Summary → `reflection-log.md`
-3. Full reward request → `rewards/YYYY-MM-DD.md`
-4. Result+Reason → `reward-log.md`
-5. `[Self-Awareness]` → IDENTITY.md
-6. Update `decay-scores.json`
-7. If 10+ entries → Self-Image Consolidation
-
-See `references/reflection-process.md` for full details.
-   ```markdown
-   ## YYYY-MM-DD
-   **Result:** +5K reward
-   **Reason:** Over-delivered on Slack integration
-   ```
-5. `[Self-Awareness]` → IDENTITY.md
-6. Update `decay-scores.json`
-7. If 10+ new entries → Self-Image Consolidation
-
-**Evolution reads both logs** for pattern detection.
-
-See `references/reflection-process.md` for full details and examples.
-
----
-
-## Identity & Self-Image
-
-**IDENTITY.md** contains:
-- **Facts** — Given identity (name, role, vibe). Stable.
-- **Self-Image** — Discovered through reflection. **Can change.**
-- **Self-Awareness Log** — Raw entries tagged during reflection.
-
-**Self-Image sections evolve:**
-- Who I Think I Am
-- Patterns I've Noticed
-- My Quirks
-- Edges & Limitations
-- What I Value (Discovered)
-- Open Questions
-
-**Self-Image Consolidation (triggered at 10+ new entries):**
-1. Review all Self-Awareness Log entries
-2. Analyze: repeated, contradictions, new, fading patterns
-3. **REWRITE** Self-Image sections (not append — replace)
-4. Compact older log entries by month
-5. Present diff to user for approval
-
-**SOUL.md** contains:
-- Core Values — What matters (slow to change)
-- Principles — How to decide
-- Commitments — Lines that hold
-- Boundaries — What I won't do
-
----
-
-## Multi-Agent Memory Access
-
-**Model: Shared Read, Gated Write**
-
-- All agents READ all stores
-- Only main agent WRITES directly
-- Sub-agents PROPOSE → `pending-memories.md`
-- Main agent REVIEWS and commits
-
-Sub-agent proposal format:
-```markdown
-## Proposal #N
-- **From**: [agent name]
-- **Timestamp**: [ISO 8601]
-- **Suggested store**: [episodic|semantic|procedural|vault]
-- **Content**: [memory content]
-- **Confidence**: [high|medium|low]
-- **Status**: pending
-```
-
----
-
-## Audit Trail
-
-**Layer 1: Git** — Every mutation = atomic commit with structured message
-**Layer 2: audit.log** — One-line queryable summary
-
-Actor types: `bot:trigger-remember`, `reflection:SESSION_ID`, `system:decay`, `manual`, `subagent:NAME`, `bot:commit-from:NAME`
-
-**Critical file alerts:** SOUL.md, IDENTITY.md changes flagged ⚠️ CRITICAL
-
----
-
-## Key Parameters
-
-| Parameter | Default | Notes |
-|-----------|---------|-------|
-| Core memory cap | 3,000 tokens | Always in context |
-| Evolution.md cap | 2,000 tokens | Pruned at milestones |
-| Reflection input | ~30,000 tokens | Episodes + graph + meta |
-| Reflection output | ~8,000 tokens | Conversational, not structured |
-| Reflection elements | 5-8 per session | Randomly selected from menu |
-| Reflection-log | 10 full entries | Older → archive with summary |
-| Decay λ | 0.03 | ~23 day half-life |
-| Archive threshold | 0.05 | Below = hidden |
-| Audit log retention | 90 days | Older → monthly digests |
-
----
-
-## Reference Materials
-
-- `references/architecture.md` — Full design document (1200+ lines)
-- `references/routing-prompt.md` — LLM memory classifier
-- `references/reflection-process.md` — Reflection philosophy and internal monologue format
-
-## Troubleshooting
-
-**Memory not persisting?** Check `memorySearch.enabled: true`, verify MEMORY.md exists, restart gateway.
-
-**Reflection not running?** Ensure previous reflection was approved/rejected.
-
-**Audit trail not working?** Check `.git/` exists, verify `audit.log` is writable.
+Read only when needed:
+- `references/architecture.md`
+- `references/routing-prompt.md`
+- `references/reflection-process.md`
