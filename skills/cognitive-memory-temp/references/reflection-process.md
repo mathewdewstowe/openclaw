@@ -132,7 +132,7 @@ All phases combined must stay under 8,000 tokens of generated output.
 
 ### NEVER READ
 - ❌ Code files (*.py, *.js, *.ts, *.sh, *.json except decay-scores)
-- ❌ Config files (clawdbot.json, moltbot.json, etc.)
+- ❌ Config files (openclaw.json, openclaw.json, etc.)
 - ❌ Conversation transcripts or session files
 - ❌ SOUL.md, IDENTITY.md, USER.md, TOOLS.md (read-only system files)
 - ❌ Anything outside the memory/ directory (except MEMORY.md)

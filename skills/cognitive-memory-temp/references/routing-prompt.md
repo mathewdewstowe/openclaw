@@ -38,7 +38,7 @@ Return JSON.
 {
   "store": "semantic",
   "entities": [{"name": "OAuth2 PKCE", "type": "concept"}],
-  "relations": [{"from": "project--moltbot", "relation": "uses", "to": "concept--oauth2-pkce"}],
+  "relations": [{"from": "project--cognitive-memory", "relation": "uses", "to": "concept--oauth2-pkce"}],
   "tags": ["auth", "security"],
   "confidence": "high",
   "core_update": false,

@@ -86,7 +86,7 @@ workspace/
 │   │   ├── index.md                   # Graph topology: entities → relationships → entities
 │   │   ├── entities/                  # One file per major entity
 │   │   │   ├── person--alex.md
-│   │   │   ├── project--moltbot-memory.md
+│   │   │   ├── project--cognitive-memory.md
 │   │   │   └── concept--oauth2-pkce.md
 │   │   └── relations.md              # Edge definitions and relationship types
 │   │
@@ -131,7 +131,7 @@ Always loaded into context. Hard-capped at **3,000 tokens**. Divided into four b
 
 ## Active Context
 <!-- ~1,000 tokens — What's happening RIGHT NOW? Current projects, open decisions. -->
-- Currently working on: [Project X — building memory architecture for moltbot]
+- Currently working on: [Project X — building memory architecture for OpenClaw]
 - Open decisions: [Graph structure for semantic store, decay function parameters]
 - Recent important events: [Completed research phase, chose hybrid architecture]
 - Blockers/waiting on: [User approval of reflection proposal]
@@ -214,16 +214,16 @@ The topology file — maps all entities and their connections:
 | ID | Type | Label | File | Decay Score |
 |----|------|-------|------|-------------|
 | person--alex | person | Alex | entities/person--alex.md | 1.00 (pinned) |
-| project--moltbot-memory | project | Moltbot Memory System | entities/project--moltbot-memory.md | 0.95 |
+| project--cognitive-memory | project | Cognitive Memory System | entities/project--cognitive-memory.md | 0.95 |
 | concept--oauth2-pkce | concept | OAuth2 PKCE Flow | entities/concept--oauth2-pkce.md | 0.72 |
 | tool--openclaw | tool | OpenClaw/Moltbot | entities/tool--openclaw.md | 0.98 |
 
 ## Edges
 | From | Relation | To | Confidence | First Seen | Last Accessed |
 |------|----------|----|------------|------------|---------------|
-| person--alex | develops | project--moltbot-memory | high | 2026-01-15 | 2026-02-02 |
-| project--moltbot-memory | uses | tool--openclaw | high | 2026-01-15 | 2026-02-02 |
-| project--moltbot-memory | decided-on | concept--oauth2-pkce | medium | 2026-01-20 | 2026-01-20 |
+| person--alex | develops | project--cognitive-memory | high | 2026-01-15 | 2026-02-02 |
+| project--cognitive-memory | uses | tool--openclaw | high | 2026-01-15 | 2026-02-02 |
+| project--cognitive-memory | decided-on | concept--oauth2-pkce | medium | 2026-01-20 | 2026-01-20 |
 | person--alex | prefers | concept--brainstorm-first | high | 2026-02-02 | 2026-02-02 |
 ```
 
@@ -232,7 +232,7 @@ The topology file — maps all entities and their connections:
 Each entity gets a dedicated file with structured facts:
 
 ```markdown
-# project--moltbot-memory
+# project--cognitive-memory
 
 <!-- Type: project | Created: 2026-01-15 | Last updated: 2026-02-02 -->
 <!-- Decay score: 0.95 | Access count: 14 | Pinned: no -->
@@ -398,7 +398,7 @@ Return as structured output:
 {
   "store": "semantic",
   "entities": [{"name": "OAuth2 PKCE", "type": "concept"}],
-  "relations": [{"from": "project--moltbot", "relation": "uses", "to": "concept--oauth2-pkce"}],
+  "relations": [{"from": "project--cognitive-memory", "relation": "uses", "to": "concept--oauth2-pkce"}],
   "tags": ["auth", "security", "mobile"],
   "confidence": "high",
   "core_update": false,
@@ -596,11 +596,11 @@ The meta-reflection phase enables the agent's understanding to deepen over time 
 ## 🧠 New Knowledge Extracted
 - Learned that Alex prefers hybrid approaches over pure implementations
 - Extracted architectural decision: decay model for forgetting (not hard delete)
-- New entity: concept--sleep-time-compute (connected to project--moltbot-memory)
+- New entity: concept--sleep-time-compute (connected to project--cognitive-memory)
 
 ## 🔗 New Connections
 - person--alex → prefers → concept--brainstorm-first (NEW)
-- project--moltbot-memory → inspired-by → concept--letta-sleep-time (NEW)
+- project--cognitive-memory → inspired-by → concept--letta-sleep-time (NEW)
 
 ## 📦 Proposed Archival (decay score < 0.05)
 - Episode 2025-12-15: discussion about unrelated CSS bug (score: 0.03)
@@ -682,7 +682,7 @@ When a semantic query fires:
 5. **Assemble context**: Combine entity facts + relationship context into a retrieval snippet
 
 Example: "What do you know about the memory project?"
-→ Resolve to `project--moltbot-memory`
+→ Resolve to `project--cognitive-memory`
 → Read entity file (summary, facts, timeline)
 → 1-hop: person--alex (develops), tool--openclaw (built on), concept--letta-sleep-time (inspired by)
 → Return: structured context about the project + its connections
@@ -716,7 +716,7 @@ Every mutation to any system file is tracked. This covers the entire agent works
 | memory/procedures/* | Occasional | Bot, reflection | 🟢 Standard — learned workflows |
 | memory/vault/* | Rare | Human only (pins) | 🟡 High — protected memories |
 | memory/meta/* | Frequent | System, reflection | 🟢 Standard — system metadata |
-| Config (moltbot.json) | Rare | Human only | 🔴 Critical — system configuration |
+| Config (openclaw.json) | Rare | Human only | 🔴 Critical — system configuration |
 
 ### 12.2 Dual-Layer Architecture
 
