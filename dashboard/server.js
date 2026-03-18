@@ -100,6 +100,8 @@ app.post('/api/login', (req, res) => {
 app.get('/api/tasks', auth, (req, res) => res.json(db.prepare('SELECT * FROM tasks ORDER BY createdAt DESC').all()));
 app.post('/api/tasks', auth, (req, res) => {
   const t = { id: 'task-' + Date.now(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), done: 0, priority: 'medium', category: 'general', kanban_column: 'Triage', dueDate: null, notes: null, completedAt: null, goal_id: null, ...req.body };
+  if (t.done === true || t.done === '1') t.done = 1;
+  if (t.done === false || t.done === '0') t.done = 0;
   // Deduplicate: if a task with the same text exists and is not done, skip
   const existing = db.prepare('SELECT id, done FROM tasks WHERE text = ?').get(t.text);
   if (existing && !existing.done) {
@@ -115,11 +117,15 @@ app.patch('/api/tasks/:id', auth, (req, res) => {
   if (!task) return res.status(404).json({ error: 'Not found' });
   const updated = { ...task, ...req.body, updatedAt: new Date().toISOString() };
   // Track when a task was completed
-  if (req.body.done === 1 && !task.done) {
+  const doneVal = req.body.done;
+  const isDone = doneVal === 1 || doneVal === true || doneVal === '1';
+  const isUndone = doneVal === 0 || doneVal === false || doneVal === '0';
+  if (isDone && !task.done) {
     updated.completedAt = new Date().toISOString();
-  } else if (req.body.done === 0 && task.done) {
+  } else if (isUndone && task.done) {
     updated.completedAt = null;
   }
+  if (doneVal !== undefined) updated.done = isDone ? 1 : 0;
   db.prepare('INSERT OR REPLACE INTO tasks (id, text, done, priority, category, kanban_column, dueDate, notes, createdAt, updatedAt, completedAt, goal_id) VALUES (@id, @text, @done, @priority, @category, @kanban_column, @dueDate, @notes, @createdAt, @updatedAt, @completedAt, @goal_id)').run(updated);
   afterWrite('tasks');
   res.json(updated);

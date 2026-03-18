@@ -1223,9 +1223,9 @@ function renderKanbanView(tasks) {
       // Optimistic update
       const task = allTasks.find(t => t.id === taskId);
       if (col === 'Done') {
-        if (task) { task.done = 1; task.kanban_column = 'Completed'; }
+        if (task) { task.done = 1; task.kanban_column = 'Done'; }
         renderKanbanView(allTasks);
-        await api('PATCH', '/api/tasks/' + taskId, { kanban_column: 'Completed', done: 1 });
+        await api('PATCH', '/api/tasks/' + taskId, { kanban_column: 'Done', done: 1 });
       } else {
         if (task) { task.kanban_column = col; task.done = 0; }
         renderKanbanView(allTasks);
@@ -1271,10 +1271,10 @@ async function moveTaskKanban(id, col) {
 
 async function toggleTask(id, completed) {
   const patch = { done: completed ? 1 : 0 };
-  if (completed) patch.kanban_column = 'Completed';
+  if (completed) patch.kanban_column = 'Done';
   // Immediately update local state for instant feedback
   const task = allTasks.find(t => t.id === id);
-  if (task) { task.done = completed ? 1 : 0; if (completed) task.kanban_column = 'Completed'; }
+  if (task) { task.done = completed ? 1 : 0; if (completed) task.kanban_column = 'Done'; }
   renderTasks(allTasks);
   await api('PATCH', `/api/tasks/${id}`, patch);
   loadTasks();
