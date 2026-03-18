@@ -20,11 +20,11 @@ Run: `ss -tlnp | grep 3737`
 
 On every heartbeat, check if the cloudflared tunnel is connected:
 
-Run: `cloudflared tunnel info 82ebc6e5-eeae-4532-8331-325d82345028 2>&1 | grep -i connector`
+Run: `bash /home/matthewdewstowe/.openclaw/workspace/scripts/service-healthcheck.sh cloudflared`
 
 **If no CONNECTOR line appears (tunnel not running):**
-1. Diagnose why: run `cat /tmp/cloudflared.log 2>/dev/null | tail -20 || echo "No log found"`
-2. Restart: `nohup cloudflared tunnel run matthew-dashboard > /tmp/cloudflared.log 2>&1 &`
+1. Diagnose why: run `journalctl --user -u matthew-dashboard.service -n 30 --no-pager 2>/dev/null || echo "No log found"`
+2. Restart: `systemctl --user restart matthew-dashboard.service`
 3. Wait 4 seconds, confirm connector appears: `cloudflared tunnel info 82ebc6e5-eeae-4532-8331-325d82345028 2>&1 | grep -i connector`
 4. Alert Matthew in Slack: "⚠️ Cloudflare tunnel was down — restarted. Cause: [reason from logs]"
 5. Log the restart + cause in today's memory file
@@ -63,16 +63,22 @@ Matthew uses #claw_neuro as his personal accountability channel (ADHD + Autism s
 
 ## 4. Session Bloat Monitor
 
-On every heartbeat, check for bloated session files:
+On every heartbeat, check for unusually large session files:
 
 Run: `du -k ~/.openclaw/agents/main/sessions/*.jsonl 2>/dev/null | sort -rn | head -5`
 
-**If any unlocked session exceeds 300KB:**
-- Alert Matthew in this channel: "⚠️ Session bloat detected: [filename] is [size]KB. I'll prune it now."
+**If any unlocked session exceeds 700KB:**
+- Alert Matthew in this channel: "⚠️ Large session detected: [filename] is [size]KB. I will only archive stale sessions — not touch active or recent ones."
 - Run: `bash /home/matthewdewstowe/.openclaw/workspace/scripts/prune-sessions.sh`
 - Log the event in today's memory file
 
-**If all sessions are under 300KB:** no action needed.
+**Important safety rule:**
+- Never delete a session just because it is large.
+- The pruner is archive-only.
+- Only archive sessions that are BOTH stale (72h+) and very large (>1MB).
+- Always preserve locked sessions and the most recent 25 sessions.
+
+**If all sessions are under 700KB:** no action needed.
 
 ---
 
