@@ -1184,10 +1184,10 @@ function renderKanbanView(tasks) {
       const catColor = task.category === 'Blocked' ? '#f85149' : task.category === 'Pending You' ? '#e3b341' : '#58a6ff';
       const doneAction = col === 'Done'
         ? '<span style="margin-left:auto;font-size:11px;color:#3fb950;font-weight:700;">✓ Completed</span>'
-        : '<button class="btn-sm" style="margin-left:auto;font-size:12px;padding:4px 10px;background:#23863644;color:#aff5b4;border:1px solid #238636;border-radius:4px;cursor:pointer;" onclick="toggleTaskKanban(\'' + task.id + '\',true,\'' + col + '\')">✅ Done</button>';
+        : '<button class="btn-sm" title="Mark task complete" style="margin-left:auto;font-size:12px;padding:4px 10px;background:#23863644;color:#aff5b4;border:1px solid #238636;border-radius:4px;cursor:pointer;" onclick="toggleTaskKanban(\'' + task.id + '\',true,\'' + col + '\')">Mark complete</button>';
       const leadIcon = col === 'Done'
         ? '<span style="margin-top:1px;color:#3fb950;flex-shrink:0;font-size:14px;">☑</span>'
-        : '<button onclick="event.stopPropagation();toggleTaskKanban(\'' + task.id + '\',true,\'' + col + '\')" style="margin-top:1px;background:none;border:none;color:#8b949e;cursor:pointer;flex-shrink:0;font-size:14px;padding:0;">☐</button>';
+        : '<button title="Mark task complete" onclick="event.stopPropagation();toggleTaskKanban(\'' + task.id + '\',true,\'' + col + '\')" style="margin-top:1px;background:none;border:none;color:#8b949e;cursor:pointer;flex-shrink:0;font-size:14px;padding:0;">☐</button>';
       card.innerHTML =
         '<div style="display:flex;align-items:flex-start;gap:8px;">' +
           leadIcon +
