@@ -12,6 +12,12 @@
 ### Apollo
 - Key: `V5ZsfKQ0dsCMCBum2wKEdA`
 
+### RescueTime
+- Key: `B6384SrpleyLx3tj1O6yFJ3e13F4w5DYI4EYxO3t`
+- API: `https://www.rescuetime.com/anapi/data`
+- Docs: https://www.rescuetime.com/apidoc
+- Use for: actual screen time tracking (replaces session-file scan)
+
 ### Readwise
 - Key: `mbQiKrmFxjmrymFwir29u050WFYF2EMhsvsJaFq1rjtRAFLmwl`
 
@@ -40,6 +46,12 @@ Things like:
 ### SSH
 
 - home-server → 192.168.1.100, user: admin
+
+### Browsering / Web Automation
+
+- Default method: launch/use Chrome with remote debugging on port `9222`
+- Preferred pattern: Windows Chrome via PowerShell with a separate `--user-data-dir`
+- Fallback only when needed: OpenClaw browser tool or other browser-specific flows
 
 ### TTS
 
