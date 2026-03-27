@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const helmet = require('helmet');
@@ -25,6 +26,7 @@ const BIND = process.env.BIND || '127.0.0.1';
 const JWT_SECRET = 'md-dashboard-secret-2026-sonesse';
 
 app.use(helmet({ contentSecurityPolicy: false }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use('/missioncontrol', express.static(path.join(__dirname, 'public')));
 app.get('/missioncontrol', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
@@ -253,6 +255,14 @@ app.get('/api/memory', auth, (req, res) => {
     }
     res.json({ content });
   } catch (e) { res.json({ content: 'No memory files found yet.' }); }
+});
+
+// MEMORY LOG (Chrome extension capture)
+app.post('/api/memory-log', auth, (req, res) => {
+  const { key, value } = req.body;
+  if (!key || !value) return res.status(400).json({ error: 'key and value required' });
+  db.prepare('INSERT INTO memory_log (key, value, createdAt) VALUES (?, ?, ?)').run(key, value, new Date().toISOString());
+  res.json({ ok: true });
 });
 
 // CONNECTED SYSTEMS

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head><title>OpenClaw Icon Generator</title></head>
+<body>
+<p>Right-click each canvas and "Save image as" to create the icon PNGs.</p>
+<canvas id="c16" width="16" height="16"></canvas>
+<canvas id="c48" width="48" height="48"></canvas>
+<canvas id="c128" width="128" height="128"></canvas>
+<script>
+function drawIcon(canvas) {
+  const s = canvas.width;
+  const ctx = canvas.getContext('2d');
+  // Background circle
+  ctx.beginPath();
+  ctx.arc(s/2, s/2, s/2, 0, Math.PI * 2);
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fill();
+  // Claw mark (3 diagonal slashes)
+  ctx.strokeStyle = '#00d4ff';
+  ctx.lineCap = 'round';
+  ctx.lineWidth = Math.max(1, s * 0.08);
+  const lines = [
+    [0.3, 0.2, 0.25, 0.75],
+    [0.5, 0.15, 0.5, 0.8],
+    [0.7, 0.2, 0.75, 0.75]
+  ];
+  for (const [x1, y1, x2, y2] of lines) {
+    ctx.beginPath();
+    ctx.moveTo(x1*s, y1*s);
+    ctx.lineTo(x2*s, y2*s);
+    ctx.stroke();
+  }
+}
+['c16','c48','c128'].forEach(id => drawIcon(document.getElementById(id)));
+</script>
+</body>
+</html>
