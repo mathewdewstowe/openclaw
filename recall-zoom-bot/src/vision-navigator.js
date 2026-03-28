@@ -61,10 +61,21 @@ class VisionNavigator {
         throw new Error(`Vision navigator: ${action.message || "Unknown error on screen"}`);
       }
 
+      // Normalize coordinates — Claude may return {x, y}, {coordinate: [x,y]}, or {coordinates: [x,y]}
+      const coords = this.extractCoords(action);
+      if (coords) {
+        action.x = coords.x;
+        action.y = coords.y;
+      }
+
       if (action.type === "click") {
-        await this.clickAt(page, action.x, action.y, action.description);
+        if (!action.x || !action.y) {
+          console.log(`${logPrefix} Click action missing coordinates, skipping`);
+        } else {
+          await this.clickAt(page, action.x, action.y, action.description);
+        }
       } else if (action.type === "type") {
-        if (action.clearFirst) {
+        if (action.clearFirst && action.x && action.y) {
           await this.clickAt(page, action.x, action.y, `focus ${action.field}`);
           await page.keyboard.down("Control");
           await page.keyboard.press("a");
@@ -86,6 +97,14 @@ class VisionNavigator {
     }
 
     throw new Error("Vision navigator: exceeded max steps without joining");
+  }
+
+  extractCoords(action) {
+    if (action.x != null && action.y != null) return { x: action.x, y: action.y };
+    if (Array.isArray(action.coordinate)) return { x: action.coordinate[0], y: action.coordinate[1] };
+    if (Array.isArray(action.coordinates)) return { x: action.coordinates[0], y: action.coordinates[1] };
+    if (action.position && Array.isArray(action.position)) return { x: action.position[0], y: action.position[1] };
+    return null;
   }
 
   async clickAt(page, x, y, description) {
