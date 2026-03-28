@@ -1,16 +1,18 @@
 {
-  "name": "recall-zoom-bot",
+  "name": "zoom-bot",
   "version": "1.0.0",
-  "description": "Recall.ai Zoom bot integration - API server for creating and managing AI meeting bots",
+  "description": "Self-hosted Zoom meeting bot - headless browser with virtual devices for AI agent audio/video",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "dev": "node --watch src/server.js",
+    "setup": "bash setup.sh"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "puppeteer-core": "^24.0.0",
     "ws": "^8.18.0"
   }
 }

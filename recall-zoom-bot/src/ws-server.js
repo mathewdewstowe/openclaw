@@ -1,19 +1,31 @@
 const { WebSocketServer } = require("ws");
 
 /**
- * WebSocket server that receives real-time audio/events from Recall.ai bots.
+ * WebSocket server for bidirectional audio streaming.
  *
- * Configure this URL as a realtime_endpoint when creating a bot:
- *   "realtime_endpoints": [{
- *     "type": "websocket",
- *     "config": { "url": "wss://your-server.com/ws" },
- *     "events": ["audio_mixed_raw.data", "transcript.data"]
- *   }]
+ * Clients connect to receive meeting audio (PCM) and send AI-generated
+ * audio back into the meeting via PulseAudio virtual devices.
  *
- * Audio format: mono 16-bit signed little-endian PCM at 16kHz
+ * Protocol:
+ *   Binary messages = raw audio (S16LE PCM, 16kHz, mono)
+ *   Text messages   = JSON control events
+ *
+ * Inbound events (from AI client):
+ *   { "type": "audio",  "bot_id": "..." }  → followed by binary audio chunks
+ *   { "type": "subscribe", "bot_id": "...", "events": ["audio", "transcript"] }
+ *
+ * Outbound events (to AI client):
+ *   { "type": "transcript", "speaker": "...", "text": "..." }
+ *   { "type": "participant_joined", "name": "..." }
+ *   { "type": "participant_left",   "name": "..." }
+ *   { "type": "bot_status", "status": "..." }
+ *   Binary = meeting audio chunks (S16LE PCM, 16kHz, mono)
  */
 function createWebSocketServer(port) {
   const wss = new WebSocketServer({ port });
+
+  // Track subscriptions: botId -> Set<WebSocket>
+  const subscriptions = new Map();
 
   wss.on("listening", () => {
     console.log(`WebSocket server listening on ws://localhost:${port}`);
@@ -21,25 +33,37 @@ function createWebSocketServer(port) {
 
   wss.on("connection", (ws, req) => {
     const clientIp = req.socket.remoteAddress;
-    console.log(`WS connection from ${clientIp}`);
+    console.log(`WS client connected from ${clientIp}`);
+
+    let subscribedBotId = null;
 
     ws.on("message", (data, isBinary) => {
       if (isBinary) {
-        // Binary = raw audio data (S16LE PCM, 16kHz, mono)
-        handleAudioChunk(data);
+        // Binary = audio from AI to inject into meeting
+        // TODO: Write to PulseAudio virtual_mic sink via ffmpeg or pacat
+        handleInboundAudio(subscribedBotId, data);
       } else {
-        // Text = JSON event (transcript, participant events, etc.)
         try {
-          const event = JSON.parse(data.toString());
-          handleEvent(event);
+          const msg = JSON.parse(data.toString());
+          handleControlMessage(ws, msg);
+          if (msg.type === "subscribe" && msg.bot_id) {
+            subscribedBotId = msg.bot_id;
+            if (!subscriptions.has(msg.bot_id)) {
+              subscriptions.set(msg.bot_id, new Set());
+            }
+            subscriptions.get(msg.bot_id).add(ws);
+          }
         } catch {
-          console.warn("Non-JSON text message received");
+          console.warn("Invalid JSON message from WS client");
         }
       }
     });
 
     ws.on("close", () => {
-      console.log(`WS connection closed from ${clientIp}`);
+      console.log(`WS client disconnected from ${clientIp}`);
+      if (subscribedBotId && subscriptions.has(subscribedBotId)) {
+        subscriptions.get(subscribedBotId).delete(ws);
+      }
     });
 
     ws.on("error", (err) => {
@@ -47,40 +71,61 @@ function createWebSocketServer(port) {
     });
   });
 
-  return wss;
+  /**
+   * Broadcast meeting audio to all subscribers of a bot.
+   * Call this from the bot engine when audio chunks arrive.
+   */
+  function broadcastAudio(botId, pcmBuffer) {
+    const subs = subscriptions.get(botId);
+    if (!subs) return;
+    for (const ws of subs) {
+      if (ws.readyState === ws.OPEN) {
+        ws.send(pcmBuffer);
+      }
+    }
+  }
+
+  /**
+   * Broadcast a JSON event to all subscribers of a bot.
+   */
+  function broadcastEvent(botId, event) {
+    const subs = subscriptions.get(botId);
+    if (!subs) return;
+    const msg = JSON.stringify(event);
+    for (const ws of subs) {
+      if (ws.readyState === ws.OPEN) {
+        ws.send(msg);
+      }
+    }
+  }
+
+  return { wss, broadcastAudio, broadcastEvent };
 }
 
-function handleAudioChunk(buffer) {
-  // buffer is raw S16LE PCM audio at 16kHz mono
-  // Each sample = 2 bytes, so buffer.length / 2 = number of samples
-  const samples = buffer.length / 2;
-  const durationMs = (samples / 16000) * 1000;
-
-  // TODO: Pipe this to your AI model (e.g., OpenAI Realtime API, Deepgram, etc.)
-  // For now, just log the chunk size
+function handleInboundAudio(botId, buffer) {
+  // PCM audio from AI → needs to be piped into PulseAudio virtual_mic
+  // In production, use: pacat --playback --device=virtual_mic --format=s16le --rate=16000 --channels=1
+  // For now, log stats
   if (Math.random() < 0.01) {
-    // Log ~1% of chunks to avoid flooding
-    console.log(`Audio chunk: ${buffer.length} bytes (${durationMs.toFixed(0)}ms)`);
+    const samples = buffer.length / 2;
+    const durationMs = (samples / 16000) * 1000;
+    console.log(`[Audio IN] bot=${botId} ${buffer.length}B (${durationMs.toFixed(0)}ms)`);
   }
 }
 
-function handleEvent(event) {
-  // Handle different real-time event types from Recall.ai
-  switch (event.type) {
-    case "transcript.data":
-      console.log(`[Transcript] ${event.data?.speaker || "Unknown"}: ${event.data?.text || ""}`);
+function handleControlMessage(ws, msg) {
+  switch (msg.type) {
+    case "subscribe":
+      console.log(`[WS] Client subscribed to bot ${msg.bot_id}`);
+      ws.send(JSON.stringify({ type: "subscribed", bot_id: msg.bot_id }));
       break;
 
-    case "participant_events.join":
-      console.log(`[Participant] Joined: ${event.data?.name || "Unknown"}`);
-      break;
-
-    case "participant_events.leave":
-      console.log(`[Participant] Left: ${event.data?.name || "Unknown"}`);
+    case "ping":
+      ws.send(JSON.stringify({ type: "pong" }));
       break;
 
     default:
-      console.log(`[Event] ${event.type}:`, JSON.stringify(event.data || {}).slice(0, 200));
+      console.log(`[WS] Unknown message type: ${msg.type}`);
   }
 }
 
