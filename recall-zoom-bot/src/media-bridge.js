@@ -53,10 +53,37 @@ class MediaBridge extends EventEmitter {
 
     console.log(`[MediaBridge] Loading Tavus conversation: ${conversationUrl}`);
 
+    // Log console output from the Daily page for debugging
+    this.tavusPage.on("console", (msg) => {
+      console.log(`[MediaBridge/Daily] ${msg.text()}`);
+    });
+    this.tavusPage.on("pageerror", (err) => {
+      console.error(`[MediaBridge/Daily] Page error: ${err.message}`);
+    });
+
     // Wait for the Daily call to connect and the replica to join
+    // First wait for the Daily SDK to load and join the room
+    try {
+      await this.tavusPage.waitForFunction(
+        () => window.__dailyJoined === true,
+        { timeout: 30000 }
+      );
+      console.log("[MediaBridge] Daily room joined, waiting for replica...");
+    } catch {
+      console.warn("[MediaBridge] Daily join timeout — checking page state...");
+      const state = await this.tavusPage.evaluate(() => ({
+        dailyLoaded: typeof window.Daily !== "undefined",
+        dailyJoined: window.__dailyJoined,
+        replicaReady: window.__replicaReady,
+        errors: window.__dailyErrors || [],
+      }));
+      console.log(`[MediaBridge] Page state: ${JSON.stringify(state)}`);
+    }
+
+    // Wait for replica tracks (up to 90 seconds total — Tavus can be slow to start)
     await this.tavusPage.waitForFunction(
       () => window.__replicaReady === true,
-      { timeout: 60000 }
+      { timeout: 90000 }
     );
 
     this.status = "connected";
@@ -88,18 +115,32 @@ class MediaBridge extends EventEmitter {
   <video id="replicaVideo" autoplay playsinline></video>
   <script>
     window.__replicaReady = false;
+    window.__dailyJoined = false;
+    window.__dailyErrors = [];
 
     const call = window.Daily.createCallObject({
       videoSource: false,  // We don't send video from this tab
       audioSource: true,   // Send mic audio (meeting audio via PulseAudio)
     });
 
+    call.on("joined-meeting", () => {
+      console.log("[Daily] Successfully joined meeting");
+      window.__dailyJoined = true;
+    });
+
     call.on("participant-joined", (event) => {
-      console.log("[Daily] participant-joined:", event.participant.user_name);
+      console.log("[Daily] participant-joined:", event.participant.user_name || event.participant.session_id);
+    });
+
+    call.on("participant-updated", (event) => {
+      if (!event.participant.local) {
+        console.log("[Daily] participant-updated:", event.participant.user_name || event.participant.session_id, "tracks:", JSON.stringify(event.participant.tracks));
+      }
     });
 
     call.on("track-started", (event) => {
       const { participant, track } = event;
+      console.log("[Daily] track-started:", track.kind, "from", participant.local ? "local" : (participant.user_name || participant.session_id));
       if (participant.local) return; // Skip our own tracks
 
       // The first remote participant is the Tavus replica
@@ -123,6 +164,7 @@ class MediaBridge extends EventEmitter {
 
     call.on("error", (err) => {
       console.error("[Daily] Error:", err);
+      window.__dailyErrors.push(String(err));
     });
 
     call.on("left-meeting", () => {
@@ -130,9 +172,13 @@ class MediaBridge extends EventEmitter {
     });
 
     // Join the Tavus conversation room
+    console.log("[Daily] Attempting to join:", "${conversationUrl}");
     call.join({ url: "${conversationUrl}" })
-      .then(() => console.log("[Daily] Joined room"))
-      .catch((err) => console.error("[Daily] Join failed:", err));
+      .then(() => console.log("[Daily] Join promise resolved"))
+      .catch((err) => {
+        console.error("[Daily] Join failed:", err);
+        window.__dailyErrors.push("join-failed: " + String(err));
+      });
   </script>
 </body>
 </html>`;
