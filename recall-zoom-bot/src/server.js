@@ -4,12 +4,9 @@ const cors = require("cors");
 const { ZoomBot } = require("./bot-engine");
 const { TavusClient } = require("./tavus-client");
 
-const path = require("path");
-
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "../public")));
 
 const bots = new Map();
 const tavus = process.env.TAVUS_API_KEY ? new TavusClient(process.env.TAVUS_API_KEY) : null;
