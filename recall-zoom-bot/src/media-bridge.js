@@ -2,124 +2,194 @@ const { spawn } = require("child_process");
 const { EventEmitter } = require("events");
 
 /**
- * MediaBridge — connects Tavus avatar output to Zoom bot input.
+ * MediaBridge — connects a Tavus avatar to the Zoom meeting.
  *
- * Architecture:
- *   1. A second Chromium tab loads the Tavus conversation_url
- *   2. Tavus avatar video/audio streams via WebRTC in that tab
- *   3. Meeting audio (from Zoom tab) → piped to Tavus tab as mic input via PulseAudio
- *   4. Tavus avatar audio → piped to Zoom's virtual mic via PulseAudio
- *   5. Tavus avatar video → captured and piped to v4l2loopback virtual camera via ffmpeg
+ * How it works:
+ *   1. Opens a second Chromium tab with the Tavus conversation_url (a Daily room)
+ *   2. The Daily WebRTC session connects — the Tavus replica joins as a participant
+ *   3. PulseAudio routes audio bidirectionally:
+ *      - Zoom tab output → virtual_speaker sink → Tavus tab mic input (via monitor)
+ *      - Tavus tab output → virtual_mic sink → Zoom tab mic input (via source)
+ *   4. ffmpeg captures the Tavus video from Xvfb and pipes it to v4l2loopback
+ *      virtual camera, which Zoom uses as the bot's camera feed
  *
- * PulseAudio routing:
- *   Zoom tab audio output → virtual_speaker sink (captured as meeting audio)
- *   Tavus tab reads from virtual_speaker.monitor (hears meeting audio)
- *   Tavus tab audio output → virtual_mic sink
- *   Zoom tab reads from virtual_mic_source (hears Tavus response)
- *
- * This means both tabs run in the same Chromium with PulseAudio handling the routing.
+ * Both tabs run in the same Chromium / PulseAudio session. The routing is:
+ *   Meeting participants speak → Zoom renders audio → virtual_speaker
+ *   virtual_speaker.monitor → Tavus tab hears it → replica processes + responds
+ *   Replica audio → virtual_mic → Zoom tab mic → meeting hears avatar
+ *   Replica video → Xvfb display → ffmpeg → /dev/video10 → Zoom tab camera
  */
 class MediaBridge extends EventEmitter {
   constructor() {
     super();
     this.tavusPage = null;
+    this.conversationUrl = null;
     this.ffmpegProcess = null;
     this.status = "idle";
   }
 
   /**
-   * Open the Tavus conversation URL in a new tab within the bot's browser.
+   * Connect to a Tavus conversation.
    *
    * @param {import('puppeteer-core').Browser} browser - The bot's Chromium instance
-   * @param {string} conversationUrl - Tavus conversation URL
+   * @param {string} conversationUrl - Tavus conversation URL (Daily room)
    */
   async connect(browser, conversationUrl) {
     this.status = "connecting";
+    this.conversationUrl = conversationUrl;
 
     this.tavusPage = await browser.newPage();
     await this.tavusPage.setViewport({ width: 1280, height: 720 });
 
-    // Grant camera/mic permissions for Tavus WebRTC
+    // Grant camera/mic permissions for the Daily room domain
     const context = browser.defaultBrowserContext();
-    await context.overridePermissions(new URL(conversationUrl).origin, [
-      "camera",
-      "microphone",
-    ]);
+    const origin = new URL(conversationUrl).origin;
+    await context.overridePermissions(origin, ["camera", "microphone"]);
+
+    // Load a minimal page that uses Daily prebuilt to join the room.
+    // This gives us the replica's video and audio via WebRTC.
+    const dailyEmbed = this.buildDailyPage(conversationUrl);
+    await this.tavusPage.setContent(dailyEmbed, { waitUntil: "networkidle0" });
 
     console.log(`[MediaBridge] Loading Tavus conversation: ${conversationUrl}`);
-    await this.tavusPage.goto(conversationUrl, {
-      waitUntil: "networkidle2",
-      timeout: 30000,
-    });
 
-    // Wait for Tavus to initialize — look for the video element
+    // Wait for the Daily call to connect and the replica to join
     await this.tavusPage.waitForFunction(
-      () => {
-        const videos = document.querySelectorAll("video");
-        return Array.from(videos).some((v) => v.readyState >= 2);
-      },
-      { timeout: 30000 }
+      () => window.__replicaReady === true,
+      { timeout: 60000 }
     );
 
     this.status = "connected";
     this.emit("connected");
-    console.log("[MediaBridge] Tavus avatar connected");
+    console.log("[MediaBridge] Tavus replica connected and streaming");
 
-    // Set up audio routing via PulseAudio
+    // Configure PulseAudio routing between Zoom and Tavus tabs
     await this.routeAudio();
+  }
+
+  /**
+   * Build a minimal HTML page that joins the Daily room.
+   * When the replica's video/audio tracks arrive, they play full-screen.
+   * The page also captures mic audio (from PulseAudio virtual_speaker.monitor)
+   * so the replica hears the meeting participants.
+   */
+  buildDailyPage(conversationUrl) {
+    return `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * { margin: 0; padding: 0; }
+    body { background: #000; overflow: hidden; }
+    video { width: 1280px; height: 720px; object-fit: cover; }
+  </style>
+  <script src="https://unpkg.com/@daily-co/daily-js"></script>
+</head>
+<body>
+  <video id="replicaVideo" autoplay playsinline></video>
+  <script>
+    window.__replicaReady = false;
+
+    const call = window.Daily.createCallObject({
+      videoSource: false,  // We don't send video from this tab
+      audioSource: true,   // Send mic audio (meeting audio via PulseAudio)
+    });
+
+    call.on("participant-joined", (event) => {
+      console.log("[Daily] participant-joined:", event.participant.user_name);
+    });
+
+    call.on("track-started", (event) => {
+      const { participant, track } = event;
+      if (participant.local) return; // Skip our own tracks
+
+      // The first remote participant is the Tavus replica
+      if (track.kind === "video") {
+        const video = document.getElementById("replicaVideo");
+        video.srcObject = new MediaStream([track]);
+        video.play().catch(() => {});
+        console.log("[Daily] Replica video track started");
+      }
+
+      if (track.kind === "audio") {
+        // Play replica audio through this tab's audio output
+        // PulseAudio routes this to virtual_mic → Zoom hears it
+        const audio = new Audio();
+        audio.srcObject = new MediaStream([track]);
+        audio.play().catch(() => {});
+        console.log("[Daily] Replica audio track started");
+        window.__replicaReady = true;
+      }
+    });
+
+    call.on("error", (err) => {
+      console.error("[Daily] Error:", err);
+    });
+
+    call.on("left-meeting", () => {
+      console.log("[Daily] Left meeting");
+    });
+
+    // Join the Tavus conversation room
+    call.join({ url: "${conversationUrl}" })
+      .then(() => console.log("[Daily] Joined room"))
+      .catch((err) => console.error("[Daily] Join failed:", err));
+  </script>
+</body>
+</html>`;
   }
 
   /**
    * Configure PulseAudio to route audio between Zoom and Tavus tabs.
    *
-   * Zoom tab (sink-input) → virtual_speaker (default sink)
-   *   Meeting participants' audio goes here.
+   * The key routing:
+   *   Zoom tab audio output → virtual_speaker (default sink)
+   *     → virtual_speaker.monitor is the "mic" for Tavus tab
+   *   Tavus tab audio output → virtual_mic
+   *     → virtual_mic_source feeds Zoom tab's mic
    *
-   * Tavus tab needs to hear that meeting audio, so we set Tavus tab's
-   * audio source (getUserMedia) to read from virtual_speaker.monitor.
-   *
-   * Tavus tab's audio output (avatar speaking) → virtual_mic sink
-   *   Zoom tab's mic source reads from virtual_mic_source.
-   *
-   * Since both tabs are in the same Chromium/PulseAudio session,
-   * we use pactl to move sink-inputs to the right sinks.
+   * We use pactl to move specific sink-inputs to the correct sinks.
    */
   async routeAudio() {
-    // Give Chromium a moment to register its PulseAudio streams
     await new Promise((r) => setTimeout(r, 2000));
 
     try {
-      // List all sink-inputs (audio output streams from Chromium tabs)
+      // List sink-inputs to identify which belongs to which tab
       const sinkInputs = await this.exec("pactl list sink-inputs short");
-      console.log("[MediaBridge] PulseAudio sink-inputs:", sinkInputs);
+      const lines = sinkInputs.split("\n").filter(Boolean);
 
-      // Move Tavus tab's audio output to virtual_mic (so Zoom hears the avatar)
-      // In practice, you'd identify the Tavus tab's sink-input by PID or index
-      // For now, route ALL Chromium audio to virtual_speaker (meeting capture)
-      // and then selectively move the Tavus output to virtual_mic
-      //
-      // This will need tuning based on the actual PulseAudio stream indices
-      // when running on the VM.
+      console.log(`[MediaBridge] Found ${lines.length} PulseAudio sink-inputs`);
 
-      console.log("[MediaBridge] Audio routing configured (needs VM tuning)");
+      // Each Chromium tab creates a sink-input. The newer one is the Tavus tab.
+      // Move the Tavus tab's output to virtual_mic so Zoom hears the avatar.
+      if (lines.length >= 2) {
+        // Last entry is the most recently created (Tavus tab)
+        const tavusInput = lines[lines.length - 1].split("\t")[0];
+        await this.exec(`pactl move-sink-input ${tavusInput} virtual_mic`);
+        console.log(`[MediaBridge] Moved Tavus audio output (input #${tavusInput}) → virtual_mic`);
+      }
+
+      // The Tavus tab's audio source (getUserMedia) automatically picks up
+      // the default source (virtual_mic_source → virtual_speaker.monitor)
+      // if PulseAudio is configured correctly by setup.sh.
+
+      console.log("[MediaBridge] Audio routing configured");
     } catch (err) {
-      console.warn("[MediaBridge] Audio routing setup:", err.message);
+      console.warn("[MediaBridge] Audio routing warning:", err.message);
+      console.warn("[MediaBridge] Manual PulseAudio routing may be needed on the VM");
     }
   }
 
   /**
-   * Start capturing the Tavus avatar video and piping it to the virtual camera.
-   * Uses ffmpeg to read from Xvfb (the Tavus tab region) and write to v4l2loopback.
-   *
-   * @param {string} display - X display (e.g., ":99")
-   * @param {object} region - { x, y, width, height } of the Tavus video element
+   * Capture the Tavus avatar video from Xvfb and pipe to v4l2loopback.
+   * The Tavus tab renders the replica's video full-screen at 1280x720.
+   * ffmpeg grabs that region of the Xvfb display and writes to /dev/video10.
    */
   startVideoCapture(display = ":99", region = { x: 0, y: 0, width: 1280, height: 720 }) {
     const videoDevice = process.env.VIDEO_DEVICE || "/dev/video10";
 
     this.ffmpegProcess = spawn("ffmpeg", [
       "-f", "x11grab",
-      "-framerate", "30",
+      "-framerate", "25",
       "-video_size", `${region.width}x${region.height}`,
       "-i", `${display}+${region.x},${region.y}`,
       "-vf", "format=yuv420p",
@@ -135,14 +205,41 @@ class MediaBridge extends EventEmitter {
     });
 
     this.ffmpegProcess.on("exit", (code) => {
-      console.log(`[MediaBridge] ffmpeg exited with code ${code}`);
+      console.log(`[MediaBridge] ffmpeg exited (code ${code})`);
       this.ffmpegProcess = null;
     });
 
-    console.log(`[MediaBridge] Video capture started → ${videoDevice}`);
+    console.log(`[MediaBridge] Video capture: Xvfb ${display} → ${videoDevice}`);
   }
 
-  /** Get a screenshot of the Tavus tab (for debugging) */
+  /**
+   * Send a text message to the Tavus replica via Daily's echo interaction.
+   * The replica will speak this text verbatim.
+   * Only works if the persona's pipeline_mode is "echo".
+   */
+  async sendEcho(conversationId, text) {
+    if (!this.tavusPage) return;
+    await this.tavusPage.evaluate(
+      (convId, msg) => {
+        const call = window.Daily?.callObject?.();
+        if (call) {
+          call.sendAppMessage(
+            {
+              message_type: "conversation",
+              event_type: "conversation.echo",
+              conversation_id: convId,
+              properties: { text: msg },
+            },
+            "*"
+          );
+        }
+      },
+      conversationId,
+      text
+    );
+  }
+
+  /** Screenshot of the Tavus tab (for debugging) */
   async screenshot() {
     if (!this.tavusPage) return null;
     return this.tavusPage.screenshot({ encoding: "base64" });
@@ -156,6 +253,14 @@ class MediaBridge extends EventEmitter {
     }
 
     if (this.tavusPage) {
+      // Leave the Daily room cleanly
+      await this.tavusPage.evaluate(() => {
+        if (window.Daily) {
+          const call = window.Daily.callObject?.();
+          if (call) call.leave();
+        }
+      }).catch(() => {});
+
       await this.tavusPage.close().catch(() => {});
       this.tavusPage = null;
     }
@@ -171,7 +276,9 @@ class MediaBridge extends EventEmitter {
       let out = "";
       proc.stdout.on("data", (d) => (out += d.toString()));
       proc.stderr.on("data", (d) => (out += d.toString()));
-      proc.on("close", (code) => (code === 0 ? resolve(out.trim()) : reject(new Error(out.trim()))));
+      proc.on("close", (code) =>
+        code === 0 ? resolve(out.trim()) : reject(new Error(out.trim()))
+      );
     });
   }
 }
