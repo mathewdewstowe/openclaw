@@ -247,6 +247,7 @@
     <button onclick="switchTab('posts', this)">✍️ LinkedIn Posts</button>
 
     <button onclick="switchTab('linkedin', this)">🔗 LinkedIn</button>
+    <button onclick="switchTab('sonesse', this)">🤖 Sonesse</button>
   </nav>
 
   <main>
@@ -583,6 +584,72 @@
           <br>
           <span class="badge badge-blocked">Blocked — WSL restart needed</span>
         </div>
+      </div>
+    </div>
+
+    <!-- SONESSE TAB -->
+    <div id="tab-sonesse" class="tab-content">
+      <div style="max-width:860px;margin:0 auto;padding:24px 0">
+
+        <!-- Featured Avatar -->
+        <div class="card" style="background:linear-gradient(135deg,#1e1b4b,#161b22);border-color:#30363d;padding:28px;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#818cf8;font-weight:600;margin-bottom:16px;">Featured Avatar</div>
+          <div style="display:flex;align-items:center;gap:20px;margin-bottom:20px;">
+            <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;">🎙</div>
+            <div>
+              <div style="font-size:22px;font-weight:700;margin-bottom:4px;">Interview Assistant</div>
+              <div style="font-size:14px;color:#8b949e;">Tavus-powered interviewer avatar — joins meetings, asks questions, and evaluates candidates in real time.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:24px;margin-bottom:20px;font-size:13px;color:#8b949e;">
+            <span>Persona <code style="background:#21262d;border:1px solid #30363d;padding:2px 8px;border-radius:4px;font-size:12px;color:#a5b4fc;">pdac61133ac5</code></span>
+            <span>Replica <code style="background:#21262d;border:1px solid #30363d;padding:2px 8px;border-radius:4px;font-size:12px;color:#a5b4fc;">r5f0577fc829</code></span>
+            <span>Created <code style="background:#21262d;border:1px solid #30363d;padding:2px 8px;border-radius:4px;font-size:12px;color:#8b949e;">Jan 13, 2026</code></span>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn-sm" onclick="sonesseDeployModal('zoom')" style="background:#6366f1;padding:10px 20px;font-weight:600;">Deploy to Zoom</button>
+            <button class="btn-sm" onclick="sonesseDeployModal('teams')" style="background:#5b5fc7;padding:10px 20px;font-weight:600;">Preview in Teams</button>
+            <button class="btn-sm" onclick="sonessePreviewAvatar()" style="background:transparent;border:1px solid #30363d;color:#8b949e;padding:10px 20px;font-weight:600;">Preview Avatar</button>
+          </div>
+        </div>
+
+        <!-- Quick Deploy -->
+        <div class="card" style="margin-top:16px;">
+          <div class="section-title" style="font-size:16px;">Quick Deploy</div>
+          <div style="display:flex;gap:12px;margin-bottom:12px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+              <label style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.5px;">Platform</label>
+              <select id="sonesse-platform" style="padding:10px 14px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#e1e4e8;font-size:14px;">
+                <option value="zoom">Zoom</option>
+                <option value="teams">Microsoft Teams</option>
+              </select>
+            </div>
+            <div style="flex:2;display:flex;flex-direction:column;gap:6px;">
+              <label style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.5px;">Meeting URL</label>
+              <input type="text" id="sonesse-meeting-url" placeholder="https://zoom.us/j/... or https://teams.microsoft.com/l/..." style="padding:10px 14px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#e1e4e8;font-size:14px;" />
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;margin-bottom:12px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+              <label style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.5px;">Bot Name</label>
+              <input type="text" id="sonesse-bot-name" value="Interview Assistant" style="padding:10px 14px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#e1e4e8;font-size:14px;" />
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+              <label style="font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:0.5px;">Context (optional)</label>
+              <input type="text" id="sonesse-context" placeholder="e.g. Senior Engineer role, Python focus" style="padding:10px 14px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#e1e4e8;font-size:14px;" />
+            </div>
+          </div>
+          <button class="btn-primary" onclick="sonesseQuickDeploy()" style="width:100%;padding:12px;margin-top:4px;font-size:15px;">Deploy to Meeting</button>
+        </div>
+
+        <!-- Active Bots -->
+        <div style="margin-top:24px;">
+          <div class="section-title" style="font-size:16px;">Active Bots</div>
+          <div id="sonesse-bot-list">
+            <div class="card"><div class="empty-state">No active bots</div></div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -1983,11 +2050,113 @@ function escapeHtml(str) {
   if (!str) return '';
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-</script>
-</body>
-</html>
-ace(/"/g,'&quot;');
+
+// ── SONESSE ──────────────────────────────────
+const SONESSE_BOT_API = 'http://40.81.129.40:3000';
+const INTERVIEW_PERSONA = 'pdac61133ac5';
+const INTERVIEW_REPLICA = 'r5f0577fc829';
+
+function sonesseDeployModal(platform) {
+  const platformSelect = document.getElementById('sonesse-platform');
+  const urlInput = document.getElementById('sonesse-meeting-url');
+  platformSelect.value = platform;
+  urlInput.placeholder = platform === 'teams'
+    ? 'https://teams.microsoft.com/l/meetup-join/...'
+    : 'https://zoom.us/j/...';
+  urlInput.focus();
+  switchTab('sonesse', document.querySelector('nav button:last-child'));
 }
+
+async function sonesseQuickDeploy() {
+  const meetingUrl = document.getElementById('sonesse-meeting-url').value.trim();
+  if (!meetingUrl) return alert('Enter a meeting URL');
+
+  const botName = document.getElementById('sonesse-bot-name').value.trim() || 'Interview Assistant';
+  const context = document.getElementById('sonesse-context').value.trim();
+
+  try {
+    const res = await fetch(`${SONESSE_BOT_API}/api/bot`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        meeting_url: meetingUrl,
+        bot_name: botName,
+        tavus: {
+          persona_id: INTERVIEW_PERSONA,
+          replica_id: INTERVIEW_REPLICA,
+          context: context || undefined,
+        },
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    alert('Bot deployed: ' + data.id);
+    sonesseRefreshBots();
+  } catch (err) {
+    alert('Deploy failed: ' + err.message);
+  }
+}
+
+function sonessePreviewAvatar() {
+  fetch(`${SONESSE_BOT_API}/api/tavus/preview`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ persona_id: INTERVIEW_PERSONA, replica_id: INTERVIEW_REPLICA }),
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.conversation_url) window.open(data.conversation_url, '_blank');
+      else alert(data.error || 'Preview failed');
+    })
+    .catch(() => alert('Preview failed — is the bot API running?'));
+}
+
+async function sonesseRemoveBot(id) {
+  await fetch(`${SONESSE_BOT_API}/api/bot/${id}`, { method: 'DELETE' }).catch(() => {});
+  sonesseRefreshBots();
+}
+
+async function sonesseRefreshBots() {
+  try {
+    const res = await fetch(`${SONESSE_BOT_API}/api/bots`);
+    const bots = await res.json();
+    const list = document.getElementById('sonesse-bot-list');
+
+    if (!bots.length) {
+      list.innerHTML = '<div class="card"><div class="empty-state">No active bots</div></div>';
+      return;
+    }
+
+    list.innerHTML = bots.map(b => {
+      const dotClass = b.status === 'in_meeting' ? 'dot-connected'
+        : b.status === 'error' ? 'dot-blocked'
+        : 'dot-pending';
+      return `<div class="card" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="status-dot ${dotClass}"></div>
+          <div>
+            <div style="font-weight:600;font-size:14px;">${escapeHtml(b.bot_name)}</div>
+            <div style="font-size:12px;color:#8b949e;">${b.status}${b.tavus_connected ? ' + Tavus' : ''} &middot; ${b.participants.length} participants</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-sm" onclick="window.open('${SONESSE_BOT_API}/api/bot/${b.id}/screenshot')" style="background:transparent;border:1px solid #30363d;color:#8b949e;">Screenshot</button>
+          <button class="btn-sm" onclick="sonesseRemoveBot('${b.id}')" style="background:#3d1f1f;color:#f85149;border:none;">Remove</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch {
+    document.getElementById('sonesse-bot-list').innerHTML =
+      '<div class="card"><div class="empty-state">Bot API not reachable</div></div>';
+  }
+}
+
+// Refresh bots when Sonesse tab is active
+setInterval(() => {
+  if (document.getElementById('tab-sonesse')?.classList.contains('active')) {
+    sonesseRefreshBots();
+  }
+}, 5000);
 </script>
 </body>
 </html>
