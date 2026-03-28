@@ -54,7 +54,10 @@ app.post("/api/bot", async (req, res) => {
   bot.on("participant_left", (e) => console.log(`[${e.id}] - ${e.name}`));
   bot.on("tavus_connected", (e) => console.log(`[${e.id}] Tavus avatar live`));
   bot.on("left", (e) => bots.delete(e.id));
-  bot.on("error", (e) => console.error(`[${e.id}] ERROR: ${e.error}`));
+  bot.on("error", (e) => {
+    console.error(`[${e.id}] ERROR: ${e.error}`);
+    // Keep bot in map so we can retrieve error screenshots
+  });
 
   bot.join().catch((err) => console.error(`[${bot.id}] Join failed:`, err.message));
 
@@ -139,6 +142,17 @@ app.get("/api/bot/:id/tavus/screenshot", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── GET /api/bot/:id/error-screenshot — View last error screenshot ──
+app.get("/api/bot/:id/error-screenshot", (req, res) => {
+  const bot = bots.get(req.params.id);
+  if (!bot) return res.status(404).json({ error: "Not found" });
+  const fs = require("fs");
+  if (!bot.lastErrorScreenshot || !fs.existsSync(bot.lastErrorScreenshot)) {
+    return res.status(404).json({ error: "No error screenshot" });
+  }
+  res.sendFile(bot.lastErrorScreenshot);
 });
 
 // ── DELETE /api/bot/:id — Leave meeting ─────

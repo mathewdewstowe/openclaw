@@ -99,6 +99,17 @@ class ZoomBot extends EventEmitter {
         await this.connectTavus(this.tavusConversationUrl);
       }
     } catch (err) {
+      // Take a debug screenshot before reporting error
+      if (this.page) {
+        try {
+          const fs = require("fs");
+          const ts = Date.now();
+          const path = `/tmp/bot-error-${this.id}-${ts}.png`;
+          await this.page.screenshot({ path });
+          console.log(`[${this.id}] Error screenshot saved: ${path}`);
+          this.lastErrorScreenshot = path;
+        } catch {}
+      }
       this.setStatus("error");
       this.emit("error", { id: this.id, error: err.message });
       throw err;
@@ -159,14 +170,44 @@ class ZoomBot extends EventEmitter {
     console.log(`[${this.id}] Navigating to ${url}`);
     await this.page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
 
+    console.log(`[${this.id}] Page URL after load: ${this.page.url()}`);
+    console.log(`[${this.id}] Page title: ${await this.page.title()}`);
+
     // Handle redirect to /j/ page — click "Join from Your Browser"
     if (this.page.url().includes("/j/") && !this.page.url().includes("/wc/")) {
-      const link = await this.page.$('a[href*="wc/join"]');
-      if (link) {
-        await link.click();
-        await this.page.waitForNavigation({ waitUntil: "networkidle2" });
+      console.log(`[${this.id}] Redirected to launch page, looking for browser join link...`);
+
+      // Try multiple selectors for "Join from Your Browser" link
+      const browserJoinLink = await this.findEl([
+        'a[href*="wc/join"]',
+        'a[href*="/wc/"]',
+        '#join_from_browser',
+        'a:has-text("Join from Your Browser")',
+        'a:has-text("join from your browser")',
+      ]);
+
+      if (browserJoinLink) {
+        console.log(`[${this.id}] Found browser join link, clicking...`);
+        await browserJoinLink.click();
+        await this.page.waitForNavigation({ waitUntil: "networkidle2", timeout: 15000 }).catch(() => {});
+      } else {
+        // Fallback: manually construct the /wc/ URL and navigate directly
+        console.log(`[${this.id}] No browser join link found, navigating directly to /wc/ URL`);
+        await this.page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
       }
+
+      console.log(`[${this.id}] Page URL after browser join: ${this.page.url()}`);
     }
+
+    // Handle CAPTCHA or "are you human" checks
+    const pageContent = await this.page.content();
+    if (pageContent.includes("recaptcha") || pageContent.includes("captcha")) {
+      console.log(`[${this.id}] WARNING: CAPTCHA detected on page`);
+    }
+
+    // Log what we see on the page for debugging
+    const bodyText = await this.page.evaluate(() => document.body?.innerText?.substring(0, 500) || "");
+    console.log(`[${this.id}] Page text preview: ${bodyText.substring(0, 200)}`);
   }
 
   async enterDetails() {
@@ -211,11 +252,21 @@ class ZoomBot extends EventEmitter {
 
   async handlePostJoin() {
     console.log(`[${this.id}] Waiting for meeting to load...`);
+    console.log(`[${this.id}] Current URL: ${this.page.url()}`);
+
+    // Take a screenshot right after clicking join for debugging
+    try {
+      const ts = Date.now();
+      const path = `/tmp/bot-post-join-${this.id}-${ts}.png`;
+      await this.page.screenshot({ path });
+      console.log(`[${this.id}] Post-join screenshot saved: ${path}`);
+      this.lastErrorScreenshot = path;
+    } catch {}
 
     await this.page.waitForFunction(
       () => {
         return document.querySelector(
-          '#wc-container-left, #meeting-sdk-container, .meeting-app, [class*="meeting-client"]'
+          '#wc-container-left, #meeting-sdk-container, .meeting-app, [class*="meeting-client"], #webclient'
         ) || document.querySelector('[class*="waiting-room"], [class*="WaitingRoom"]');
       },
       { timeout: 60000 }
