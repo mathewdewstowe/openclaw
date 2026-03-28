@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer-core");
 const { EventEmitter } = require("events");
 const { MediaBridge } = require("./media-bridge");
+const { VisionNavigator } = require("./vision-navigator");
 
 /**
  * ZoomBot — Perception-first bot with Tavus avatar interaction.
@@ -19,6 +20,7 @@ class ZoomBot extends EventEmitter {
     this.password = config.password || this.extractPassword(config.meeting_url);
     this.botName = config.bot_name || "Notetaker";
     this.tavusConversationUrl = config.tavus_conversation_url || null;
+    this.useVision = config.use_vision !== false; // Default to vision-guided navigation
     this.status = "idle";
     this.browser = null;
     this.page = null;
@@ -82,10 +84,38 @@ class ZoomBot extends EventEmitter {
     this.setStatus("joining");
 
     try {
+      // Navigate to the Zoom web client page first
       await this.navigateToWebClient();
-      await this.enterDetails();
-      await this.clickJoin();
-      await this.handlePostJoin();
+
+      if (this.useVision && process.env.ANTHROPIC_API_KEY) {
+        // Vision-guided navigation: Claude looks at the screen and decides what to do
+        console.log(`[${this.id}] Using vision-guided navigation`);
+        const vision = new VisionNavigator(process.env.ANTHROPIC_API_KEY);
+        const result = await vision.joinMeeting(this.page, {
+          botName: this.botName,
+          password: this.password,
+          meetingId: this.meetingId,
+          logPrefix: `[${this.id}]`,
+        });
+
+        if (result === "waiting_room") {
+          this.setStatus("waiting_room");
+          this.emit("waiting_room", { id: this.id });
+          console.log(`[${this.id}] In waiting room, waiting to be admitted...`);
+          // Wait for waiting room to clear (up to 5 minutes)
+          await this.page.waitForFunction(
+            () => !document.querySelector('[class*="waiting-room"], [class*="WaitingRoom"]'),
+            { timeout: 300000 }
+          );
+        }
+      } else {
+        // Fallback: selector-based navigation
+        console.log(`[${this.id}] Using selector-based navigation`);
+        await this.enterDetails();
+        await this.clickJoin();
+        await this.handlePostJoin();
+      }
+
       this.joinedAt = new Date().toISOString();
       this.setStatus("in_meeting");
       this.emit("joined", { id: this.id });

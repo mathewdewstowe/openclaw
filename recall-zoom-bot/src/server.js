@@ -14,7 +14,7 @@ const tavus = process.env.TAVUS_API_KEY ? new TavusClient(process.env.TAVUS_API_
 // ── POST /api/bot — Join a Zoom meeting ─────
 // Optionally pass tavus config to connect avatar immediately after joining.
 app.post("/api/bot", async (req, res) => {
-  const { meeting_url, bot_name, password, tavus: tavusConfig } = req.body;
+  const { meeting_url, bot_name, password, use_vision, tavus: tavusConfig } = req.body;
   if (!meeting_url) return res.status(400).json({ error: "meeting_url is required" });
 
   let tavusConversationUrl = null;
@@ -43,6 +43,7 @@ app.post("/api/bot", async (req, res) => {
     meeting_url,
     bot_name,
     password,
+    use_vision: use_vision !== false, // default true
     tavus_conversation_url: tavusConversationUrl,
   });
 

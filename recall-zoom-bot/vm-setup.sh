@@ -71,6 +71,7 @@ echo "=== 6. Create .env ==="
 cat > /opt/openclaw/recall-zoom-bot/.env << 'EOF'
 PORT=3000
 TAVUS_API_KEY=REPLACE_WITH_YOUR_KEY
+ANTHROPIC_API_KEY=REPLACE_WITH_YOUR_KEY
 DISPLAY=:99
 PULSE_SERVER=unix:/tmp/pulseaudio.socket
 CHROME_PATH=/usr/bin/chromium-browser
