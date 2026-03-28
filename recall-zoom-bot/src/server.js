@@ -1,125 +1,81 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
 const { ZoomBot } = require("./bot-engine");
-const { createWebSocketServer } = require("./ws-server");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve the avatar webpage (Chromium renders this as the bot's camera feed)
-app.use(express.static(path.join(__dirname, "../public")));
-
-// Active bots keyed by id
 const bots = new Map();
 
-// ──────────────────────────────────────────────
-// POST /api/bot — Create a bot and join a Zoom meeting
-// ──────────────────────────────────────────────
+// ── POST /api/bot — Join a Zoom meeting ─────
 app.post("/api/bot", async (req, res) => {
-  const { meeting_url, bot_name, password, avatar_url } = req.body;
-
-  if (!meeting_url) {
-    return res.status(400).json({ error: "meeting_url is required" });
-  }
+  const { meeting_url, bot_name, password } = req.body;
+  if (!meeting_url) return res.status(400).json({ error: "meeting_url is required" });
 
   const bot = new ZoomBot({
     id: `bot_${Date.now()}`,
     meeting_url,
     bot_name,
     password,
-    avatar_url,
   });
 
   bots.set(bot.id, bot);
 
-  // Forward bot events to console (and optionally to webhooks)
-  bot.on("status", (e) => console.log(`[${e.id}] Status: ${e.status}`));
-  bot.on("joined", (e) => console.log(`[${e.id}] Joined meeting`));
-  bot.on("left", (e) => {
-    console.log(`[${e.id}] Left meeting`);
-    bots.delete(e.id);
+  bot.on("status", (e) => console.log(`[${e.id}] ${e.status}`));
+  bot.on("audio", (e) => {
+    // e.pcm = Buffer of S16LE PCM at 16kHz
+    // TODO: forward to your AI / transcription service
   });
-  bot.on("error", (e) => console.error(`[${e.id}] Error: ${e.error}`));
+  bot.on("participant_joined", (e) => console.log(`[${e.id}] + ${e.name}`));
+  bot.on("participant_left", (e) => console.log(`[${e.id}] - ${e.name}`));
+  bot.on("left", (e) => bots.delete(e.id));
+  bot.on("error", (e) => console.error(`[${e.id}] ERROR: ${e.error}`));
 
-  // Start joining asynchronously — return immediately with bot ID
-  bot.join().catch((err) => {
-    console.error(`[${bot.id}] Join failed:`, err.message);
-  });
+  bot.join().catch((err) => console.error(`[${bot.id}] Join failed:`, err.message));
 
   res.status(201).json(bot.toJSON());
 });
 
-// ──────────────────────────────────────────────
-// GET /api/bot/:id — Get bot status
-// ──────────────────────────────────────────────
+// ── GET /api/bot/:id — Bot status ───────────
 app.get("/api/bot/:id", (req, res) => {
   const bot = bots.get(req.params.id);
-  if (!bot) return res.status(404).json({ error: "Bot not found" });
+  if (!bot) return res.status(404).json({ error: "Not found" });
   res.json(bot.toJSON());
 });
 
-// ──────────────────────────────────────────────
-// GET /api/bots — List all active bots
-// ──────────────────────────────────────────────
+// ── GET /api/bots — List all bots ───────────
 app.get("/api/bots", (_req, res) => {
   res.json(Array.from(bots.values()).map((b) => b.toJSON()));
 });
 
-// ──────────────────────────────────────────────
-// POST /api/bot/:id/audio-capture — Start capturing meeting audio
-// ──────────────────────────────────────────────
-app.post("/api/bot/:id/audio-capture", async (req, res) => {
+// ── GET /api/bot/:id/screenshot — Debug view ─
+app.get("/api/bot/:id/screenshot", async (req, res) => {
   const bot = bots.get(req.params.id);
-  if (!bot) return res.status(404).json({ error: "Bot not found" });
-  if (bot.status !== "in_meeting") {
-    return res.status(409).json({ error: "Bot is not in a meeting yet" });
-  }
-
+  if (!bot) return res.status(404).json({ error: "Not found" });
   try {
-    await bot.startAudioCapture(req.body.sample_rate || 16000);
-    res.json({ status: "capturing" });
+    const img = await bot.screenshot();
+    if (!img) return res.status(409).json({ error: "No active page" });
+    res.json({ image: `data:image/png;base64,${img}` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ──────────────────────────────────────────────
-// DELETE /api/bot/:id — Remove bot from meeting
-// ──────────────────────────────────────────────
+// ── DELETE /api/bot/:id — Leave meeting ─────
 app.delete("/api/bot/:id", async (req, res) => {
   const bot = bots.get(req.params.id);
-  if (!bot) return res.status(404).json({ error: "Bot not found" });
-
-  try {
-    await bot.leave();
-    bots.delete(bot.id);
-    res.json({ status: "left" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  if (!bot) return res.status(404).json({ error: "Not found" });
+  await bot.leave();
+  bots.delete(bot.id);
+  res.json({ status: "left" });
 });
 
-// ──────────────────────────────────────────────
-// GET /api/health — Health check
-// ──────────────────────────────────────────────
+// ── GET /api/health ─────────────────────────
 app.get("/api/health", (_req, res) => {
-  res.json({
-    status: "ok",
-    active_bots: bots.size,
-    uptime: process.uptime(),
-  });
+  res.json({ status: "ok", active_bots: bots.size, uptime: process.uptime() });
 });
 
-// Start servers
 const PORT = process.env.PORT || 3000;
-const WS_PORT = process.env.WS_PORT || 8080;
-
-app.listen(PORT, () => {
-  console.log(`API server running on http://localhost:${PORT}`);
-  console.log(`Avatar page: http://localhost:${PORT}/agent.html`);
-});
-
-createWebSocketServer(WS_PORT);
+app.listen(PORT, () => console.log(`Zoom bot API running on :${PORT}`));
