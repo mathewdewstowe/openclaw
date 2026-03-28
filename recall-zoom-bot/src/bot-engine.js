@@ -1,13 +1,14 @@
 const puppeteer = require("puppeteer-core");
 const { EventEmitter } = require("events");
+const { MediaBridge } = require("./media-bridge");
 
 /**
- * ZoomBot — Perception bot.
- * Joins a Zoom meeting via the web client, captures meeting audio,
- * and tracks participants. No output/speaking — listen only.
+ * ZoomBot — Perception-first bot with Tavus avatar interaction.
  *
- * Audio: captured via WebRTC track interception → emitted as PCM buffers
- * Participants: detected via DOM observation of the participant list
+ * Phase 1 (Perception): Puppeteer navigates Zoom web client, joins meeting,
+ *   captures audio, tracks participants.
+ * Phase 2 (Interaction): Connects a Tavus avatar via MediaBridge. Tavus hears
+ *   meeting audio and its avatar video/audio is piped back into Zoom.
  */
 class ZoomBot extends EventEmitter {
   constructor(config) {
@@ -17,9 +18,11 @@ class ZoomBot extends EventEmitter {
     this.meetingId = this.extractMeetingId(config.meeting_url);
     this.password = config.password || this.extractPassword(config.meeting_url);
     this.botName = config.bot_name || "Notetaker";
+    this.tavusConversationUrl = config.tavus_conversation_url || null;
     this.status = "idle";
     this.browser = null;
     this.page = null;
+    this.mediaBridge = null;
     this.participants = [];
     this.createdAt = new Date().toISOString();
     this.joinedAt = null;
@@ -90,11 +93,59 @@ class ZoomBot extends EventEmitter {
       // Start capturing audio and watching participants
       await this.startAudioCapture();
       this.startParticipantWatch();
+
+      // If Tavus conversation URL was provided, connect the avatar
+      if (this.tavusConversationUrl) {
+        await this.connectTavus(this.tavusConversationUrl);
+      }
     } catch (err) {
       this.setStatus("error");
       this.emit("error", { id: this.id, error: err.message });
       throw err;
     }
+  }
+
+  // ── Tavus integration ─────────────────────
+
+  /**
+   * Connect a Tavus avatar to the meeting.
+   * Opens the Tavus conversation URL in a second browser tab.
+   * MediaBridge handles audio/video routing between Zoom ↔ Tavus.
+   */
+  async connectTavus(conversationUrl) {
+    if (!this.browser) throw new Error("Browser not running — join a meeting first");
+
+    this.tavusConversationUrl = conversationUrl;
+    this.mediaBridge = new MediaBridge();
+
+    this.mediaBridge.on("connected", () => {
+      this.emit("tavus_connected", { id: this.id });
+      console.log(`[${this.id}] Tavus avatar connected`);
+    });
+
+    this.mediaBridge.on("disconnected", () => {
+      this.emit("tavus_disconnected", { id: this.id });
+    });
+
+    await this.mediaBridge.connect(this.browser, conversationUrl);
+
+    // Start piping Tavus video to virtual camera
+    const display = process.env.DISPLAY || ":99";
+    this.mediaBridge.startVideoCapture(display);
+  }
+
+  /** Disconnect Tavus avatar (bot stays in meeting) */
+  async disconnectTavus() {
+    if (this.mediaBridge) {
+      await this.mediaBridge.disconnect();
+      this.mediaBridge = null;
+    }
+  }
+
+  /** Get a screenshot of the Tavus tab */
+  async tavusScreenshot() {
+    if (!this.mediaBridge) return null;
+    return this.mediaBridge.screenshot();
   }
 
   // ── Navigation ────────────────────────────
@@ -323,6 +374,12 @@ class ZoomBot extends EventEmitter {
     clearInterval(this._audioInterval);
     clearInterval(this._participantInterval);
 
+    // Disconnect Tavus first
+    if (this.mediaBridge) {
+      await this.mediaBridge.disconnect().catch(() => {});
+      this.mediaBridge = null;
+    }
+
     try {
       const leaveBtn = await this.findEl([
         'button[aria-label*="leave" i]',
@@ -383,6 +440,8 @@ class ZoomBot extends EventEmitter {
       meeting_url: this.meetingUrl,
       bot_name: this.botName,
       status: this.status,
+      tavus_connected: this.mediaBridge?.status === "connected",
+      tavus_conversation_url: this.tavusConversationUrl,
       participants: this.participants,
       created_at: this.createdAt,
       joined_at: this.joinedAt,
