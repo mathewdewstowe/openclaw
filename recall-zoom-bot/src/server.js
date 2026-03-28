@@ -4,9 +4,12 @@ const cors = require("cors");
 const { ZoomBot } = require("./bot-engine");
 const { TavusClient } = require("./tavus-client");
 
+const path = require("path");
+
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "../public")));
 
 const bots = new Map();
 const tavus = process.env.TAVUS_API_KEY ? new TavusClient(process.env.TAVUS_API_KEY) : null;
@@ -148,6 +151,26 @@ app.delete("/api/bot/:id", async (req, res) => {
   await bot.leave();
   bots.delete(bot.id);
   res.json({ status: "left" });
+});
+
+// ── POST /api/tavus/preview — Open a standalone Tavus conversation ──
+app.post("/api/tavus/preview", async (req, res) => {
+  if (!tavus) return res.status(400).json({ error: "TAVUS_API_KEY not configured" });
+
+  const { persona_id, replica_id } = req.body;
+  try {
+    const conversation = await tavus.createConversation({
+      personaId: persona_id,
+      replicaId: replica_id,
+      conversationName: "Avatar Preview",
+    });
+    res.json({
+      conversation_id: conversation.conversation_id,
+      conversation_url: conversation.conversation_url,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ── GET /api/health ─────────────────────────
