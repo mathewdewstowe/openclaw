@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Agent</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 640px;
+      height: 480px;
+      overflow: hidden;
+      background: #1a1a2e;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .agent-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      margin-bottom: 20px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .agent-avatar.listening {
+      animation: listening 0.8s ease-in-out infinite;
+      box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
+    }
+
+    .agent-avatar.speaking {
+      animation: speaking 0.4s ease-in-out infinite;
+      box-shadow: 0 0 40px rgba(118, 75, 162, 0.8);
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+
+    @keyframes listening {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(102, 126, 234, 0.4); }
+      50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(102, 126, 234, 0.8); }
+    }
+
+    @keyframes speaking {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    .agent-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .agent-status {
+      font-size: 14px;
+      color: #a0a0c0;
+    }
+
+    .transcript {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      font-size: 14px;
+      color: #c0c0e0;
+      text-align: center;
+      max-height: 60px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="agent-avatar" id="avatar">AI</div>
+  <div class="agent-name" id="agentName">AI Assistant</div>
+  <div class="agent-status" id="status">Connecting...</div>
+  <div class="transcript" id="transcript"></div>
+
+  <script>
+    const avatar = document.getElementById("avatar");
+    const status = document.getElementById("status");
+    const transcript = document.getElementById("transcript");
+
+    let audioContext;
+    let meetingStream;
+
+    /**
+     * Capture meeting audio via getUserMedia.
+     * Recall.ai auto-grants mic permissions inside the bot's browser,
+     * so no user interaction is needed.
+     */
+    async function startListening() {
+      try {
+        meetingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new AudioContext({ sampleRate: 16000 });
+        const source = audioContext.createMediaStreamSource(meetingStream);
+
+        // Create a ScriptProcessor to access raw PCM audio
+        // (or use AudioWorklet for production)
+        const processor = audioContext.createScriptProcessor(4096, 1, 1);
+        processor.onaudioprocess = (e) => {
+          const inputData = e.inputBuffer.getChannelData(0);
+          onAudioData(inputData);
+        };
+
+        source.connect(processor);
+        processor.connect(audioContext.destination);
+
+        setAgentState("listening");
+        console.log("Listening to meeting audio");
+      } catch (err) {
+        console.error("Failed to capture meeting audio:", err);
+        status.textContent = "Audio capture failed";
+      }
+    }
+
+    /**
+     * Process incoming audio from the meeting.
+     * This is where you'd send audio to your AI model.
+     */
+    function onAudioData(float32Array) {
+      // Convert Float32 to Int16 PCM for most AI APIs
+      const int16 = new Int16Array(float32Array.length);
+      for (let i = 0; i < float32Array.length; i++) {
+        const s = Math.max(-1, Math.min(1, float32Array[i]));
+        int16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+      }
+
+      // TODO: Send int16.buffer to your AI backend via WebSocket
+      // e.g., aiSocket.send(int16.buffer);
+    }
+
+    /**
+     * Play AI-generated audio response back into the meeting.
+     * Whatever audio plays on this page gets streamed to participants.
+     */
+    function playAudioResponse(audioBuffer) {
+      if (!audioContext) return;
+
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContext.destination);
+      source.onended = () => setAgentState("listening");
+
+      setAgentState("speaking");
+      source.start();
+    }
+
+    /**
+     * Play a response from a URL (mp3, wav, etc.)
+     */
+    async function playAudioUrl(url) {
+      if (!audioContext) return;
+
+      const response = await fetch(url);
+      const arrayBuffer = await response.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      playAudioResponse(audioBuffer);
+    }
+
+    function setAgentState(state) {
+      avatar.className = "agent-avatar " + state;
+      switch (state) {
+        case "listening":
+          status.textContent = "Listening...";
+          break;
+        case "speaking":
+          status.textContent = "Speaking...";
+          break;
+        case "thinking":
+          status.textContent = "Thinking...";
+          break;
+        default:
+          status.textContent = "Ready";
+      }
+    }
+
+    function showTranscript(text) {
+      transcript.textContent = text;
+    }
+
+    // Start when the page loads
+    startListening();
+  </script>
+</body>
+</html>
