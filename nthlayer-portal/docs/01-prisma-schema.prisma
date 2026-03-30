@@ -1,0 +1,254 @@
+// Nth Layer Signal Portal — Prisma Schema
+// Production data model for strategic analysis platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────────────────────
+// Auth & Users
+// ──────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  scans         Scan[]
+  reports       Report[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// ──────────────────────────────────────────
+// Scans (core entity)
+// ──────────────────────────────────────────
+
+model Scan {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+
+  type          ScanType
+  status        ScanStatus  @default(PENDING)
+
+  // Common inputs
+  companyUrl    String
+  companyName   String?
+
+  // Inflection-specific inputs (nullable for other scan types)
+  priorities    String[]    // max 3, max 15 words each
+  workflow      Json?       // { name: string, steps: string[] } max 5 steps
+  competitors   String[]    // max 3 URLs
+
+  // Deal DD inputs
+  investmentThesis String?
+
+  // Job tracking
+  jobId         String?     @unique
+  startedAt     DateTime?
+  completedAt   DateTime?
+  errorMessage  String?
+  progress      Int         @default(0) // 0-100
+
+  // Metadata
+  mode          AnalysisMode @default(PUBLIC_SIGNAL)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  uploads       Upload[]
+  artifacts     ResearchArtifact[]
+  results       AnalysisResult[]
+  reports       Report[]
+  events        ScanEvent[]
+
+  @@index([userId, type])
+  @@index([status])
+  @@map("scans")
+}
+
+enum ScanType {
+  INFLECTION
+  COMPETITOR_TEARDOWN
+  DEAL_DD
+}
+
+enum ScanStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  PARTIAL
+}
+
+enum AnalysisMode {
+  PUBLIC_SIGNAL
+  INTERNAL_EVIDENCE
+}
+
+// ──────────────────────────────────────────
+// Uploads
+// ──────────────────────────────────────────
+
+model Upload {
+  id          String   @id @default(cuid())
+  scanId      String
+  scan        Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  fileName    String
+  fileType    String   // mime type
+  fileSize    Int      // bytes
+  storageKey  String   // S3/Supabase key
+  parsedText  String?  // extracted text content
+
+  createdAt   DateTime @default(now())
+
+  @@index([scanId])
+  @@map("uploads")
+}
+
+// ──────────────────────────────────────────
+// Research Artifacts (scraped/fetched data)
+// ──────────────────────────────────────────
+
+model ResearchArtifact {
+  id          String   @id @default(cuid())
+  scanId      String
+  scan        Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  source      String   // URL or identifier
+  sourceType  String   // "website", "linkedin", "crunchbase", etc.
+  content     Json     // structured extracted data
+  rawHtml     String?  // original HTML if scraped
+  fetchedAt   DateTime @default(now())
+
+  @@index([scanId])
+  @@map("research_artifacts")
+}
+
+// ──────────────────────────────────────────
+// Analysis Results (per-module outputs)
+// ──────────────────────────────────────────
+
+model AnalysisResult {
+  id          String   @id @default(cuid())
+  scanId      String
+  scan        Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  module      AnalysisModule
+  output      Json     // structured module output
+  confidence  Float    // 0.0 - 1.0
+  sources     String[] // URLs/refs used
+  durationMs  Int      // execution time
+  promptTokens Int?
+  completionTokens Int?
+
+  createdAt   DateTime @default(now())
+
+  @@unique([scanId, module])
+  @@index([scanId])
+  @@map("analysis_results")
+}
+
+enum AnalysisModule {
+  INPUT_NORMALISATION
+  COMPANY_RESEARCH
+  COMPETITOR_RESEARCH
+  POSITIONING_ANALYSIS
+  COMPETITIVE_ANALYSIS
+  WORKFLOW_ANALYSIS
+  AI_OPERATING_MODEL
+  VALUE_CREATION
+  STRATEGIC_BETS
+  CEO_ACTIONS
+  DO_NOTHING
+  BOARD_NARRATIVE
+  EDITORIAL_OUTPUT
+  // Competitor teardown specific
+  COMPETITOR_SNAPSHOT
+  PRODUCT_SHAPE
+  AI_NARRATIVE
+  GTM_SIGNALS
+  STRENGTHS
+  VULNERABILITIES
+  NEXT_MOVES
+  RESPONSE_STRATEGY
+  // Deal DD specific
+  PRODUCT_RISK
+  GTM_RISK
+  AI_REALISM
+  EXECUTION_RISK
+  VALUE_CREATION_LEVERS
+}
+
+// ──────────────────────────────────────────
+// Reports (rendered outputs)
+// ──────────────────────────────────────────
+
+model Report {
+  id          String   @id @default(cuid())
+  scanId      String
+  scan        Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  title       String
+  htmlContent String   // rendered HTML
+  pdfUrl      String?  // S3/Supabase key for PDF
+  version     Int      @default(1)
+
+  openedAt    DateTime?
+  downloadedAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([scanId])
+  @@index([userId])
+  @@map("reports")
+}
+
+// ──────────────────────────────────────────
+// Scan Events (audit trail + metrics)
+// ──────────────────────────────────────────
+
+model ScanEvent {
+  id        String   @id @default(cuid())
+  scanId    String
+  scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  event     String   // "scan_started", "scan_completed", "report_opened", "pdf_downloaded", etc.
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([scanId])
+  @@index([event])
+  @@map("scan_events")
+}
+
+// ──────────────────────────────────────────
+// Integration Interest (Coming Soon capture)
+// ──────────────────────────────────────────
+
+model IntegrationInterest {
+  id           String   @id @default(cuid())
+  email        String
+  integration  String   // "crm", "analytics", "warehouse", "support", "billing"
+  createdAt    DateTime @default(now())
+
+  @@map("integration_interests")
+}
