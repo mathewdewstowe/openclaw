@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         String   @default("USER") // USER | ADMIN
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  scans   Scan[]
+  reports Report[]
+
+  @@map("users")
+}
+
+model Scan {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  type   String // INFLECTION | COMPETITOR_TEARDOWN | DEAL_DD
+  status String @default("PENDING") // PENDING | RUNNING | COMPLETED | FAILED | PARTIAL
+
+  companyUrl  String
+  companyName String?
+
+  priorities       String[]
+  workflow         Json?
+  competitors      String[]
+  investmentThesis String?
+
+  jobId       String?   @unique
+  startedAt   DateTime?
+  completedAt DateTime?
+  errorMessage String?
+  progress    Int       @default(0)
+
+  mode String @default("PUBLIC_SIGNAL") // PUBLIC_SIGNAL | INTERNAL_EVIDENCE
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  uploads   Upload[]
+  artifacts ResearchArtifact[]
+  results   AnalysisResult[]
+  reports   Report[]
+  events    ScanEvent[]
+
+  @@index([userId, type])
+  @@index([status])
+  @@map("scans")
+}
+
+model Upload {
+  id         String @id @default(cuid())
+  scanId     String
+  scan       Scan   @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  fileName   String
+  fileType   String
+  fileSize   Int
+  storageKey String
+  parsedText String?
+  createdAt  DateTime @default(now())
+
+  @@index([scanId])
+  @@map("uploads")
+}
+
+model ResearchArtifact {
+  id         String   @id @default(cuid())
+  scanId     String
+  scan       Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  source     String
+  sourceType String
+  content    Json
+  rawHtml    String?
+  fetchedAt  DateTime @default(now())
+
+  @@index([scanId])
+  @@map("research_artifacts")
+}
+
+model AnalysisResult {
+  id               String   @id @default(cuid())
+  scanId           String
+  scan             Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  module           String
+  output           Json
+  confidence       Float
+  sources          String[]
+  durationMs       Int
+  promptTokens     Int?
+  completionTokens Int?
+  createdAt        DateTime @default(now())
+
+  @@unique([scanId, module])
+  @@index([scanId])
+  @@map("analysis_results")
+}
+
+model Report {
+  id          String    @id @default(cuid())
+  scanId      String
+  scan        Scan      @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  title       String
+  htmlContent String
+  pdfUrl      String?
+  version     Int       @default(1)
+  openedAt    DateTime?
+  downloadedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([scanId])
+  @@index([userId])
+  @@map("reports")
+}
+
+model ScanEvent {
+  id        String   @id @default(cuid())
+  scanId    String
+  scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  event     String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([scanId])
+  @@index([event])
+  @@map("scan_events")
+}
+
+model IntegrationInterest {
+  id          String   @id @default(cuid())
+  email       String
+  integration String
+  createdAt   DateTime @default(now())
+
+  @@map("integration_interests")
+}
