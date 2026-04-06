@@ -31,11 +31,13 @@ export async function runModule(
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
+      model: "claude-sonnet-4-6",
+      max_tokens: 1200,
+      stream: true,
       system: VOICE_DIRECTIVE + "\n\n" + systemPrompt,
       messages: [{ role: "user", content: userPrompt }],
     }),
+    signal: AbortSignal.timeout(180000), // 3 minute max per AI call
   });
 
   if (!response.ok) {
@@ -43,17 +45,49 @@ export async function runModule(
     throw new Error(`Anthropic API error: ${response.status} ${err}`);
   }
 
-  const data = await response.json();
-  const text = data.content[0]?.text || "";
+  // Read the SSE stream — keeps connection alive in Cloudflare Workers
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let fullText = "";
+  let inputTokens: number | undefined;
+  let outputTokens: number | undefined;
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const payload = line.slice(6).trim();
+      if (payload === "[DONE]") continue;
+      try {
+        const event = JSON.parse(payload);
+        if (event.type === "content_block_delta" && event.delta?.text) {
+          fullText += event.delta.text;
+        } else if (event.type === "message_start" && event.message?.usage) {
+          inputTokens = event.message.usage.input_tokens;
+        } else if (event.type === "message_delta" && event.usage) {
+          outputTokens = event.usage.output_tokens;
+        }
+      } catch {
+        // ignore malformed SSE lines
+      }
+    }
+  }
+
   const durationMs = Date.now() - start;
 
   // Parse JSON from response — handle markdown code blocks
   let output: Record<string, unknown>;
   try {
-    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    output = JSON.parse(jsonMatch ? jsonMatch[1].trim() : text.trim());
+    const jsonMatch = fullText.match(/```(?:json)?\s*([\s\S]*?)```/);
+    output = JSON.parse(jsonMatch ? jsonMatch[1].trim() : fullText.trim());
   } catch {
-    output = { rawText: text };
+    output = { rawText: fullText };
   }
 
   const confidence = typeof output.confidence === "number" ? output.confidence : 0.7;
@@ -67,8 +101,8 @@ export async function runModule(
       confidence,
       sources,
       durationMs,
-      promptTokens: data.usage?.input_tokens,
-      completionTokens: data.usage?.output_tokens,
+      promptTokens: inputTokens,
+      completionTokens: outputTokens,
     },
   });
 
@@ -83,7 +117,7 @@ export async function executeStep(
   fn: () => Promise<unknown>,
   options?: { retries?: number; critical?: boolean }
 ): Promise<unknown> {
-  const retries = options?.retries ?? 1;
+  const retries = options?.retries ?? 0;
   const critical = options?.critical ?? true;
 
   for (let attempt = 0; attempt <= retries; attempt++) {

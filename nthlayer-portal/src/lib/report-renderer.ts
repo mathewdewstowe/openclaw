@@ -33,38 +33,44 @@ export async function renderReport(
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${title} — Nth Layer</title>
 <style>
-  :root { --bg: #09090b; --fg: #fafafa; --card: #18181b; --border: #27272a; --muted: #a1a1aa; --primary: #10b981; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; line-height: 1.6; }
-  .report-container { max-width: 800px; margin: 0 auto; padding: 3rem 2rem; }
-  .report-header { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
-  .report-header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.025em; }
-  .report-header .subtitle { color: var(--muted); font-size: 0.875rem; margin-top: 0.5rem; }
-  .report-header .meta { display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.75rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
-  .report-nav { position: sticky; top: 0; background: var(--bg); padding: 1rem 0; margin-bottom: 2rem; border-bottom: 1px solid var(--border); z-index: 10; display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .nav-link { color: var(--muted); text-decoration: none; font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 9999px; border: 1px solid var(--border); transition: all 0.15s; }
-  .nav-link:hover { color: var(--primary); border-color: var(--primary); }
-  .report-section { margin-bottom: 3rem; }
-  .report-section h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--primary); }
-  .section-content { font-size: 0.9375rem; line-height: 1.8; }
+  body { background: #ffffff; color: #111827; font-family: 'Inter', system-ui, -apple-system, sans-serif; line-height: 1.7; font-size: 15px; }
+  .report-container { max-width: 820px; margin: 0 auto; padding: 3rem 2rem 5rem; }
+
+  .report-header { margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 2px solid #059669; }
+  .report-header h1 { font-size: 1.875rem; font-weight: 700; letter-spacing: -0.03em; color: #111827; line-height: 1.2; }
+  .report-header .subtitle { color: #6b7280; font-size: 0.875rem; margin-top: 0.5rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+  .report-header .meta { display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.75rem; color: #9ca3af; font-family: ui-monospace, monospace; }
+
+  .report-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid #e5e7eb; }
+  .nav-link { color: #374151; text-decoration: none; font-size: 0.75rem; font-weight: 500; padding: 0.375rem 0.875rem; border-radius: 9999px; border: 1px solid #d1d5db; background: #f9fafb; transition: all 0.15s; }
+  .nav-link:hover { background: #059669; color: #ffffff; border-color: #059669; }
+
+  .report-section { margin-bottom: 3.5rem; padding-bottom: 3.5rem; border-bottom: 1px solid #f3f4f6; }
+  .report-section:last-child { border-bottom: none; }
+  .report-section h2 { font-size: 1.125rem; font-weight: 700; margin-bottom: 1.25rem; color: #059669; letter-spacing: -0.01em; display: flex; align-items: center; gap: 0.5rem; }
+  .report-section h2::before { content: ''; display: block; width: 3px; height: 1.125rem; background: #059669; border-radius: 2px; }
+
+  .section-content { color: #374151; }
   .section-content p { margin-bottom: 1rem; }
   .section-content ul, .section-content ol { margin-bottom: 1rem; padding-left: 1.5rem; }
   .section-content li { margin-bottom: 0.5rem; }
-  .section-content strong { color: var(--fg); }
-  .section-content h3 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.75rem; }
-  .confidence-badge { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; padding: 0.125rem 0.5rem; border-radius: 9999px; }
-  .confidence-high { background: rgba(16,185,129,0.15); color: #10b981; }
-  .confidence-medium { background: rgba(234,179,8,0.15); color: #eab308; }
-  .confidence-low { background: rgba(239,68,68,0.15); color: #ef4444; }
-  .footer { margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); text-align: center; }
-  @media print { body { background: white; color: black; } .report-nav { display: none; } }
+  .section-content strong { color: #111827; font-weight: 600; }
+  .section-content h3 { font-size: 0.9375rem; font-weight: 600; color: #111827; margin: 1.75rem 0 0.75rem; padding-bottom: 0.375rem; border-bottom: 1px solid #f3f4f6; }
+
+  .footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; font-size: 0.75rem; color: #9ca3af; text-align: center; }
+
+  @media print {
+    .report-nav { display: none; }
+    .report-section { page-break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
 <div class="report-container">
   <div class="report-header">
+    <div class="subtitle">Nth Layer · Competitor Intelligence</div>
     <h1>${title}</h1>
-    <p class="subtitle">Nth Layer Strategic Signal Analysis</p>
     <div class="meta">
       <span>Generated ${new Date().toISOString().split("T")[0]}</span>
       <span>Public Signal Mode</span>
@@ -73,8 +79,7 @@ export async function renderReport(
   <nav class="report-nav">${nav}</nav>
   ${body}
   <div class="footer">
-    <p>Nth Layer — Structured Operator Judgement</p>
-    <p>This analysis uses public signals only. Confidence levels are stated per section.</p>
+    <p>Nth Layer — Structured Operator Judgement · Public signals only · Confidence levels stated per section</p>
   </div>
 </div>
 </body>

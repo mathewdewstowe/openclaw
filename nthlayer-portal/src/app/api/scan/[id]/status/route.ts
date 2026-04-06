@@ -15,7 +15,7 @@ export async function GET(
     where: { id, userId: user.id },
     include: {
       reports: { select: { id: true }, take: 1 },
-      events: { orderBy: { createdAt: "desc" }, take: 1 },
+      events: { orderBy: { createdAt: "asc" }, take: 100 },
     },
   });
 
@@ -28,7 +28,12 @@ export async function GET(
     type: scan.type,
     status: scan.status,
     progress: scan.progress,
-    currentStep: scan.events[0]?.event,
+    currentStep: scan.events[scan.events.length - 1]?.event,
+    events: scan.events.map((e) => ({
+      event: e.event,
+      createdAt: e.createdAt,
+      metadata: e.metadata,
+    })),
     startedAt: scan.startedAt,
     completedAt: scan.completedAt,
     errorMessage: scan.errorMessage,

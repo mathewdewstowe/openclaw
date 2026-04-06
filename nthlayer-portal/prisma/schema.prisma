@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -17,10 +16,39 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  scans   Scan[]
-  reports Report[]
+  scans          Scan[]
+  reports        Report[]
+  companyProfile CompanyProfile?
+  newsItems      CompetitorNewsItem[]
 
   @@map("users")
+}
+
+model CompanyProfile {
+  id       String @id @default(cuid())
+  userId   String @unique
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name     String?
+  url      String?
+  location String?
+  icp1     String?
+  icp2     String?
+  icp3     String?
+  territories  String[] @default([])
+  bigBet       String?
+  aiAmbition   String?
+  selfWeakness String?
+  competitor1  String?
+  competitor2  String?
+  competitor3  String?
+  competitor4  String?
+  competitor5  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("company_profiles")
 }
 
 model Scan {
@@ -33,6 +61,13 @@ model Scan {
 
   companyUrl  String
   companyName String?
+  userQuestion String?
+
+  // Self Scan inputs
+  icp          String?
+  bigBet       String?
+  aiAmbition   String?
+  selfWeakness String?
 
   priorities       String[]
   workflow         Json?
@@ -139,6 +174,25 @@ model ScanEvent {
   @@index([scanId])
   @@index([event])
   @@map("scan_events")
+}
+
+model CompetitorNewsItem {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName String
+  companyUrl  String
+  title       String
+  url         String
+  source      String?
+  summary     String?
+  publishedAt DateTime?
+  fetchedAt   DateTime  @default(now())
+
+  @@unique([userId, url])
+  @@index([userId, companyName])
+  @@index([userId, fetchedAt])
+  @@map("competitor_news_items")
 }
 
 model IntegrationInterest {

@@ -13,7 +13,7 @@ export default async function AppLayout({
   return (
     <div className="flex min-h-screen">
       <Sidebar role={user.role} />
-      <main className="flex-1 ml-64">
+      <main className="flex-1 ml-56">
         <div className="border-b border-[var(--border)] px-8 py-4 flex items-center justify-between">
           <div />
           <div className="flex items-center gap-3">

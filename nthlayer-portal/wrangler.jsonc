@@ -1,8 +1,15 @@
 {
   "name": "nthlayer-portal",
+  "account_id": "351ba64ed34484d9eaccd45f329456b3",
+  "main": ".open-next/worker.js",
   "compatibility_date": "2025-04-01",
-  "pages_build_output_dir": ".open-next/cloudflare",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets"
+  },
   "vars": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "WORKER_URL": "https://nthlayer-portal.matthewdewstowe.workers.dev",
+    "INTERNAL_SECRET": "nthlayer-internal-2026"
   }
 }

@@ -1,0 +1,18 @@
+{
+  "name": "nthlayer-cron",
+  "account_id": "351ba64ed34484d9eaccd45f329456b3",
+  "main": "index.js",
+  "compatibility_date": "2025-04-01",
+  "triggers": {
+    "crons": ["* * * * *", "0 7 * * *"]
+  },
+  "vars": {
+    "INTERNAL_SECRET": "nthlayer-internal-2026"
+  },
+  "services": [
+    {
+      "binding": "PORTAL",
+      "service": "nthlayer-portal"
+    }
+  ]
+}
