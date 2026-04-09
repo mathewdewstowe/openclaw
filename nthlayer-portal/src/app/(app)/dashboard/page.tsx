@@ -3,11 +3,12 @@ import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { DeleteScanButton } from "@/components/delete-scan-button";
+import { DownloadPdfButton } from "@/components/download-pdf-button";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-yellow-500/20 text-yellow-400",
   RUNNING: "bg-blue-500/20 text-blue-400",
-  COMPLETED: "bg-emerald-500/20 text-emerald-400",
+  COMPLETED: "bg-slate-500/20 text-slate-400",
   FAILED: "bg-red-500/20 text-red-400",
   PARTIAL: "bg-orange-500/20 text-orange-400",
 };
@@ -104,23 +105,13 @@ export default async function DashboardPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-[var(--muted-foreground)]">
-                      {scan.createdAt.toLocaleDateString()}
+                      {scan.createdAt.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className="inline-flex items-center gap-4">
                         <DeleteScanButton scanId={scan.id} />
-                        {scan.status === "COMPLETED" && pdfUrl && (
-                          <a
-                            href={pdfUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-xs inline-flex items-center gap-1"
-                          >
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                            </svg>
-                            PDF
-                          </a>
+                        {scan.status === "COMPLETED" && (
+                          <DownloadPdfButton scanId={scan.id} />
                         )}
                         <Link
                           href={`/scan/${scan.id}`}

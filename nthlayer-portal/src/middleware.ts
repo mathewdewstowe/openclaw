@@ -12,6 +12,14 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Allow internal calls with shared secret
+  if (pathname === "/api/jobs/run" || pathname === "/api/cron/advance-scans") {
+    const internalSecret = process.env.INTERNAL_SECRET || "nthlayer-internal-2026";
+    if (req.headers.get("x-internal-secret") === internalSecret) {
+      return NextResponse.next();
+    }
+  }
+
   const token = req.cookies.get("token")?.value;
   if (!token) {
     if (pathname.startsWith("/api/")) {

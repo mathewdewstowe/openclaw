@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { hashPassword, createToken } from "@/lib/auth";
 import { registerSchema } from "@/lib/validations";
 import { cookies } from "next/headers";
+import { notifyAdmin } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -10,13 +11,16 @@ export async function POST(req: Request) {
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {
+      const firstIssue = parsed.error.issues[0];
+      const field = String(firstIssue?.path?.[0] ?? "input");
+      const msg = firstIssue?.message || "Invalid input";
       return NextResponse.json(
-        { error: parsed.error.message },
+        { error: `${field}: ${msg}` },
         { status: 400 }
       );
     }
 
-    const { name, email, password } = parsed.data;
+    const { name, company, jobTitle, email, password } = parsed.data;
 
     const existing = await db.user.findUnique({ where: { email } });
     if (existing) {
@@ -28,8 +32,14 @@ export async function POST(req: Request) {
 
     const passwordHash = await hashPassword(password);
     const user = await db.user.create({
-      data: { name, email, passwordHash },
+      data: { name, company, jobTitle, email, passwordHash },
     });
+
+    // Notify matthew@nthlayer.co.uk of new signup (fire-and-forget)
+    notifyAdmin(
+      `New signup: ${name} — ${company}`,
+      `New user registered on Nth Layer Portal.\n\nName: ${name}\nEmail: ${email}\nCompany: ${company}\nJob Title: ${jobTitle}\nTime: ${new Date().toISOString()}`
+    );
 
     const token = await createToken(user.id);
     const cookieStore = await cookies();

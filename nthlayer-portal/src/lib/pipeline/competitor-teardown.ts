@@ -4,6 +4,15 @@ import { renderReport } from "../report-renderer";
 
 const TOTAL_STEPS = 14;
 
+const EVIDENCE_DISCIPLINE = `EVIDENCE DISCIPLINE — read carefully:
+- Use ONLY the company context provided above. Do NOT introduce facts that aren't supported by it.
+- If the upstream snapshot is thin, "Unknown", or marked as "Insufficient data", your output MUST also be thin. Return fewer items rather than fabricate to fill the schema.
+- Quote specific phrases from upstream modules where possible.
+- Confidence 0.7+ requires real evidence. Use 0.4-0.5 when reasoning from sparse signals. Use 0.2 when upstream data is missing.
+- Sources: only cite URLs that already appear in upstream sources. Do NOT fabricate URLs.
+
+`;
+
 async function load(scanId: string, module: string): Promise<Record<string, unknown>> {
   const r = await db.analysisResult.findUnique({ where: { scanId_module: { scanId, module } } });
   return (r?.output ?? {}) as Record<string, unknown>;
@@ -36,20 +45,31 @@ export async function runCompetitorTeardownStep(scanId: string, stepIndex: numbe
     case 0: {
       await executeStep(scanId, "competitor_snapshot", 1, TOTAL_STEPS, () =>
         runModule(scanId, "COMPETITOR_SNAPSHOT",
-          "You build company snapshots from public data. Be thorough and factual.",
-          `Build a comprehensive snapshot of the company at ${scan.companyUrl}.
-Return JSON:
+          `You build competitor snapshots from PRIMARY sources only. Be factual.
+
+CRITICAL RULES:
+- You MUST use web_search to fetch the actual company website BEFORE writing anything.
+- Read the homepage, /about, /product, /pricing pages of the EXACT URL given.
+- Do NOT guess based on the domain name. Do NOT confuse the company with similarly-named entities (Companies House records, look-alike domains).
+- If web_search returns no results for the exact URL, set fields to "Unknown" — DO NOT speculate.
+- The "name" field MUST be the brand name as displayed on their actual website, not an inferred legal entity.`,
+          `Use web_search to fetch the homepage at ${scan.companyUrl}. Read what the site actually says about the company.
+
+Then build a factual snapshot. Return JSON:
 {
-  "name": "company name",
-  "description": "what they do",
-  "founded": "year if known",
-  "hq": "location",
-  "teamSize": "estimate",
-  "funding": "funding info",
-  "sector": "sector",
-  "sources": ["urls"],
+  "name": "exact brand name from their website",
+  "description": "2-3 sentences describing what they do — based on the website's own copy",
+  "founded": "year if mentioned, else 'Unknown'",
+  "hq": "location from their website's footer or about page, else 'Unknown'",
+  "teamSize": "estimate if mentioned, else 'Unknown'",
+  "funding": "funding info if mentioned, else 'Unknown'",
+  "sector": "sector / category — from their own positioning",
+  "sources": ["${scan.companyUrl}", "other URLs you actually fetched"],
   "confidence": 0.7
-}`
+}
+
+If web_search fails to return content for ${scan.companyUrl}, set name to the URL hostname and all other fields to "Unknown — website unreachable" with confidence 0.2. Do NOT guess.`,
+          { webSearch: true, maxSearches: 3 }
         ), { retries: 0, critical: true }
       );
       return true;
@@ -60,10 +80,10 @@ Return JSON:
       const ctx1 = pick(s, ["name", "description", "sector", "hq", "funding"]);
       await executeStep(scanId, "positioning", 2, TOTAL_STEPS, () =>
         runModule(scanId, "POSITIONING_ANALYSIS",
-          "You analyse company positioning with brutal honesty.",
-          `Company: ${JSON.stringify(ctx1)}
-Analyse their positioning. Be concise. Return JSON:
-{"statedPositioning":"what they claim","actualPositioning":"where they actually sit","defensibility":"strong|moderate|weak","defensibilityReason":"why (1 sentence)","gaps":["gap1","gap2"],"buyerReason":"why someone buys (1 sentence)","recommendation":"advice (1 sentence)","confidence":0.7}`
+          `You analyse positioning ONLY from the snapshot below. If snapshot is "Unknown", return "Insufficient data" for every field and confidence 0.2.`,
+          `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(ctx1)}
+Analyse their positioning based ONLY on the snapshot above. Return JSON:
+{"statedPositioning":"what they claim — from snapshot","actualPositioning":"where they actually sit","defensibility":"strong|moderate|weak|unknown","defensibilityReason":"why (1 sentence)","gaps":["gap1","gap2"],"buyerReason":"why someone buys (1 sentence)","recommendation":"advice (1 sentence)","confidence":0.5}`
         )
       );
       return true;
@@ -74,10 +94,10 @@ Analyse their positioning. Be concise. Return JSON:
       const ctx2 = pick(s, ["name", "description", "sector"]);
       await executeStep(scanId, "product_shape", 3, TOTAL_STEPS, () =>
         runModule(scanId, "PRODUCT_SHAPE",
-          "You analyse product architecture and shape from public signals.",
-          `Company: ${JSON.stringify(ctx2)}
-Analyse their product. Be concise. Return JSON:
-{"products":["p1","p2"],"architecture":"assessment (1-2 sentences)","integrations":["i1","i2"],"pricingModel":"how they charge","techStack":["ts1","ts2"],"confidence":0.7}`
+          `You analyse product architecture from PUBLIC signals only. Don't invent products or pricing. If unknown, return empty arrays and "Unknown".`,
+          `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(ctx2)}
+Return JSON based ONLY on the snapshot above:
+{"products":["only products you can name from upstream"],"architecture":"assessment (1-2 sentences) or 'Unknown'","integrations":["only verified"],"pricingModel":"how they charge or 'Not publicly disclosed'","techStack":["only verified"],"confidence":0.5}`
         )
       );
       return true;
@@ -93,10 +113,10 @@ Analyse their product. Be concise. Return JSON:
       };
       await executeStep(scanId, "ai_narrative", 4, TOTAL_STEPS, () =>
         runModule(scanId, "AI_NARRATIVE",
-          "You assess AI claims vs reality. Cut through the hype.",
-          `Company: ${JSON.stringify(ctx3)}
-Assess their AI narrative. Be concise. Return JSON:
-{"claims":["c1","c2","c3"],"reality":"honest assessment (1-2 sentences)","gapAnalysis":"where claims exceed reality (1 sentence)","genuineCapabilities":["gc1","gc2"],"confidence":0.7}`
+          `You assess AI claims ONLY from what's verifiable in the upstream context. If they make no AI claims in the upstream data, return empty arrays — don't invent AI claims for them.`,
+          `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(ctx3)}
+Return JSON:
+{"claims":["only AI claims actually mentioned in upstream — empty array if none"],"reality":"honest assessment or 'No AI claims found in public materials'","gapAnalysis":"only if there are claims to assess","genuineCapabilities":["verified only"],"confidence":0.5}`
         )
       );
       return true;
@@ -112,10 +132,10 @@ Assess their AI narrative. Be concise. Return JSON:
       };
       await executeStep(scanId, "gtm_signals", 5, TOTAL_STEPS, () =>
         runModule(scanId, "GTM_SIGNALS",
-          "You extract go-to-market signals from public data.",
-          `Company: ${JSON.stringify(ctx4)}
-Extract GTM signals. Be concise. Return JSON:
-{"channels":["c1","c2"],"messaging":"core message (1 sentence)","targetSegments":["s1","s2"],"partnerships":["p1","p2"],"recentCampaigns":["rc1","rc2"],"confidence":0.7}`
+          `You extract GTM signals from public data only. Don't invent partnerships or campaigns.`,
+          `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(ctx4)}
+Return JSON:
+{"channels":["only verified channels"],"messaging":"core message from their copy or 'Unknown'","targetSegments":["only verified"],"partnerships":["only verified — empty array if none found"],"recentCampaigns":["only verified — empty array if none found"],"confidence":0.5}`
         )
       );
       return true;
@@ -132,10 +152,10 @@ Extract GTM signals. Be concise. Return JSON:
       };
       await executeStep(scanId, "strengths", 6, TOTAL_STEPS, () =>
         runModule(scanId, "STRENGTHS",
-          "You identify real strengths based on evidence, not claims.",
-          `Company: ${JSON.stringify(ctx5)}
-Identify strengths (max 5). Be concise. Return JSON:
-{"strengths":[{"area":"a","evidence":"e (1 sentence)","durability":"short|medium|long"}],"confidence":0.7}`
+          `You identify strengths ONLY backed by evidence in the upstream context. Each strength MUST cite a specific evidence item from upstream. No speculation.`,
+          `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(ctx5)}
+Return JSON. Include 0-5 strengths — only ones you can back with evidence:
+{"strengths":[{"area":"area","evidence":"specific evidence from upstream (1 sentence)","durability":"short|medium|long"}],"confidence":0.5}`
         )
       );
       return true;
@@ -154,10 +174,10 @@ Identify strengths (max 5). Be concise. Return JSON:
       };
       await executeStep(scanId, "vulnerabilities", 7, TOTAL_STEPS, () =>
         runModule(scanId, "VULNERABILITIES",
-          "You identify vulnerabilities — real weaknesses that can be exploited.",
-          `Company: ${JSON.stringify(ctx6)}
-Identify vulnerabilities (max 5). Be concise. Return JSON:
-{"vulnerabilities":[{"area":"a","evidence":"e (1 sentence)","exploitability":"high|medium|low"}],"confidence":0.7}`
+          `You identify vulnerabilities ONLY from observable signals in the upstream context. Each vulnerability MUST cite specific evidence. No invented weaknesses.`,
+          `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(ctx6)}
+Return JSON. Include 0-5 vulnerabilities — only ones you can back with evidence:
+{"vulnerabilities":[{"area":"area","evidence":"specific evidence (1 sentence)","exploitability":"high|medium|low"}],"confidence":0.5}`
         )
       );
       return true;
@@ -180,10 +200,10 @@ Identify vulnerabilities (max 5). Be concise. Return JSON:
       };
       await executeStep(scanId, "next_moves", 8, TOTAL_STEPS, () =>
         runModule(scanId, "NEXT_MOVES",
-          "You predict competitor moves based on signals and patterns.",
-          `Company: ${JSON.stringify(ctx7)}
-Predict next moves (max 4). Be concise. Return JSON:
-{"predictions":[{"move":"m","likelihood":"high|medium|low","timeframe":"t","evidence":"e (1 sentence)"}],"confidence":0.7}`
+          `You predict moves ONLY from concrete signals in the upstream context (job postings, product launches, hiring trends, recent news). No generic speculation.`,
+          `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(ctx7)}
+Return JSON. Include 0-4 predictions — only ones backed by signal:
+{"predictions":[{"move":"specific predicted move","likelihood":"high|medium|low","timeframe":"timeframe","evidence":"specific upstream signal (1 sentence)"}],"confidence":0.4}`
         )
       );
       return true;
@@ -205,10 +225,10 @@ Predict next moves (max 4). Be concise. Return JSON:
       };
       await executeStep(scanId, "response_strategy", 9, TOTAL_STEPS, () =>
         runModule(scanId, "RESPONSE_STRATEGY",
-          "You write competitive response strategies. Think like a wartime CEO.",
-          `Company: ${JSON.stringify(ctx8)}
-Write response strategy. Be direct. Return JSON:
-{"ifCompeting":"2-3 paragraph strategy","attackVectors":["av1","av2","av3"],"defensiveActions":["da1","da2","da3"],"strategicAdvice":"summary (1 sentence)","confidence":0.7}`
+          `You write competitive response strategies tied DIRECTLY to vulnerabilities and next moves identified upstream. Each attack vector MUST exploit a specific upstream finding.`,
+          `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(ctx8)}
+Return JSON. If upstream vulnerabilities/moves are empty, return "Insufficient upstream data" for ifCompeting and confidence 0.3:
+{"ifCompeting":"2-3 paragraph strategy anchored to upstream findings","attackVectors":["each tied to a specific upstream vulnerability"],"defensiveActions":["each tied to a specific upstream next-move"],"strategicAdvice":"summary (1 sentence)","confidence":0.5}`
         )
       );
       return true;
@@ -234,11 +254,11 @@ Write response strategy. Be direct. Return JSON:
       };
       await executeStep(scanId, "product_strategy", 10, TOTAL_STEPS, () =>
         runModule(scanId, "PRODUCT_STRATEGY",
-          "You are a product strategist who identifies how to win against a specific competitor. Think offensively.",
-          `Company: ${JSON.stringify(ctx9)}
+          `You write product strategy anchored to specific vulnerabilities and product gaps from upstream. No generic advice.`,
+          `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(ctx9)}
 ${scan.userQuestion ? `Focus question: ${scan.userQuestion}` : ""}
-Return JSON:
-{"headline":"one-line verdict","whereToAttack":"which areas (1 sentence)","productBets":["pb1","pb2","pb3"],"messagingAngles":["ma1","ma2","ma3"],"thingsToAvoid":["ta1","ta2"],"urgency":"high|medium|low","confidence":0.7}`
+Return JSON. Each product bet/messaging angle MUST tie to a specific upstream finding:
+{"headline":"one-line verdict","whereToAttack":"which areas (1 sentence) — based on upstream vulnerabilities","productBets":["each tied to a specific upstream gap"],"messagingAngles":["each contrasts with their actual positioning"],"thingsToAvoid":["specific to their strengths"],"urgency":"high|medium|low","confidence":0.5}`
         )
       );
       return true;
@@ -248,20 +268,26 @@ Return JSON:
       const snapshot = await load(scanId, "COMPETITOR_SNAPSHOT");
       await executeStep(scanId, "public_financials", 11, TOTAL_STEPS, () =>
         runModule(scanId, "PUBLIC_FINANCIALS",
-          "You extract public financial signals from available data. Be precise and cite your basis. If data is unavailable, say so clearly.",
-          `Company: ${JSON.stringify(snapshot)}
-Extract all available public financial indicators. Return JSON:
+          `You extract financial signals from web_search results only. NEVER fabricate funding rounds, revenue, or valuations. If data is missing, say "Unknown" — do NOT guess.
+
+CRITICAL: Don't confuse the company with similarly-named entities in funding databases. Verify it's the SAME company.`,
+          `Use web_search to find public financial data on the company in the snapshot below. Focus on Crunchbase, Pitchbook, press releases, official funding announcements.
+
+Snapshot: ${JSON.stringify(snapshot)}
+
+Return JSON. Use "Unknown" liberally if data isn't verifiable:
 {
-  "fundingTotal": "total funding raised (e.g. €50M+) or unknown",
-  "lastRound": { "type": "Series A/B/etc or unknown", "amount": "amount or unknown", "date": "date or unknown", "investors": ["known investors"] },
-  "revenueEstimate": "ARR or revenue estimate from public signals — analyst reports, CEO interviews, job postings, pricing pages. State the basis.",
-  "growthSignals": ["signals suggesting growth trajectory — headcount trend, geographic expansion, product launches, partner announcements"],
-  "profitabilitySignals": ["any signals about path to profitability or burn"],
-  "valuation": "last known or implied valuation if public, else unknown",
-  "keyMetrics": ["any publicly stated metrics — NRR, customer count, ACV, etc."],
-  "financialHealth": "strong|moderate|uncertain",
-  "confidence": 0.4
-}`
+  "fundingTotal": "total funding raised or 'Unknown'",
+  "lastRound": { "type": "Series A/B/etc or 'Unknown'", "amount": "amount or 'Unknown'", "date": "date or 'Unknown'", "investors": ["only verified — empty array if unknown"] },
+  "revenueEstimate": "estimate with stated basis (e.g. 'Crunchbase 2024') or 'Not publicly disclosed'",
+  "growthSignals": ["only verified — empty array if none"],
+  "profitabilitySignals": ["only verified — empty array if none"],
+  "valuation": "last known valuation or 'Unknown'",
+  "keyMetrics": ["only publicly stated — empty array if none"],
+  "financialHealth": "strong|moderate|uncertain|unknown",
+  "confidence": 0.3
+}`,
+          { webSearch: true, maxSearches: 2 }
         )
       );
       return true;
@@ -402,7 +428,7 @@ function formatResponse(d: Record<string, unknown>): string {
 function formatFinancials(d: Record<string, unknown>): string {
   if (!d?.financialHealth) return "<p>No public financial data available.</p>";
   const health = d.financialHealth as string;
-  const healthColour = health === "strong" ? "#059669" : health === "moderate" ? "#d97706" : "#6b7280";
+  const healthColour = health === "strong" ? "#1e293b" : health === "moderate" ? "#d97706" : "#6b7280";
   return `
     <p><strong>Financial Health:</strong> <span style="color:${healthColour};font-weight:600;text-transform:capitalize">${health}</span></p>
     <p><strong>Total Funding:</strong> ${d.fundingTotal || "Unknown"}</p>

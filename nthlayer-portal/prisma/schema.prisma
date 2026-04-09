@@ -11,8 +11,13 @@ model User {
   id           String   @id @default(cuid())
   email        String   @unique
   name         String?
+  company      String?
+  jobTitle     String?
   passwordHash String
   role         String   @default("USER") // USER | ADMIN
+  lastLoginAt  DateTime?
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -35,10 +40,12 @@ model CompanyProfile {
   icp1     String?
   icp2     String?
   icp3     String?
-  territories  String[] @default([])
-  bigBet       String?
-  aiAmbition   String?
-  selfWeakness String?
+  territories     String[] @default([])
+  inflectionPoint String?
+  risks           String?
+  bigBet          String?
+  aiAmbition      String?
+  selfWeakness    String?
   competitor1  String?
   competitor2  String?
   competitor3  String?
@@ -64,10 +71,12 @@ model Scan {
   userQuestion String?
 
   // Self Scan inputs
-  icp          String?
-  bigBet       String?
-  aiAmbition   String?
-  selfWeakness String?
+  icp             String?
+  bigBet          String?
+  aiAmbition      String?
+  selfWeakness    String?
+  inflectionPoint String?
+  risks           String?
 
   priorities       String[]
   workflow         Json?

@@ -7,12 +7,12 @@
   --card-foreground: #09090b;
   --border: #e4e4e7;
   --input: #f4f4f5;
-  --primary: #059669;
+  --primary: #1e293b;
   --primary-foreground: #ffffff;
   --muted: #f4f4f5;
   --muted-foreground: #71717a;
   --destructive: #ef4444;
-  --ring: #059669;
+  --ring: #1e293b;
 }
 
 body {
@@ -23,4 +23,16 @@ body {
 
 .font-mono {
   font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@media print {
+  aside, header, .print\\:hidden, .print-hidden, [class*="border-b"] > div:first-child {
+    display: none !important;
+  }
+  main {
+    margin-left: 0 !important;
+  }
+  body {
+    background: white;
+  }
 }

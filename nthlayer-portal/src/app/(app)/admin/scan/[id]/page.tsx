@@ -95,7 +95,7 @@ export default async function AdminScanPage({
                   <span
                     className={`text-xs px-1.5 py-0.5 rounded-full ${
                       result.confidence >= 0.8
-                        ? "bg-emerald-500/20 text-emerald-400"
+                        ? "bg-slate-500/20 text-slate-400"
                         : result.confidence >= 0.5
                         ? "bg-yellow-500/20 text-yellow-400"
                         : "bg-red-500/20 text-red-400"

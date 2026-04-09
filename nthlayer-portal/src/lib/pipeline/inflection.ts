@@ -4,6 +4,15 @@ import { renderReport } from "../report-renderer";
 
 const TOTAL_STEPS = 17;
 
+const EVIDENCE_DISCIPLINE = `EVIDENCE DISCIPLINE — read carefully:
+- Use ONLY the analysis context above. Do NOT introduce facts that aren't supported by it.
+- If upstream data is "Unknown" or thin, your output MUST also be thin. Return fewer items rather than fabricate.
+- Quote specific phrases from upstream where possible.
+- Confidence 0.7+ requires real evidence. Use 0.4-0.5 when sparse. Use 0.2 when upstream is missing.
+- Sources: only cite URLs that already appear in upstream sources. Do NOT fabricate URLs.
+
+`;
+
 export async function runInflectionPipeline(scanId: string) {
   const scan = await db.scan.findUniqueOrThrow({
     where: { id: scanId },
@@ -15,51 +24,55 @@ export async function runInflectionPipeline(scanId: string) {
   // Step 1: Company Research
   const companyResearch = await executeStep(scanId, "company_research", 1, TOTAL_STEPS, () =>
     runModule(scanId, "COMPANY_RESEARCH",
-      "You research companies using public information. Return structured JSON.",
-      `Analyse the company at ${scan.companyUrl}${scan.companyName ? ` (${scan.companyName})` : ""}.
+      `You research companies from PRIMARY sources. You MUST use web_search to fetch the actual company website BEFORE writing anything. Do NOT guess from the domain. Do NOT confuse with similarly-named entities. If web_search returns nothing for the exact URL, set fields to "Unknown — website unreachable".`,
+      `Use web_search to fetch ${scan.companyUrl}${scan.companyName ? ` (${scan.companyName})` : ""}. Read what the site actually says.
 
-Extract and return JSON:
+Extract and return JSON. Use "Unknown" liberally if not verifiable:
 {
-  "description": "what they do in 2-3 sentences",
-  "sector": "industry sector",
-  "targetCustomer": "who they sell to",
-  "products": ["product1", "product2"],
-  "pricingModel": "how they charge",
-  "teamSignals": ["observable team signals"],
-  "fundingStage": "funding stage if visible",
-  "techSignals": ["technology indicators"],
-  "recentChanges": ["recent news or changes"],
-  "sources": ["urls used"],
+  "description": "from their actual copy or 'Unknown'",
+  "sector": "from their own positioning or 'Unknown'",
+  "targetCustomer": "from their site or 'Unknown'",
+  "products": ["only verified — empty array if unknown"],
+  "pricingModel": "from pricing page or 'Not publicly disclosed'",
+  "teamSignals": ["only observable signals"],
+  "fundingStage": "if visible or 'Unknown'",
+  "techSignals": ["only verified — empty array if unknown"],
+  "recentChanges": ["only verified — empty array if unknown"],
+  "sources": ["${scan.companyUrl}", "other URLs you actually fetched"],
   "confidence": 0.7
-}`
+}
+
+If web_search fails, set all fields to "Unknown — website unreachable" and confidence 0.2.`,
+      { webSearch: true, maxSearches: 3 }
     ), { retries: 2, critical: true }
   );
 
   // Step 2: Competitor Research
   const competitorResearch = await executeStep(scanId, "competitor_research", 2, TOTAL_STEPS, () =>
     runModule(scanId, "COMPETITOR_RESEARCH",
-      "You research competitors using public information. Return structured JSON.",
-      `For each competitor, extract public information.
+      `You research competitors from PRIMARY sources. Use web_search to fetch each competitor's actual website. Do NOT speculate. Mark anything you can't verify as "Unknown".`,
+      `Use web_search to fetch each competitor's website.
 
 Competitors: ${scan.competitors.join(", ")}
 
-Return JSON:
+Return JSON. Each field must come from their actual site or be marked Unknown:
 {
   "competitors": [
     {
       "url": "url",
-      "name": "name",
-      "description": "what they do",
-      "positioning": "how they position",
-      "differentiators": ["key diffs"],
-      "pricingSignals": ["pricing info"],
-      "gtmApproach": "go-to-market",
-      "recentMoves": ["recent changes"],
-      "sources": ["urls"]
+      "name": "exact brand name from their site",
+      "description": "from their actual copy",
+      "positioning": "from their site",
+      "differentiators": ["only verified"],
+      "pricingSignals": ["only from their pricing page"],
+      "gtmApproach": "from their site or 'Unknown'",
+      "recentMoves": ["only verified"],
+      "sources": ["urls you actually fetched"]
     }
   ],
-  "confidence": 0.7
-}`
+  "confidence": 0.6
+}`,
+      { webSearch: true, maxSearches: 3 }
     ), { retries: 2, critical: false }
   );
 
@@ -67,7 +80,7 @@ Return JSON:
   const positioning = await executeStep(scanId, "positioning", 3, TOTAL_STEPS, () =>
     runModule(scanId, "POSITIONING_ANALYSIS",
       "You analyse company positioning with brutal honesty. Return structured JSON.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 Competitors: ${JSON.stringify(competitorResearch)}
 Their stated priorities: ${scan.priorities.join("; ")}
 
@@ -80,7 +93,8 @@ Assess positioning. Return JSON:
   "gaps": ["gap between stated and actual"],
   "buyerReason": "why someone actually buys this",
   "recommendation": "what to do about it",
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -89,7 +103,7 @@ Assess positioning. Return JSON:
   const competitive = await executeStep(scanId, "competitive", 4, TOTAL_STEPS, () =>
     runModule(scanId, "COMPETITIVE_ANALYSIS",
       "You assess competitive reality. Be direct about who is winning and why.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 Competitors: ${JSON.stringify(competitorResearch)}
 Positioning: ${JSON.stringify(positioning)}
 
@@ -101,7 +115,8 @@ Return JSON:
   "companyDisadvantages": ["disadvantages"],
   "threatMoves": ["competitive moves to fear"],
   "killList": [{"competitor": "name", "weakness": "what", "action": "exploit how"}],
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -123,7 +138,8 @@ Return JSON:
   "aiOpportunities": [{"step": "step name", "opportunity": "what AI can do", "impact": "high|medium|low"}],
   "estimatedROI": "realistic ROI estimate",
   "tenXVision": "what 10x better looks like",
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
         ), { critical: false }
       )
@@ -133,7 +149,7 @@ Return JSON:
   const aiModel = await executeStep(scanId, "ai_operating_model", 6, TOTAL_STEPS, () =>
     runModule(scanId, "AI_OPERATING_MODEL",
       "You assess AI readiness and opportunity realistically. No hype.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 Competitors: ${JSON.stringify(competitorResearch)}
 Workflow: ${JSON.stringify(workflowAnalysis)}
 
@@ -144,7 +160,8 @@ Return JSON:
   "hypeVsReality": "honest assessment",
   "highValueAIInvestments": [{"area": "area", "impact": "impact", "complexity": "low|medium|high"}],
   "doNothingRisk": "what happens if they ignore AI",
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -153,7 +170,7 @@ Return JSON:
   const valueCreation = await executeStep(scanId, "value_creation", 7, TOTAL_STEPS, () =>
     runModule(scanId, "VALUE_CREATION",
       "You identify concrete value creation levers. Be specific about impact.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 Positioning: ${JSON.stringify(positioning)}
 Competitive: ${JSON.stringify(competitive)}
 Workflow: ${JSON.stringify(workflowAnalysis)}
@@ -162,7 +179,8 @@ AI: ${JSON.stringify(aiModel)}
 Identify top value creation levers. Return JSON:
 {
   "levers": [{"category": "revenue|margin|moat|efficiency|inorganic", "lever": "what", "impact": "high|medium|low", "feasibility": "high|medium|low", "timeframe": "when", "detail": "specifics"}],
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -171,14 +189,15 @@ Identify top value creation levers. Return JSON:
   const bets = await executeStep(scanId, "strategic_bets", 8, TOTAL_STEPS, () =>
     runModule(scanId, "STRATEGIC_BETS",
       "You define bold but grounded strategic bets. Not obvious. Not safe.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 Value Creation: ${JSON.stringify(valueCreation)}
 Competitive: ${JSON.stringify(competitive)}
 
 Define 3-5 strategic bets. Return JSON:
 {
   "bets": [{"title": "bet name", "description": "what", "whyNow": "timing", "upside": "upside", "risk": "risk", "successIn12Months": "what success looks like"}],
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -196,7 +215,8 @@ Write the CEO's 90-day action plan. Return JSON:
   "immediate": [{"action": "specific action", "owner": "role", "metric": "success metric"}],
   "buildPhase": [{"action": "action", "owner": "role", "metric": "metric"}],
   "executionPhase": [{"action": "action", "owner": "role", "metric": "metric"}],
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -205,7 +225,7 @@ Write the CEO's 90-day action plan. Return JSON:
   const doNothing = await executeStep(scanId, "do_nothing", 10, TOTAL_STEPS, () =>
     runModule(scanId, "DO_NOTHING",
       "You paint honest pictures of inaction. Create urgency without alarmism.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 Competitive: ${JSON.stringify(competitive)}
 AI: ${JSON.stringify(aiModel)}
 
@@ -216,7 +236,8 @@ What happens if this company changes nothing? Return JSON:
   "twentyFourMonths": "24 month outlook",
   "biggestRisk": "single biggest risk",
   "probabilityOfDecline": "high|medium|low",
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );

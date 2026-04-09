@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function CompetitorTeardownPage() {
@@ -10,6 +10,21 @@ export default function CompetitorTeardownPage() {
   const [companyName, setCompanyName] = useState("");
   const [companyUrl, setCompanyUrl] = useState("");
   const [userQuestion, setUserQuestion] = useState("");
+
+  const [usage, setUsage] = useState<{ count: number; max: number; limitReached: boolean } | null>(null);
+  const [usageLoading, setUsageLoading] = useState(true);
+  const [requesting, setRequesting] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/scan/competitor")
+      .then((r) => r.json())
+      .then((data) => {
+        if (typeof data.count === "number") setUsage(data);
+      })
+      .catch(() => {})
+      .finally(() => setUsageLoading(false));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,7 +44,11 @@ export default function CompetitorTeardownPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to create scan");
+        if (data.error === "LIMIT_REACHED") {
+          setUsage({ count: data.count, max: data.max, limitReached: true });
+          return;
+        }
+        setError(data.message || data.error || "Failed to create scan");
         return;
       }
 
@@ -42,18 +61,88 @@ export default function CompetitorTeardownPage() {
     }
   }
 
+  async function handleRequestMore() {
+    setRequesting(true);
+    try {
+      await fetch("/api/scan/competitor/request-more", { method: "POST" });
+      setRequestSent(true);
+    } catch {
+      // silent
+    } finally {
+      setRequesting(false);
+    }
+  }
+
+  if (usageLoading) {
+    return (
+      <div className="max-w-2xl mx-auto animate-pulse space-y-4">
+        <div className="h-8 bg-[var(--muted)] rounded w-1/3" />
+        <div className="h-4 bg-[var(--muted)] rounded w-2/3" />
+      </div>
+    );
+  }
+
+  if (usage?.limitReached) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold tracking-tight">New Teardown</h2>
+          <p className="text-sm text-[var(--muted-foreground)] mt-1">
+            Sharp strategic read on any company using public signals only.
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-8 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50">
+            <svg className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-bold">You&apos;ve reached your limit</h3>
+          <p className="text-sm text-[var(--muted-foreground)] mt-2 max-w-sm mx-auto">
+            You&apos;ve used {usage.count} of {usage.max} competitor teardowns. Request more and we&apos;ll get back to you.
+          </p>
+
+          {requestSent ? (
+            <div className="mt-6 inline-flex items-center gap-2 rounded-md bg-emerald-50 border border-emerald-200 px-4 py-2 text-sm text-emerald-800">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              Request sent — we&apos;ll be in touch.
+            </div>
+          ) : (
+            <button
+              onClick={handleRequestMore}
+              disabled={requesting}
+              className="mt-6 rounded-md bg-[var(--primary)] px-5 py-2.5 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 transition-opacity"
+            >
+              {requesting ? "Sending..." : "Request More"}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold tracking-tight">New Teardown</h2>
-        <p className="text-sm text-[var(--muted-foreground)] mt-1">
-          Sharp strategic read on any company using public signals only. No uploads required.
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">New Teardown</h2>
+          <p className="text-sm text-[var(--muted-foreground)] mt-1">
+            Sharp strategic read on any company using public signals only. No uploads required.
+          </p>
+        </div>
+        {usage && (
+          <div className="shrink-0 rounded-full bg-[var(--muted)] px-3 py-1 text-xs font-medium text-[var(--muted-foreground)]">
+            {usage.count}/{usage.max} used
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {error && (
-          <div className="rounded-md bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+          <div className="rounded-md bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-500">
             {error}
           </div>
         )}

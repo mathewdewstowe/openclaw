@@ -5,9 +5,40 @@ import { db } from "@/lib/db";
 import { competitorTeardownSchema } from "@/lib/validations";
 import { runCompetitorTeardownStep } from "@/lib/pipeline/competitor-teardown";
 
+const MAX_TEARDOWNS = 3;
+
+export async function GET() {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const count = await db.scan.count({
+    where: { userId: user.id, type: "COMPETITOR_TEARDOWN" },
+  });
+  const isAdmin = user.role === "ADMIN";
+
+  return NextResponse.json({
+    count,
+    max: MAX_TEARDOWNS,
+    limitReached: !isAdmin && count >= MAX_TEARDOWNS,
+  });
+}
+
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Enforce limit: max 3 competitor teardowns per user (admins exempt)
+  if (user.role !== "ADMIN") {
+    const count = await db.scan.count({
+      where: { userId: user.id, type: "COMPETITOR_TEARDOWN" },
+    });
+    if (count >= MAX_TEARDOWNS) {
+      return NextResponse.json(
+        { error: "LIMIT_REACHED", message: `You've reached your limit of ${MAX_TEARDOWNS} competitor teardowns.`, count, max: MAX_TEARDOWNS },
+        { status: 403 }
+      );
+    }
+  }
 
   const body = await req.json();
   const parsed = competitorTeardownSchema.safeParse(body);

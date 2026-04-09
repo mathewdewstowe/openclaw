@@ -28,6 +28,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
+    // Track last login
+    await db.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
     const token = await createToken(user.id);
     const cookieStore = await cookies();
     cookieStore.set("token", token, {

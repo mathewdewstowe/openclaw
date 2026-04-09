@@ -4,29 +4,44 @@ import { renderReport } from "../report-renderer";
 
 const TOTAL_STEPS = 12;
 
+const EVIDENCE_DISCIPLINE = `EVIDENCE DISCIPLINE — read carefully:
+- Use ONLY the analysis context above. Do NOT introduce facts that aren't supported by it.
+- If upstream data is "Unknown" or thin, your output MUST also be thin. Return fewer items rather than fabricate.
+- Quote specific phrases from upstream where possible.
+- Confidence 0.7+ requires real evidence. Use 0.4-0.5 when sparse. Use 0.2 when upstream is missing.
+- Sources: only cite URLs that already appear in upstream sources. Do NOT fabricate URLs.
+
+`;
+
 export async function runDealDDPipeline(scanId: string) {
   const scan = await db.scan.findUniqueOrThrow({ where: { id: scanId } });
 
   // Step 1: Company Research
   const companyResearch = await executeStep(scanId, "company_research", 1, TOTAL_STEPS, () =>
     runModule(scanId, "COMPANY_RESEARCH",
-      "You research target companies for due diligence. Be thorough and factual.",
-      `Research the company at ${scan.companyUrl} for due diligence purposes.
-${scan.investmentThesis ? `Investment thesis: ${scan.investmentThesis}` : ""}
-Return JSON:
+      `You research target companies for due diligence from PRIMARY sources. You MUST use web_search to fetch the actual company website BEFORE writing anything. Do NOT guess. Do NOT confuse with similarly-named entities. If web_search fails, set fields to "Unknown — website unreachable".
+
+DD context: investors will rely on this. Hallucinated facts could cost millions. Be ruthlessly honest about gaps.`,
+      `Use web_search to fetch ${scan.companyUrl}. Read the actual website.
+${scan.investmentThesis ? `Investment thesis context: ${scan.investmentThesis}` : ""}
+
+Return JSON. Use "Unknown" liberally if not verifiable:
 {
-  "description": "what they do",
-  "sector": "sector",
-  "targetCustomer": "who they serve",
-  "products": ["products"],
-  "pricingModel": "pricing",
-  "teamSignals": ["team observations"],
-  "fundingStage": "funding",
-  "techSignals": ["tech signals"],
-  "recentChanges": ["recent changes"],
-  "sources": ["urls"],
+  "description": "from their actual copy or 'Unknown'",
+  "sector": "from their positioning or 'Unknown'",
+  "targetCustomer": "from their site or 'Unknown'",
+  "products": ["only verified — empty array if unknown"],
+  "pricingModel": "from pricing page or 'Not publicly disclosed'",
+  "teamSignals": ["only observable signals"],
+  "fundingStage": "if visible or 'Unknown'",
+  "techSignals": ["only verified"],
+  "recentChanges": ["only verified"],
+  "sources": ["${scan.companyUrl}", "other URLs you actually fetched"],
   "confidence": 0.7
-}`
+}
+
+If web_search fails, set all fields to "Unknown — website unreachable" and confidence 0.2.`,
+      { webSearch: true, maxSearches: 3 }
     ), { retries: 2, critical: true }
   );
 
@@ -34,7 +49,7 @@ Return JSON:
   const productShape = await executeStep(scanId, "product_shape", 2, TOTAL_STEPS, () =>
     runModule(scanId, "PRODUCT_SHAPE",
       "You analyse product shape for DD.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 Analyse product. Return JSON:
 {
   "products": ["products"],
@@ -42,7 +57,8 @@ Analyse product. Return JSON:
   "integrations": ["integrations"],
   "pricingModel": "pricing",
   "techStack": ["tech"],
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -51,7 +67,7 @@ Analyse product. Return JSON:
   const gtm = await executeStep(scanId, "gtm_signals", 3, TOTAL_STEPS, () =>
     runModule(scanId, "GTM_SIGNALS",
       "You extract GTM signals for DD assessment.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 Extract GTM signals. Return JSON:
 {
   "channels": ["channels"],
@@ -59,7 +75,8 @@ Extract GTM signals. Return JSON:
   "targetSegments": ["segments"],
   "partnerships": ["partnerships"],
   "recentCampaigns": ["campaigns"],
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -68,7 +85,7 @@ Extract GTM signals. Return JSON:
   const aiNarrative = await executeStep(scanId, "ai_narrative", 4, TOTAL_STEPS, () =>
     runModule(scanId, "AI_NARRATIVE",
       "You assess AI claims vs reality for investors.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 Product: ${JSON.stringify(productShape)}
 Assess AI claims. Return JSON:
 {
@@ -76,7 +93,8 @@ Assess AI claims. Return JSON:
   "reality": "honest assessment",
   "gapAnalysis": "gaps",
   "genuineCapabilities": ["real capabilities"],
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -85,12 +103,13 @@ Assess AI claims. Return JSON:
   const productRisk = await executeStep(scanId, "product_risk", 5, TOTAL_STEPS, () =>
     runModule(scanId, "PRODUCT_RISK",
       "You assess product risk for investors. Be direct about red flags.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 Product: ${JSON.stringify(productShape)}
 Assess product risks. Return JSON:
 {
   "risks": [{"risk": "risk description", "severity": "high|medium|low", "evidence": "what supports this", "mitigant": "what could reduce this risk"}],
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -99,12 +118,13 @@ Assess product risks. Return JSON:
   const gtmRisk = await executeStep(scanId, "gtm_risk", 6, TOTAL_STEPS, () =>
     runModule(scanId, "GTM_RISK",
       "You assess go-to-market risk for investors.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 GTM: ${JSON.stringify(gtm)}
 Assess GTM risks. Return JSON:
 {
   "risks": [{"risk": "risk", "severity": "high|medium|low", "evidence": "evidence", "mitigant": "mitigant"}],
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -113,7 +133,7 @@ Assess GTM risks. Return JSON:
   const aiRealism = await executeStep(scanId, "ai_realism", 7, TOTAL_STEPS, () =>
     runModule(scanId, "AI_REALISM",
       "You score AI realism for investors. Cut through hype.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 AI Narrative: ${JSON.stringify(aiNarrative)}
 Score AI realism. Return JSON:
 {
@@ -121,7 +141,8 @@ Score AI realism. Return JSON:
   "hypeScore": 5,
   "genuineCapabilities": ["real capabilities"],
   "overclaimedCapabilities": ["overclaimed"],
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -130,11 +151,12 @@ Score AI realism. Return JSON:
   const executionRisk = await executeStep(scanId, "execution_risk", 8, TOTAL_STEPS, () =>
     runModule(scanId, "EXECUTION_RISK",
       "You assess execution risk based on team and operational signals.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 Assess execution risks. Return JSON:
 {
   "risks": [{"risk": "risk", "severity": "high|medium|low", "evidence": "evidence", "mitigant": "mitigant"}],
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );
@@ -143,7 +165,7 @@ Assess execution risks. Return JSON:
   const valueLevers = await executeStep(scanId, "value_creation_levers", 9, TOTAL_STEPS, () =>
     runModule(scanId, "VALUE_CREATION_LEVERS",
       "You identify value creation levers for PE investors.",
-      `Company: ${JSON.stringify(companyResearch)}
+      `${EVIDENCE_DISCIPLINE}Company: ${JSON.stringify(companyResearch)}
 Product: ${JSON.stringify(productShape)}
 GTM: ${JSON.stringify(gtm)}
 Product Risk: ${JSON.stringify(productRisk)}
@@ -152,7 +174,8 @@ GTM Risk: ${JSON.stringify(gtmRisk)}
 Identify value creation levers. Return JSON:
 {
   "levers": [{"lever": "lever", "category": "revenue|margin|moat|efficiency|inorganic", "impact": "high|medium|low", "timeframe": "when", "prerequisite": "what needs to happen first"}],
-  "confidence": 0.7
+  "confidence": 0.7,
+  "sources": ["specific URL or public source", "another source"]
 }`
     )
   );

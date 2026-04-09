@@ -113,8 +113,8 @@ export default function NewsPage() {
 
       {companies.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gray-200 p-12 text-center">
-          <div className="mx-auto mb-4 w-fit rounded-md bg-emerald-50 p-3">
-            <svg className="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <div className="mx-auto mb-4 w-fit rounded-md bg-slate-50 p-3">
+            <svg className="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-4.5 5.25h4.5m2.25 2.25H6.75A2.25 2.25 0 014.5 15.75V5.25A2.25 2.25 0 016.75 3h5.586a1.5 1.5 0 011.06.44l3.415 3.414a1.5 1.5 0 01.439 1.061V15.75A2.25 2.25 0 0115 18h-4.5" />
             </svg>
           </div>
@@ -133,7 +133,7 @@ export default function NewsPage() {
                 onClick={() => setActiveTab(company)}
                 className={`w-full text-left px-3 py-2 rounded-md text-[13px] font-medium transition-colors ${
                   activeTab === company
-                    ? "bg-emerald-50 text-emerald-700"
+                    ? "bg-slate-50 text-slate-700"
                     : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
                 }`}
               >
@@ -155,11 +155,11 @@ export default function NewsPage() {
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block rounded-lg border border-gray-100 bg-white p-4 hover:border-emerald-200 hover:shadow-sm transition-all group"
+                    className="block rounded-lg border border-gray-100 bg-white p-4 hover:border-slate-200 hover:shadow-sm transition-all group"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
-                        <p className="text-[13px] font-medium text-gray-900 group-hover:text-emerald-700 transition-colors leading-snug">
+                        <p className="text-[13px] font-medium text-gray-900 group-hover:text-slate-700 transition-colors leading-snug">
                           {item.title}
                         </p>
                         {item.summary && (
@@ -173,7 +173,7 @@ export default function NewsPage() {
                           {item.publishedAt && <span>{timeAgo(item.publishedAt)}</span>}
                         </div>
                       </div>
-                      <svg className="h-3.5 w-3.5 shrink-0 text-gray-300 group-hover:text-emerald-400 mt-0.5 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <svg className="h-3.5 w-3.5 shrink-0 text-gray-300 group-hover:text-slate-400 mt-0.5 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                       </svg>
                     </div>

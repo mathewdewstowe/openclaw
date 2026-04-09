@@ -1,13 +1,12 @@
-import { PrismaClient } from "@prisma/client";
-
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+import { PrismaClient } from "@prisma/client/wasm";
+import { PrismaNeonHTTP } from "@prisma/adapter-neon";
 
 function createClient(): PrismaClient {
-  // When deployed to Cloudflare, DATABASE_URL should point to Neon
-  // The Neon serverless driver works over HTTP, Prisma handles it natively
-  // with the driverAdapters preview feature enabled in schema.prisma
-  return new PrismaClient();
+  const adapter = new PrismaNeonHTTP(process.env.DATABASE_URL!, {});
+  return new PrismaClient({ adapter });
 }
+
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
 export const db = globalForPrisma.prisma || createClient();
 
