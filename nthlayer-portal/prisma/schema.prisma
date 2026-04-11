@@ -7,20 +7,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── V2 Models ───────────────────────────────────────────────
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
   name         String?
-  company      String?
+  company      String?  // legacy — use Company model for v2
   jobTitle     String?
   passwordHash String
-  role         String   @default("USER") // USER | ADMIN
+  role         String   @default("USER") // legacy: USER | ADMIN
+  systemRole   String   @default("member") // super_admin | admin | operator | member | viewer
+  isActive     Boolean  @default(true)
+  planId       String?
+  plan         Plan?    @relation(fields: [planId], references: [id])
   lastLoginAt  DateTime?
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  companyAccess  UserCompanyAccess[]
+  jobs           Job[]
+  portfolios     Portfolio[]
+  shares         OutputShare[]
+
+  // Legacy relations (kept for migration)
   scans          Scan[]
   reports        Report[]
   companyProfile CompanyProfile?
@@ -28,6 +40,172 @@ model User {
 
   @@map("users")
 }
+
+model Plan {
+  id           String  @id @default(cuid())
+  name         String  @unique // free | pro | operator | portfolio | enterprise
+  displayName  String
+  description  String?
+  priceMonthly Int?    // cents
+  priceAnnual  Int?    // cents
+  entitlements Json    // PlanEntitlements shape
+  isActive     Boolean @default(true)
+  sortOrder    Int     @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  users User[]
+
+  @@map("plans")
+}
+
+model Company {
+  id          String  @id @default(cuid())
+  name        String
+  url         String?
+  sector      String?
+  location    String?
+  description String?
+  profile     Json?   // detailed ICP/competitor/strategy inputs
+  createdById String
+  portfolioId String?
+  portfolio   Portfolio? @relation(fields: [portfolioId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  users       UserCompanyAccess[]
+  jobs        Job[]
+  outputs     Output[]
+  competitors CompetitorProfile[]
+  shares      OutputShare[]
+
+  @@index([createdById])
+  @@map("companies")
+}
+
+model UserCompanyAccess {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role      String   @default("editor") // owner | editor | viewer
+  createdAt DateTime @default(now())
+
+  @@unique([userId, companyId])
+  @@index([userId])
+  @@index([companyId])
+  @@map("user_company_access")
+}
+
+model Portfolio {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  companies Company[]
+
+  @@index([createdById])
+  @@map("portfolios")
+}
+
+model Job {
+  id           String    @id @default(cuid())
+  companyId    String
+  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  workflowType String    // diagnose | decide | position | act | competitor_intel
+  status       String    @default("pending") // pending | running | completed | failed
+  progress     Int       @default(0)
+  outputId     String?   @unique
+  output       Output?   @relation(fields: [outputId], references: [id])
+  metadata     Json?     // inputs, config
+  errorMessage String?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  events JobEvent[]
+
+  @@index([companyId])
+  @@index([userId])
+  @@index([status])
+  @@index([workflowType])
+  @@map("jobs")
+}
+
+model Output {
+  id           String   @id @default(cuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  workflowType String   // diagnose | decide | position | act | competitor_intel
+  outputType   String   // executive_strategic_brief | strategic_diagnosis | positioning_recommendation etc.
+  title        String
+  sections     Json     // OutputSections shape (10 mandatory sections)
+  version      Int      @default(1)
+  confidence   Float?
+  sources      String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  job Job?
+
+  @@index([companyId])
+  @@index([workflowType])
+  @@map("outputs")
+}
+
+model OutputShare {
+  id             String   @id @default(cuid())
+  outputId       String?
+  companyId      String
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  sharedById     String
+  sharedBy       User     @relation(fields: [sharedById], references: [id])
+  recipientEmail String
+  workflowType   String
+  stageName      String
+  createdAt      DateTime @default(now())
+
+  @@index([companyId])
+  @@index([sharedById])
+  @@map("output_shares")
+}
+
+model JobEvent {
+  id        String   @id @default(cuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  event     String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([jobId])
+  @@map("job_events")
+}
+
+model CompetitorProfile {
+  id                     String   @id @default(cuid())
+  companyId              String
+  company                Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name                   String
+  url                    String?
+  latestTeardownOutputId String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@map("competitor_profiles")
+}
+
+// ─── Legacy Models (kept for data migration) ─────────────────
 
 model CompanyProfile {
   id       String @id @default(cuid())
@@ -63,14 +241,13 @@ model Scan {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  type   String // INFLECTION | COMPETITOR_TEARDOWN | DEAL_DD
-  status String @default("PENDING") // PENDING | RUNNING | COMPLETED | FAILED | PARTIAL
+  type   String
+  status String @default("PENDING")
 
   companyUrl  String
   companyName String?
   userQuestion String?
 
-  // Self Scan inputs
   icp             String?
   bigBet          String?
   aiAmbition      String?
@@ -89,7 +266,7 @@ model Scan {
   errorMessage String?
   progress    Int       @default(0)
 
-  mode String @default("PUBLIC_SIGNAL") // PUBLIC_SIGNAL | INTERNAL_EVIDENCE
+  mode String @default("PUBLIC_SIGNAL")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

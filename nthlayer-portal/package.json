@@ -21,6 +21,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.87.0",
     "@neondatabase/serverless": "^1.0.2",
     "@opennextjs/cloudflare": "^1.18.0",
     "@prisma/adapter-neon": "^6.19.2",
@@ -35,6 +36,7 @@
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.2",
     "jsonwebtoken": "^9.0.3",
+    "jspdf": "^4.2.1",
     "next": "^16.2.1",
     "postcss": "^8.5.8",
     "prisma": "^6.19.2",

@@ -41,7 +41,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/company");
+      router.push("/inflexion/overview");
       router.refresh();
     } catch {
       setError("Something went wrong");

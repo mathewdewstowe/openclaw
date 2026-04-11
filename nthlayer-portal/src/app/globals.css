@@ -26,7 +26,7 @@ body {
 }
 
 @media print {
-  aside, header, .print\\:hidden, .print-hidden, [class*="border-b"] > div:first-child {
+  aside, header, .print-hidden, [class*="border-b"] > div:first-child {
     display: none !important;
   }
   main {

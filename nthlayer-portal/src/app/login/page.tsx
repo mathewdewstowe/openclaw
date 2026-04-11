@@ -38,7 +38,7 @@ export default function LoginPage() {
       // Reset disclaimer so it shows again after every login
       try { sessionStorage.removeItem("nthlayer_disclaimer_accepted_v1"); } catch {}
 
-      router.push("/company");
+      router.push("/inflexion/overview");
       router.refresh();
     } catch {
       setError("Something went wrong");
@@ -51,7 +51,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col">
       {/* Hero banner */}
       <div
-        className="relative h-24 sm:h-28 w-full bg-cover bg-center border-b-2 border-gray-900"
+        className="relative h-52 sm:h-64 w-full bg-cover bg-center border-b-2 border-gray-900"
         style={{ backgroundImage: "url(/images/hero-tree.jpg)" }}
       >
         <div className="absolute inset-0 bg-black/10" />
@@ -77,52 +77,44 @@ export default function LoginPage() {
               Introducing Inflexion
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
-              The Product Strategy Engine for Investors and Operators
+              The Product Strategy Engine for Investors and Operators.
             </h2>
             <p className="text-lg font-medium text-[var(--foreground)]">
-              Proven frameworks. Deep reasoning. Board-ready outputs.
+              Stop second-guessing your next move. Inflexion does the strategic heavy lifting — so you arrive at better decisions, faster, with the evidence to back them up.
+            </p>
+            <p className="text-base text-[var(--muted-foreground)]">
+              Built for the moments that define what a business becomes: when growth stalls, a deal closes, a competitor moves, or the board needs an answer.
             </p>
             <ul className="space-y-3 text-base text-[var(--muted-foreground)] leading-relaxed">
               <li className="flex gap-3">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
-                <span>Strategic outputs built for product inflexion points</span>
+                <span>Turn a product inflection point into a clear, evidenced strategic direction.</span>
               </li>
               <li className="flex gap-3">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
-                <span>Proven frameworks codified as pre-built skills — ready to run on demand</span>
+                <span>Decisions grounded in proven frameworks — not gut feel or generic advice.</span>
               </li>
               <li className="flex gap-3">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
-                <span>Deep contextual analysis and reasoning</span>
+                <span>Multi-stage agents that work through complexity so you don&apos;t have to.</span>
               </li>
               <li className="flex gap-3">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
-                <span>Multi-stage agents that work through complexity autonomously</span>
+                <span>Board-ready briefs that surface assumptions, not just conclusions.</span>
               </li>
               <li className="flex gap-3">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
-                <span>Battle-tested artefacts embedded into every workflow</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
-                <span>A defensible deliverable you can present, defend, and act on</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
-                <span>The rigour of a senior product strategist, encoded and repeatable</span>
+                <span>Built for PE investors, VCs, and portfolio companies who move fast and need to be right.</span>
               </li>
             </ul>
           </div>
         </div>
 
         {/* Right: sign-in form */}
-        <div className="flex flex-1 items-center justify-center px-4 py-12 lg:py-16">
+        <div className="flex flex-1 items-center justify-start px-6 py-12 lg:px-12 lg:py-16">
       <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
+        <div>
           <h1 className="text-4xl font-bold tracking-tight">Sign in</h1>
-          <p className="mt-3 text-base text-[var(--muted-foreground)] max-w-sm mx-auto leading-relaxed">
-            Product strategy, competitor teardowns &amp; market intelligence for investors and operators.
-          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
