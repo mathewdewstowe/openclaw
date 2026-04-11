@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       stageId: string;
       stageName: string;
       questions: Array<{ id: string; question: string; type: string }>;
-      answers: Record<string, unknown>;
+      answers: Record<string, string | string[] | { selection: string; freetext: string }>;
       priorReports?: PriorStageSummary[];
       persona?: string;
     };

@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
           workflowType,
           outputType: `${workflowType}_report`,
           title: `${workflowType.charAt(0).toUpperCase() + workflowType.slice(1)} Report`,
-          sections: sections,
+          sections: sections as object,
           confidence,
           sources: [],
           version: 1,

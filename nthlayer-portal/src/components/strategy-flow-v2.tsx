@@ -807,7 +807,7 @@ function renderReport(text: string): React.ReactNode {
       nodes.push(
         <div key={i} style={{ marginBottom: 8 }}>
           {lines.map((l, j) => {
-            const match = l.trimStart().match(/^(\d+)\.\s+(.+)$/s);
+            const match = l.trimStart().match(/^(\d+)\.\s+(.+)$/);
             if (!match) return null;
             return (
               <div key={j} style={{ display: "flex", gap: 12, marginBottom: 10 }}>
@@ -824,7 +824,7 @@ function renderReport(text: string): React.ReactNode {
     }
 
     // Single numbered item block e.g. "1. Long paragraph..."
-    const singleNumbered = trimmed.match(/^(\d+)\.\s+(.+)$/s);
+    const singleNumbered = trimmed.match(/^(\d+)\.\s+(.+)$/);
     if (singleNumbered) {
       nodes.push(
         <div key={i} style={{ display: "flex", gap: 12, marginBottom: 12 }}>

@@ -62,11 +62,11 @@ export async function checkAgentSession(jobId: string): Promise<void> {
 
     // ── Check for custom tool use (agent done) ──
     const toolEvent = events.find(
-      (e) => (e as Record<string, unknown>).type === "agent.custom_tool_use"
+      (e) => (e as unknown as Record<string, unknown>).type === "agent.custom_tool_use"
     );
 
     if (toolEvent) {
-      const te = toolEvent as Record<string, unknown>;
+      const te = toolEvent as unknown as Record<string, unknown>;
       const rawSections = (te.input ?? {}) as Record<string, unknown>;
 
       const sections: OutputSections = {
@@ -126,11 +126,11 @@ export async function checkAgentSession(jobId: string): Promise<void> {
 
     // ── Progress updates based on event types ──
     const hasThinking = events.some((e) => {
-      const t = (e as Record<string, unknown>).type as string;
+      const t = (e as unknown as Record<string, unknown>).type as string;
       return t === "agent.thinking" || t === "agent.text";
     });
     const hasMcpResult = events.some(
-      (e) => (e as Record<string, unknown>).type === "agent.mcp_tool_result"
+      (e) => (e as unknown as Record<string, unknown>).type === "agent.mcp_tool_result"
     );
 
     if (hasThinking && (job.progress ?? 0) < 40) {
@@ -143,10 +143,10 @@ export async function checkAgentSession(jobId: string): Promise<void> {
     // ── Check if idle with requires_action (MCP tools need approval) ──
     if (session.status === "idle") {
       const lastIdleEvent = [...events].reverse().find(
-        (e) => (e as Record<string, unknown>).type === "session.status_idle"
+        (e) => (e as unknown as Record<string, unknown>).type === "session.status_idle"
       );
       const stopReason = lastIdleEvent
-        ? ((lastIdleEvent as Record<string, unknown>).stop_reason as Record<string, unknown> | undefined)
+        ? ((lastIdleEvent as unknown as Record<string, unknown>).stop_reason as Record<string, unknown> | undefined)
         : undefined;
 
       if (stopReason?.type === "requires_action") {
