@@ -111,7 +111,7 @@ export default function LoginPage() {
         </div>
 
         {/* Right: sign-in form */}
-        <div className="flex flex-1 items-center justify-start px-6 py-12 lg:px-12 lg:py-16">
+        <div className="flex flex-1 items-start justify-start px-6 py-12 lg:px-12 lg:py-16">
       <div className="w-full max-w-md space-y-8">
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Sign in</h1>
