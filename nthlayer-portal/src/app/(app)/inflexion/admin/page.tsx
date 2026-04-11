@@ -11,11 +11,16 @@ export default async function AdminPage() {
   if (!user) redirect("/login");
   if (user.systemRole !== "super_admin" && user.systemRole !== "admin") redirect("/inflexion/overview");
 
-  const [userCount, companyCount, jobCount, outputCount, stageCounts] = await Promise.all([
+  const shareModel = (db as unknown as Record<string, { count: () => Promise<number> }>).outputShare;
+  const feedbackModel = (db as unknown as Record<string, { count: () => Promise<number> }>).outputFeedback;
+
+  const [userCount, companyCount, jobCount, outputCount, shareCount, feedbackCount, stageCounts] = await Promise.all([
     db.user.count(),
     db.company.count(),
     db.job.count(),
     db.output.count(),
+    shareModel.count().catch(() => 0),
+    feedbackModel.count().catch(() => 0),
     Promise.all(
       STAGES.map((stage) =>
         db.job.count({ where: { workflowType: stage } }).then((count) => ({ stage, count }))
@@ -28,6 +33,8 @@ export default async function AdminPage() {
     { label: "Companies", value: companyCount, href: "/inflexion/admin/companies" },
     { label: "Jobs", value: jobCount, href: "/inflexion/admin/jobs" },
     { label: "Outputs", value: outputCount, href: "#" },
+    { label: "Shares", value: shareCount, href: "/inflexion/admin/jobs#shares" },
+    { label: "Feedback", value: feedbackCount, href: "/inflexion/admin/jobs#feedback" },
   ];
 
   return (

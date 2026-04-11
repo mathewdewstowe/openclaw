@@ -161,6 +161,28 @@ model Output {
   @@map("outputs")
 }
 
+model OutputFeedback {
+  id            String   @id @default(cuid())
+  outputId      String?
+  jobId         String?
+  companyId     String
+  userId        String
+  workflowType  String
+  overallRating Int      // 1-5 quick star click
+  accuracy      Int?     // 1-5 detailed
+  depth         Int?
+  actionability Int?
+  relevance     Int?
+  comment       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([userId])
+  @@index([workflowType])
+  @@map("output_feedback")
+}
+
 model OutputShare {
   id             String   @id @default(cuid())
   outputId       String?

@@ -1503,6 +1503,218 @@ function AnswerSummaryPanel({
   );
 }
 
+// ─── Report Feedback ──────────────────────────────────────────────────────────
+
+const FEEDBACK_CATEGORIES = [
+  { id: "accuracy", label: "Accuracy", description: "Does this reflect the business reality correctly?" },
+  { id: "depth", label: "Depth", description: "Is the analysis sufficiently detailed and substantive?" },
+  { id: "actionability", label: "Actionability", description: "Are the recommendations clear and executable?" },
+  { id: "relevance", label: "Relevance", description: "Is this focused on what actually matters right now?" },
+];
+
+const STAR_PATH = "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z";
+
+function QuickStars({ value, onSelect }: { value: number; onSelect: (v: number) => void }) {
+  const [hovered, setHovered] = React.useState(0);
+  return (
+    <div style={{ display: "flex", gap: 2 }}>
+      {[1,2,3,4,5].map((s) => {
+        const filled = s <= (hovered || value);
+        return (
+          <button
+            key={s}
+            onClick={() => onSelect(s)}
+            onMouseEnter={() => setHovered(s)}
+            onMouseLeave={() => setHovered(0)}
+            title={`${s} star${s !== 1 ? "s" : ""}`}
+            style={{ background: "none", border: "none", padding: 2, cursor: "pointer", lineHeight: 0, color: filled ? "#059669" : "#d1d5db", transition: "color 100ms" }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5">
+              <path d={STAR_PATH} />
+            </svg>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hovered, setHovered] = React.useState(0);
+  return (
+    <div style={{ display: "flex", gap: 4 }}>
+      {[1, 2, 3, 4, 5].map((star) => {
+        const filled = star <= (hovered || value);
+        return (
+          <button
+            key={star}
+            onClick={() => onChange(star)}
+            onMouseEnter={() => setHovered(star)}
+            onMouseLeave={() => setHovered(0)}
+            style={{
+              background: "none", border: "none", padding: 0, cursor: "pointer",
+              color: filled ? "#059669" : "#d1d5db", transition: "color 100ms",
+            }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5">
+              <path d={STAR_PATH} />
+            </svg>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ReportFeedback({ stageId, stageName }: { stageId: string; stageName: string }) {
+  const [open, setOpen] = React.useState(false);
+  const [submitted, setSubmitted] = React.useState(false);
+  const [quickRating, setQuickRating] = React.useState(0);
+  const [ratings, setRatings] = React.useState<Record<string, number>>({});
+  const [comment, setComment] = React.useState("");
+
+  const allRated = FEEDBACK_CATEGORIES.every((c) => ratings[c.id] > 0);
+  const avgRating = quickRating > 0 ? quickRating : (allRated
+    ? Math.round(Object.values(ratings).reduce((a, b) => a + b, 0) / FEEDBACK_CATEGORIES.length * 10) / 10
+    : null);
+
+  async function saveFeedback(payload: Record<string, unknown>) {
+    try {
+      await fetch("/api/strategy/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workflowType: stageId, ...payload }),
+      });
+    } catch { /* non-fatal */ }
+  }
+
+  async function handleQuickStar(s: number) {
+    setQuickRating(s);
+    setRatings({ accuracy: s, depth: s, actionability: s, relevance: s });
+    setOpen(true);
+    await saveFeedback({ overallRating: s, accuracy: s, depth: s, actionability: s, relevance: s });
+  }
+
+  async function handleSubmit() {
+    if (!allRated) return;
+    await saveFeedback({
+      overallRating: quickRating || Math.round(Object.values(ratings).reduce((a, b) => a + b, 0) / FEEDBACK_CATEGORIES.length),
+      accuracy: ratings.accuracy,
+      depth: ratings.depth,
+      actionability: ratings.actionability,
+      relevance: ratings.relevance,
+      comment,
+    });
+    setSubmitted(true);
+    setOpen(false);
+  }
+
+  // ── Collapsed / submitted bar ──
+  const barBase: React.CSSProperties = {
+    display: "flex", alignItems: "center", gap: 12,
+    padding: "10px 48px", borderBottom: "1px solid #e5e7eb",
+    background: submitted ? "#f0fdf4" : "#fafafa",
+    flexShrink: 0,
+  };
+
+  if (submitted) {
+    return (
+      <div style={barBase}>
+        <div style={{
+          width: 22, height: 22, borderRadius: "50%", background: "#d1fae5",
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        }}>
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+            <path d="M2 8l4 4 8-8" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "#059669" }}>Thanks for your feedback</span>
+        <span style={{ fontSize: 13, color: "#6b7280" }}>— you rated this report {avgRating}/5</span>
+      </div>
+    );
+  }
+
+  if (!open) {
+    return (
+      <div style={{ ...barBase, justifyContent: "flex-end" }}>
+        <span style={{ fontSize: 13, color: "#6b7280", marginRight: 8 }}>How useful was this report?</span>
+        <QuickStars value={quickRating} onSelect={handleQuickStar} />
+      </div>
+    );
+  }
+
+  // ── Expanded panel ──
+  return (
+    <div style={{ borderBottom: "1px solid #e5e7eb", background: "#fafafa", flexShrink: 0 }}>
+      {/* Header row */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 48px 0" }}>
+        <div>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "#111827" }}>Rate this {stageName} report</span>
+          <span style={{ fontSize: 13, color: "#6b7280", marginLeft: 10 }}>Your feedback improves future analyses.</span>
+        </div>
+        <button onClick={() => setOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", padding: 4, lineHeight: 0 }}>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      {/* 4 categories in a row */}
+      <div style={{ display: "flex", gap: 0, padding: "16px 48px" }}>
+        {FEEDBACK_CATEGORIES.map((cat, i) => (
+          <div
+            key={cat.id}
+            style={{
+              flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+              paddingRight: i < FEEDBACK_CATEGORIES.length - 1 ? 24 : 0,
+              borderRight: i < FEEDBACK_CATEGORIES.length - 1 ? "1px solid #e5e7eb" : "none",
+              marginRight: i < FEEDBACK_CATEGORIES.length - 1 ? 24 : 0,
+            }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.05em" }}>{cat.label}</span>
+            <span style={{ fontSize: 11, color: "#9ca3af", textAlign: "center", lineHeight: 1.4 }}>{cat.description}</span>
+            <StarRating
+              value={ratings[cat.id] ?? 0}
+              onChange={(v) => setRatings((prev) => ({ ...prev, [cat.id]: v }))}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Comment + submit */}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 12, padding: "0 48px 16px" }}>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="What would make this more useful? (optional)"
+          rows={2}
+          style={{
+            flex: 1, padding: "8px 12px", fontSize: 13,
+            border: "1.5px solid #e5e7eb", borderRadius: 8, outline: "none",
+            fontFamily: "inherit", resize: "none", color: "#374151",
+            lineHeight: 1.6, background: "#fff",
+          }}
+          onFocus={(e) => { e.target.style.borderColor = "#2563eb"; }}
+          onBlur={(e) => { e.target.style.borderColor = "#e5e7eb"; }}
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={!allRated}
+          style={{
+            background: allRated ? "#111827" : "#f3f4f6",
+            color: allRated ? "#fff" : "#9ca3af",
+            border: "none", borderRadius: 8, padding: "9px 20px",
+            fontSize: 13, fontWeight: 600, cursor: allRated ? "pointer" : "not-allowed",
+            fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0,
+          }}
+        >
+          {allRated ? "Submit feedback" : `Rate all ${FEEDBACK_CATEGORIES.length} to submit`}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Share Button ─────────────────────────────────────────────────────────────
 
 function ShareButton({ stageId, stageName, reportSections }: { stageId: string; stageName: string; reportSections?: Record<string, unknown> }) {
@@ -2246,6 +2458,11 @@ export function StrategyFlow({
             </div>
           )}
         </div>
+      )}
+
+      {/* Feedback bar — sticky below tab strip, only on report tab */}
+      {isReportComplete && activeTab === "report" && (
+        <ReportFeedback stageId={activeStageId} stageName={activeStage.name} />
       )}
 
       {/* Body */}
