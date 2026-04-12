@@ -1,6 +1,17 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  const check = useCallback(() => setIsMobile(window.innerWidth < 768), []);
+  useEffect(() => {
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [check]);
+  return isMobile;
+}
 
 const SECTORS = [
   "SaaS","FinTech","HealthTech","EdTech","MarTech","HRTech","LegalTech","PropTech","InsurTech","CleanTech",
@@ -278,6 +289,7 @@ function completionScore(company: CompanyData): { score: number; missing: string
 }
 
 export function CompanyProfileForm({ company }: { company: CompanyData }) {
+  const isMobile = useIsMobile();
   const profile = company.profile ?? {};
 
   const [form, setForm] = useState({
@@ -403,13 +415,12 @@ export function CompanyProfileForm({ company }: { company: CompanyData }) {
     border: "1px solid #e5e7eb",
     borderRadius: 12,
     background: "#fff",
-    marginBottom: 16,
   };
 
   return (
     <div style={{ width: "100%", minWidth: 0 }}>
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "flex-start", gap: isMobile ? 12 : 0, marginBottom: 24 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: "#111827", marginBottom: 4 }}>Company Profile</h1>
           <p style={{ fontSize: 14, color: "#6b7280" }}>
@@ -492,8 +503,8 @@ export function CompanyProfileForm({ company }: { company: CompanyData }) {
         </div>
       )}
 
-      {/* 3-column layout */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20, alignItems: "stretch" }}>
+      {/* 3-column layout — single column on mobile */}
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 1fr", gap: 20, alignItems: "stretch" }}>
 
         {/* Column 1: Company */}
         <div style={{ background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 12, padding: "24px" }}>

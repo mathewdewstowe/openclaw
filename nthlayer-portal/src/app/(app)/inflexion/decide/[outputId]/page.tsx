@@ -14,7 +14,7 @@ export default async function DecideOutputPage({ params }: { params: Promise<{ o
 
   return (
     <OutputRenderer
-      output={{ id: output.id, title: output.title, workflowType: output.workflowType, outputType: output.outputType, sections: output.sections as Record<string, unknown>, confidence: output.confidence, sources: output.sources, companyName: output.company.name, createdAt: output.createdAt.toISOString(), version: output.version }}
+      output={{ id: output.id, title: output.title, workflowType: output.workflowType, outputType: output.outputType, sections: output.sections as Record<string, unknown>, confidence: output.confidence, sources: output.sources, tags: output.tags ?? [], companyName: output.company.name, createdAt: output.createdAt.toISOString(), version: output.version }}
       visibleSections={entitlements.output_section_limit}
     />
   );

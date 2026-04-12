@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { getUserEntitlements, getUserCompanies } from "@/lib/entitlements";
 import { db } from "@/lib/db";
 import { ProfileCompletionBanner } from "@/components/profile-completion-banner";
+import { DeckCTA } from "./deck-cta";
 
 function calcProfileScore(company: {
   url: string | null;
@@ -74,17 +75,27 @@ export default async function OverviewPage() {
     }
   }
 
-  // Determine which strategy stages have completed outputs
+  // Determine which strategy stages have completed outputs + fetch sections for deck
   const completedStages = new Set<string>();
+  let deckOutputs: Record<string, unknown> = {};
   if (activeCompany) {
     const completedOutputs = await db.output.findMany({
       where: {
         companyId: activeCompany.id,
         workflowType: { in: ["frame", "diagnose", "decide", "position", "commit"] },
       },
-      select: { workflowType: true },
+      select: { workflowType: true, sections: true, createdAt: true },
+      orderBy: { createdAt: "desc" },
     });
-    completedOutputs.forEach((o) => completedStages.add(o.workflowType));
+    // Deduplicate — keep most recent per stage
+    const seen = new Set<string>();
+    for (const o of completedOutputs) {
+      completedStages.add(o.workflowType);
+      if (!seen.has(o.workflowType)) {
+        seen.add(o.workflowType);
+        deckOutputs[o.workflowType] = o.sections;
+      }
+    }
   }
 
   const WORKFLOW_CARDS = [
@@ -156,11 +167,11 @@ export default async function OverviewPage() {
 
 
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: "#111827", marginBottom: 4 }}>Dashboard</h1>
-        <p style={{ fontSize: 16, color: "#6b7280" }}>
+        <h1 style={{ fontSize: 28, fontWeight: 700, color: "#111827", marginBottom: 8 }}>Dashboard</h1>
+        <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, margin: 0 }}>
           {activeCompany
-            ? `Strategic clarity at every inflection point.`
-            : "Set up a company to get started"}
+            ? <>Inflexion runs your strategy end-to-end — from framing the problem to committing to a plan. Complete each stage in order, review the reports, then use the Strategy Deck to align your board.</>
+            : "Set up a company to get started."}
         </p>
       </div>
 
@@ -193,26 +204,24 @@ export default async function OverviewPage() {
         </div>
       )}
 
-      {/* Stats row */}
+      {/* Strategy Deck CTA */}
       {activeCompany && (
-        <div style={{ display: "flex", gap: 16, marginBottom: 32 }}>
-          {[
-            { label: "Reports completed", value: completedStages.size },
-            { label: "Stages remaining", value: 5 - completedStages.size },
-            { label: "Reports shared", value: totalShares },
-          ].map((stat) => (
-            <div key={stat.label} style={{
-              flex: 1, padding: "20px 24px", border: "1px solid #e5e7eb", borderRadius: 12, background: "#fff",
-            }}>
-              <p style={{ fontSize: 28, fontWeight: 700, color: "#111827", marginBottom: 4 }}>{stat.value}</p>
-              <p style={{ fontSize: 13, color: "#6b7280" }}>{stat.label}</p>
-            </div>
-          ))}
+        <div style={{ marginBottom: 32 }}>
+          <DeckCTA
+            completedStages={completedStages.size}
+            companyName={activeCompany.name}
+            outputs={deckOutputs}
+          />
         </div>
       )}
 
+      {/* Strategy section header */}
+      <div style={{ marginBottom: 12 }}>
+        <h2 style={{ fontSize: 28, fontWeight: 700, color: "#111827", margin: 0 }}>Strategy</h2>
+      </div>
+
       {/* Strategy cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 32 }}>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
         {WORKFLOW_CARDS.map((wf) => {
           const done = completedStages.has(wf.stageId);
           return (
@@ -231,7 +240,15 @@ export default async function OverviewPage() {
                 transition: "border-color 150ms, box-shadow 150ms",
               }}
             >
-              <p style={{ fontSize: 28, fontWeight: 700, color: done ? "#059669" : "#9ca3af", letterSpacing: "0.08em", marginBottom: 8 }}>{wf.num}</p>
+              {done ? (
+                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#111827", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a3e635" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </div>
+              ) : (
+                <p style={{ fontSize: 28, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", marginBottom: 8 }}>{wf.num}</p>
+              )}
               <p style={{ fontSize: 17, fontWeight: 700, color: "#111827", marginBottom: 8 }}>{wf.label}</p>
               <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, flex: 1 }}>{wf.detail}</p>
               {done && (
@@ -252,7 +269,7 @@ export default async function OverviewPage() {
                     <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
                       <path d="M1 4l2 2 4-4" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    Completed
+                    Report
                   </span>
                 </div>
               )}
@@ -268,7 +285,7 @@ export default async function OverviewPage() {
       <div style={{ marginBottom: 8 }}>
         <h2 style={{ fontSize: 28, fontWeight: 700, color: "#111827", marginBottom: 12 }}>Intelligence</h2>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 40 }}>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
         {INTEL_CARDS.map((card) => (
           <a
             key={card.href}
@@ -310,44 +327,6 @@ export default async function OverviewPage() {
         ))}
       </div>
 
-      {/* Recent outputs */}
-      {recentOutputs.length > 0 && (
-        <div style={{ marginBottom: 32 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 600, color: "#111827", marginBottom: 12 }}>Recent Outputs</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {recentOutputs.map((o) => (
-              <a
-                key={o.id}
-                href={`/inflexion/${o.workflowType === "competitor_intel" ? "competitors" : o.workflowType}/${o.id}`}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "12px 16px",
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 8,
-                  textDecoration: "none",
-                  background: "#fff",
-                }}
-              >
-                <div>
-                  <p style={{ fontSize: 14, fontWeight: 500, color: "#111827" }}>{o.title}</p>
-                  <p style={{ fontSize: 12, color: "#9ca3af" }}>{o.workflowType} &middot; {o.createdAt.toLocaleDateString("en-GB")}</p>
-                </div>
-                {o.confidence !== null && (
-                  <span style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: o.confidence >= 0.7 ? "#059669" : o.confidence >= 0.4 ? "#d97706" : "#dc2626",
-                  }}>
-                    {Math.round(o.confidence * 100)}%
-                  </span>
-                )}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
 
     </div>
   );

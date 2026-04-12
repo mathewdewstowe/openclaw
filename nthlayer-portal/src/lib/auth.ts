@@ -1,9 +1,22 @@
+// Polyfill crypto.randomBytes for Cloudflare Workers (unenv doesn't implement fs.readdir)
+if (typeof globalThis !== "undefined" && typeof (globalThis as Record<string, unknown>).crypto === "object") {
+  const nodeCrypto = globalThis as unknown as { crypto: Record<string, unknown> };
+  if (typeof nodeCrypto.crypto.randomBytes !== "function") {
+    nodeCrypto.crypto.randomBytes = (size: number): Buffer => {
+      const bytes = new Uint8Array(size);
+      globalThis.crypto.getRandomValues(bytes);
+      return Buffer.from(bytes);
+    };
+  }
+}
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { db } from "./db";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret-change-me");
+function getSecret() {
+  return new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret-change-me");
+}
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);
@@ -17,12 +30,12 @@ export async function createToken(userId: string): Promise<string> {
   return new SignJWT({ userId })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("7d")
-    .sign(secret);
+    .sign(getSecret());
 }
 
 export async function verifyToken(token: string) {
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, getSecret());
     return payload as { userId: string };
   } catch {
     return null;

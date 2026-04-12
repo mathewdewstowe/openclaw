@@ -1,6 +1,19 @@
 "use client";
 // v3
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { DeckDownloadButton } from "@/components/deck-download-button";
+import { renderWithCitations } from "@/lib/render-citations";
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  const check = useCallback(() => setIsMobile(window.innerWidth < 768), []);
+  useEffect(() => {
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [check]);
+  return isMobile;
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -20,7 +33,8 @@ interface Question {
   placeholder?: string;
   maxSelections?: number;
   required?: boolean;
-  repeaterFields?: string[]; // field labels for structured-repeater
+  repeaterFields?: string[]; // short field keys for structured-repeater (used as data keys + display labels)
+  repeaterFieldPlaceholders?: string[]; // optional longer placeholder text per field
   addLabel?: string; // label for the "add entry" button in structured-repeater
   splitLabels?: string[]; // labels for percentage-split (3 items)
 }
@@ -60,36 +74,64 @@ interface StageState {
 
 // ─── Stage Data ───────────────────────────────────────────────────────────────
 
+// Standard section pills shown for every completed report
+const STANDARD_REPORT_PILLS: Array<{ label: string; anchor: string }> = [
+  { label: "Exec Summary",        anchor: "section-executive-summary" },
+  { label: "What Matters Most",   anchor: "section-what-matters-most" },
+  { label: "Recommendation",      anchor: "section-recommendation" },
+  { label: "Business Implications", anchor: "section-business-implications" },
+  { label: "Assumptions",         anchor: "section-key-assumptions" },
+  { label: "Confidence",          anchor: "section-confidence" },
+  { label: "Risks",               anchor: "section-risks" },
+  { label: "Actions",             anchor: "section-actions" },
+  { label: "Metrics",             anchor: "section-monitoring" },
+  { label: "Sources",             anchor: "section-sources" },
+];
+
+// Extract ### sub-headings from a markdown report string → navigable anchor pills
+function extractSubheadings(markdown: string): Array<{ label: string; anchor: string }> {
+  const results: Array<{ label: string; anchor: string }> = [];
+  for (const line of markdown.split("\n")) {
+    const m = line.match(/^### (.+)$/);
+    if (m) {
+      const label = m[1].trim();
+      const anchor = "subsection-" + label.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+      results.push({ label, anchor });
+    }
+  }
+  return results;
+}
+
 const STAGE_HERO: Record<string, { tagline: string; description: string; goal: string; deliverables: string[] }> = {
   frame: {
     tagline: "Frame",
     description: "Build a clear frame around the decision: what has specifically changed, what the business needs to achieve in 24 to 36 months, and where the boundaries actually sit. Surface who has genuine authority to act on the output, and establish a shared understanding of the challenge that every subsequent stage depends on. Sharper framing here means fewer wasted cycles downstream.",
     goal: "Define exactly what is changing, what winning looks like in this context, and the boundaries of the decision you are here to make.",
-    deliverables: ["Executive Summary", "What Matters Most", "Recommendation", "Risks", "Actions", "Monitoring"],
+    deliverables: ["The Strategic Problem", "Macro & Market Context", "Winning Conditions", "Decision Boundaries", "Strategic Hypothesis"],
   },
   diagnose: {
     tagline: "Diagnose",
     description: "Build a structured fact base across product-market fit, competitive position, unit economics, and operational capability — assessed against what the chosen direction will actually require. Separate the gaps that will constrain your options from the noise, and produce a shared, evidence-based view of position that makes the decision conversation significantly more productive.",
     goal: "Build an honest, structured fact base across product, market, and operations — before any strategic direction is chosen.",
-    deliverables: ["Executive Summary", "What Matters Most", "Recommendation", "Risks", "Actions", "Monitoring"],
+    deliverables: ["Business Assessment", "Product-Market Fit", "Competitive Landscape", "Unit Economics", "Capability Assessment"],
   },
   decide: {
     tagline: "Decide",
     description: "Surface the genuine strategic options — including inaction, which carries its own cost — and pressure-test each one against what would need to be true for it to succeed. Drawing on Roger Martin's Playing to Win framework, work backwards from winning conditions, set explicit criteria for when you would change course, and structure a staged investment logic that avoids single-bet exposure. The output is a committed direction with the assumptions and trade-offs made visible.",
     goal: "Commit to a strategic direction — with explicit assumptions, kill criteria, and the conditions under which you would reverse it.",
-    deliverables: ["Executive Summary", "What Matters Most", "Recommendation", "Risks", "Actions", "Monitoring"],
+    deliverables: ["Strategic Options", "Recommended Direction", "What Must Be True", "Kill Criteria"],
   },
   position: {
     tagline: "Position",
     description: "Translate strategic direction into a precise market stance — defining who the business serves, what job it does better than any available alternative, and which structural advantages it is building toward. Drawing on Hamilton Helmer's 7 Powers framework, identify the specific sources of defensibility available at this stage and what building toward them requires. The output gives product, GTM, and commercial teams a single coherent position to operate from.",
     goal: "Define precisely who you serve, what you do better than any alternative, and how you will build a defensible position over time.",
-    deliverables: ["Executive Summary", "What Matters Most", "Recommendation", "Risks", "Actions", "Monitoring"],
+    deliverables: ["Target Customer", "Positioning Statement", "Competitive Advantage", "Structural Defensibility"],
   },
   commit: {
     tagline: "Commit",
     description: "Translate direction into execution: a portfolio of bets with clear ownership and metered funding gates, an OKR architecture that connects company-level strategy to team-level action, a 100-day plan that creates immediate accountability, and a governance rhythm that keeps the strategy live. The output functions as the operating system for the next phase of the business.",
     goal: "Translate strategic direction into a funded, governed, and time-bound execution plan that the whole leadership layer can be held to.",
-    deliverables: ["Executive Summary", "What Matters Most", "Recommendation", "Risks", "Actions", "Monitoring"],
+    deliverables: ["Strategic Bets", "OKRs", "100-Day Plan", "Governance Rhythm", "Resource Allocation"],
   },
 };
 
@@ -565,11 +607,17 @@ const STAGES: Stage[] = [
         id: "strategic_bets",
         required: true,
         question: "What are the strategic bets being made in the next 12 months?",
-        hint: "Up to 3 bets. For each: name the bet and state the hypothesis.",
+        hint: "Up to 3 bets. For each: name the bet, the specific action you will take, the outcome you expect, and your hypothesis.",
         type: "structured-repeater",
         maxSelections: 3,
         addLabel: "Add Bet",
-        repeaterFields: ["Bet name", "Hypothesis: We believe that [action] will result in [outcome] because [rationale]"],
+        repeaterFields: ["Bet name", "Action", "Outcome", "Hypothesis"],
+        repeaterFieldPlaceholders: [
+          "Short label e.g. 'Move upmarket'",
+          "What we will specifically do e.g. 'Hire 2 enterprise AEs, build compliance module'",
+          "Measurable result we expect e.g. '5 enterprise pilots signed by Q1, ACV 3×'",
+          "We believe [action] will result in [outcome] because [rationale]",
+        ],
       },
       {
         id: "okrs",
@@ -579,7 +627,8 @@ const STAGES: Stage[] = [
         type: "structured-repeater",
         maxSelections: 3,
         addLabel: "Add OKR",
-        repeaterFields: ["Objective (qualitative)", "Key result (quantitative — what counts as success?)"],
+        repeaterFields: ["Objective", "Key Result"],
+        repeaterFieldPlaceholders: ["Objective (qualitative direction)", "Key result (quantitative — what counts as success?)"],
       },
       {
         id: "horizon_allocation",
@@ -601,6 +650,7 @@ const STAGES: Stage[] = [
         maxSelections: 3,
         addLabel: "Add Action",
         repeaterFields: ["Action", "Owner", "Success measure"],
+        repeaterFieldPlaceholders: ["What needs to happen", "Who is accountable", "How success is measured"],
       },
       {
         id: "bet_kill_criteria",
@@ -794,6 +844,146 @@ function renderReport(text: string): React.ReactNode {
       continue;
     }
 
+    // ### Sub-heading — stage-specific navigable sections
+    // Look ahead to collect consecutive ### groups for two/three-column layout
+    if (trimmed.startsWith("### ")) {
+      // Collect this and all following consecutive ### blocks (heading + body blocks)
+      type SubSection = { heading: string; bodyBlocks: string[] };
+      const group: SubSection[] = [];
+      let j = i;
+      while (j < blocks.length) {
+        const t = blocks[j].trim();
+        if (!t) { j++; continue; }
+        if (t.startsWith("### ")) {
+          const heading = t.slice(4);
+          const bodyBlocks: string[] = [];
+          j++;
+          // Collect following non-### non-## blocks as body
+          while (j < blocks.length) {
+            const next = blocks[j].trim();
+            if (!next) { j++; continue; }
+            if (next.startsWith("## ") || next.startsWith("### ")) break;
+            bodyBlocks.push(next);
+            j++;
+          }
+          group.push({ heading, bodyBlocks });
+        } else {
+          break;
+        }
+      }
+      // Advance outer loop past all consumed blocks
+      i = j - 1;
+
+      // Render each sub-section's body blocks into nodes
+      function renderSubBody(bodyBlocks: string[]): React.ReactNode[] {
+        const subnodes: React.ReactNode[] = [];
+        for (let k = 0; k < bodyBlocks.length; k++) {
+          const bt = bodyBlocks[k];
+          const blines = bt.split("\n");
+          if (blines.every((l) => /^\d+\.\s/.test(l.trimStart()))) {
+            subnodes.push(
+              <div key={k} style={{ marginBottom: 8 }}>
+                {blines.map((l, m) => {
+                  const match = l.trimStart().match(/^(\d+)\.\s+(.+)$/);
+                  if (!match) return null;
+                  return (
+                    <div key={m} style={{ display: "flex", gap: 12, marginBottom: 10 }}>
+                      <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: "50%", background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#6b7280", marginTop: 1 }}>
+                        {match[1]}
+                      </span>
+                      <span style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, flex: 1 }}>{renderInlineContent(match[2])}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          } else if (blines.every((l) => l.trimStart().startsWith("- "))) {
+            subnodes.push(
+              <ul key={k} style={{ margin: "0 0 16px", paddingLeft: 20 }}>
+                {blines.map((l, m) => (
+                  <li key={m} style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, marginBottom: 6 }}>
+                    {renderInlineContent(l.trimStart().slice(2))}
+                  </li>
+                ))}
+              </ul>
+            );
+          } else if (blines.some((l) => l.trimStart().startsWith("- "))) {
+            subnodes.push(
+              <div key={k} style={{ marginBottom: 16 }}>
+                {blines.map((l, m) => {
+                  const t2 = l.trimStart();
+                  if (t2.startsWith("- ")) {
+                    return (
+                      <div key={m} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+                        <span style={{ color: "#9ca3af", flexShrink: 0, marginTop: 2 }}>•</span>
+                        <span style={{ fontSize: 15, color: "#374151", lineHeight: 1.8 }}>{renderInlineContent(t2.slice(2))}</span>
+                      </div>
+                    );
+                  }
+                  return <p key={m} style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, margin: "0 0 6px" }}>{renderInlineContent(t2)}</p>;
+                })}
+              </div>
+            );
+          } else if (blines.length > 1) {
+            subnodes.push(
+              <div key={k} style={{ marginBottom: 20 }}>
+                {blines.map((l, m) => (
+                  <p key={m} style={{ fontSize: 15, lineHeight: 1.8, color: "#374151", margin: m === 0 ? "0 0 2px" : "0" }}>
+                    {renderInlineContent(l)}
+                  </p>
+                ))}
+              </div>
+            );
+          } else {
+            subnodes.push(
+              <p key={k} style={{ fontSize: 15, lineHeight: 1.8, color: "#374151", marginBottom: 16, marginTop: 0 }}>
+                {renderInlineContent(bt)}
+              </p>
+            );
+          }
+        }
+        return subnodes;
+      }
+
+      if (group.length === 2 || group.length === 3) {
+        const cols = group.length === 2 ? "1fr 1fr" : "1fr 1fr 1fr";
+        nodes.push(
+          <div key={i} style={{ display: "grid", gridTemplateColumns: cols, gap: 24, marginTop: 22, marginBottom: 8 }}>
+            {group.map((sec, idx) => {
+              const subId = "subsection-" + sec.heading.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+              return (
+                <div key={idx} id={subId} style={{ background: "#f9fafb", borderRadius: 8, padding: "14px 16px", border: "1px solid #f3f4f6" }}>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8, marginTop: 0 }}>
+                    {sec.heading}
+                  </p>
+                  {renderSubBody(sec.bodyBlocks)}
+                </div>
+              );
+            })}
+          </div>
+        );
+      } else {
+        // 1 or 4+: render normally (stacked)
+        for (const sec of group) {
+          const subId = "subsection-" + sec.heading.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+          nodes.push(
+            <div key={subId} id={subId}>
+              <p style={{
+                fontSize: 11, fontWeight: 700, color: "#6b7280",
+                marginBottom: 6, marginTop: 22,
+                textTransform: "uppercase", letterSpacing: "0.07em",
+                paddingBottom: 6, borderBottom: "1px solid #f3f4f6",
+              }}>
+                {sec.heading}
+              </p>
+              {renderSubBody(sec.bodyBlocks)}
+            </div>
+          );
+        }
+      }
+      continue;
+    }
+
     // --- divider
     if (trimmed === "---") {
       nodes.push(<hr key={i} style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "24px 0" }} />);
@@ -809,12 +999,18 @@ function renderReport(text: string): React.ReactNode {
           {lines.map((l, j) => {
             const match = l.trimStart().match(/^(\d+)\.\s+(.+)$/);
             if (!match) return null;
+            const isUrl = match[2].startsWith("http");
             return (
-              <div key={j} style={{ display: "flex", gap: 12, marginBottom: 10 }}>
-                <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: "50%", background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#6b7280", marginTop: 1 }}>
+              <div key={j} style={{ display: "flex", gap: 12, marginBottom: 10, alignItems: "flex-start" }}>
+                <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: "50%", background: isUrl ? "#dbeafe" : "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: isUrl ? "#1d4ed8" : "#6b7280", marginTop: 1 }}>
                   {match[1]}
                 </span>
-                <span style={{ fontSize: 13, color: "#374151", lineHeight: 1.7, flex: 1 }}>{renderInlineContent(match[2])}</span>
+                <span style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, flex: 1 }}>
+                  {isUrl
+                    ? <a href={match[2]} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "none", wordBreak: "break-all", fontSize: 12 }}>{match[2]}</a>
+                    : renderInlineContent(match[2])
+                  }
+                </span>
               </div>
             );
           })}
@@ -831,7 +1027,7 @@ function renderReport(text: string): React.ReactNode {
           <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: "50%", background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#6b7280", marginTop: 1 }}>
             {singleNumbered[1]}
           </span>
-          <span style={{ fontSize: 13, color: "#374151", lineHeight: 1.7, flex: 1 }}>{renderInlineContent(singleNumbered[2])}</span>
+          <span style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, flex: 1 }}>{renderInlineContent(singleNumbered[2])}</span>
         </div>
       );
       continue;
@@ -842,7 +1038,7 @@ function renderReport(text: string): React.ReactNode {
       nodes.push(
         <ul key={i} style={{ margin: "0 0 16px", paddingLeft: 20 }}>
           {lines.map((l, j) => (
-            <li key={j} style={{ fontSize: 13, color: "#374151", lineHeight: 1.7, marginBottom: 6 }}>
+            <li key={j} style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, marginBottom: 6 }}>
               {renderInlineContent(l.trimStart().slice(2))}
             </li>
           ))}
@@ -861,11 +1057,11 @@ function renderReport(text: string): React.ReactNode {
               return (
                 <div key={j} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
                   <span style={{ color: "#9ca3af", flexShrink: 0, marginTop: 2 }}>•</span>
-                  <span style={{ fontSize: 13, color: "#374151", lineHeight: 1.7 }}>{renderInlineContent(t.slice(2))}</span>
+                  <span style={{ fontSize: 15, color: "#374151", lineHeight: 1.8 }}>{renderInlineContent(t.slice(2))}</span>
                 </div>
               );
             }
-            return <p key={j} style={{ fontSize: 13, color: "#374151", lineHeight: 1.7, margin: "0 0 6px" }}>{renderInlineContent(t)}</p>;
+            return <p key={j} style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, margin: "0 0 6px" }}>{renderInlineContent(t)}</p>;
           })}
         </div>
       );
@@ -885,7 +1081,7 @@ function renderReport(text: string): React.ReactNode {
       );
     } else {
       nodes.push(
-        <p key={i} style={{ fontSize: 13, lineHeight: 1.7, color: "#374151", marginBottom: 16, marginTop: 0 }}>
+        <p key={i} style={{ fontSize: 15, lineHeight: 1.8, color: "#374151", marginBottom: 16, marginTop: 0 }}>
           {renderInlineContent(trimmed)}
         </p>
       );
@@ -1002,6 +1198,120 @@ function OtherInput({ initialValue, onCommit }: { initialValue: string; onCommit
         boxSizing: "border-box" as const,
       }}
     />
+  );
+}
+
+// ─── Collapsible Repeater Entry Card ─────────────────────────────────────────
+
+function RepeaterEntryCard({
+  idx,
+  fields,
+  placeholders,
+  entry,
+  hasContent,
+  firstVal,
+  addLabel,
+  onUpdate,
+  onRemove,
+}: {
+  idx: number;
+  fields: string[];
+  placeholders: string[];
+  entry: RepeaterEntry;
+  hasContent: boolean;
+  firstVal: string;
+  addLabel?: string;
+  onUpdate: (field: string, val: string) => void;
+  onRemove: () => void;
+}) {
+  const [collapsed, setCollapsed] = React.useState(false);
+  const itemLabel = addLabel?.replace(/^Add /, "") ?? "Entry";
+
+  return (
+    <div
+      style={{
+        border: "1.5px solid #e5e7eb",
+        borderRadius: 8,
+        background: "#fff",
+        overflow: "hidden",
+      }}
+    >
+      {/* Header — always visible */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "12px 16px",
+          cursor: hasContent ? "pointer" : "default",
+          background: collapsed ? "#f9fafb" : "#fff",
+          borderBottom: collapsed ? "none" : "1px solid #f3f4f6",
+        }}
+        onClick={() => { if (hasContent) setCollapsed((c) => !c); }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            {itemLabel} {idx + 1}
+          </span>
+          {collapsed && firstVal && (
+            <span style={{ fontSize: 13, color: "#374151", fontWeight: 500 }}>— {firstVal}</span>
+          )}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {hasContent && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setCollapsed((c) => !c); }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", padding: "0 4px", lineHeight: 0 }}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ transform: collapsed ? "rotate(-90deg)" : "rotate(0deg)", transition: "transform 150ms" }}>
+                <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
+          <button
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: 16, lineHeight: 1, padding: "0 2px", fontFamily: "inherit" }}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      {/* Fields — hidden when collapsed */}
+      {!collapsed && (
+        <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+          {fields.map((field, fi) => (
+            <div key={field}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", display: "block", marginBottom: 4 }}>
+                {field}
+              </label>
+              <textarea
+                value={entry[field] ?? ""}
+                onChange={(e) => onUpdate(field, e.target.value)}
+                placeholder={placeholders[fi] ?? field}
+                rows={2}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  border: "1.5px solid #e5e7eb",
+                  borderRadius: 6,
+                  fontSize: 13,
+                  color: "#111827",
+                  background: "#fff",
+                  resize: "none",
+                  outline: "none",
+                  lineHeight: 1.5,
+                  boxSizing: "border-box",
+                  fontFamily: "inherit",
+                  transition: "border-color 150ms",
+                }}
+                onFocus={(e) => { e.target.style.borderColor = "#2563eb"; }}
+                onBlur={(e) => { e.target.style.borderColor = "#e5e7eb"; }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1205,6 +1515,7 @@ function QuestionInput({
   if (question.type === "structured-repeater") {
     const entries = Array.isArray(answer) ? (answer as RepeaterEntry[]) : [];
     const fields = question.repeaterFields ?? [];
+    const placeholders = question.repeaterFieldPlaceholders ?? fields;
     const max = question.maxSelections ?? 3;
 
     function updateEntry(idx: number, field: string, val: string) {
@@ -1222,74 +1533,34 @@ function QuestionInput({
       onChange(entries.filter((_, i) => i !== idx));
     }
 
+    // Check if an entry has any content (for collapse logic)
+    function entryHasContent(entry: RepeaterEntry): boolean {
+      return Object.values(entry).some((v) => v.trim().length > 0);
+    }
+
     return (
       <div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {entries.map((entry, idx) => (
-            <div
-              key={idx}
-              style={{
-                border: "1.5px solid #e5e7eb",
-                borderRadius: 8,
-                padding: "16px 18px",
-                background: "#fff",
-                position: "relative",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                  Entry {idx + 1}
-                </span>
-                <button
-                  onClick={() => removeEntry(idx)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "#9ca3af",
-                    fontSize: 13,
-                    lineHeight: 1,
-                    padding: "0 4px",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {fields.map((field) => (
-                  <div key={field}>
-                    <label style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", display: "block", marginBottom: 4 }}>
-                      {field}
-                    </label>
-                    <textarea
-                      value={entry[field] ?? ""}
-                      onChange={(e) => updateEntry(idx, field, e.target.value)}
-                      placeholder={field}
-                      rows={2}
-                      style={{
-                        width: "100%",
-                        padding: "10px 12px",
-                        border: "1.5px solid #e5e7eb",
-                        borderRadius: 6,
-                        fontSize: 13,
-                        color: "#111827",
-                        background: "#fff",
-                        resize: "none",
-                        outline: "none",
-                        lineHeight: 1.5,
-                        boxSizing: "border-box",
-                        fontFamily: "inherit",
-                        transition: "border-color 150ms",
-                      }}
-                      onFocus={(e) => { e.target.style.borderColor = "#2563eb"; }}
-                      onBlur={(e) => { e.target.style.borderColor = "#e5e7eb"; }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {entries.map((entry, idx) => {
+            const hasContent = entryHasContent(entry);
+            // First field value for collapsed summary
+            const firstKey = fields[0];
+            const firstVal = entry[firstKey] ?? "";
+            return (
+              <RepeaterEntryCard
+                key={idx}
+                idx={idx}
+                fields={fields}
+                placeholders={placeholders}
+                entry={entry}
+                hasContent={hasContent}
+                firstVal={firstVal}
+                addLabel={question.addLabel}
+                onUpdate={(field, val) => updateEntry(idx, field, val)}
+                onRemove={() => removeEntry(idx)}
+              />
+            );
+          })}
         </div>
         {entries.length < max && (
           <button
@@ -1717,7 +1988,7 @@ function ReportFeedback({ stageId, stageName }: { stageId: string; stageName: st
 
 // ─── Share Button ─────────────────────────────────────────────────────────────
 
-function ShareButton({ stageId, stageName, reportSections }: { stageId: string; stageName: string; reportSections?: Record<string, unknown> }) {
+function ShareButton({ stageId, stageName, reportSections, fullWidth }: { stageId: string; stageName: string; reportSections?: Record<string, unknown>; fullWidth?: boolean }) {
   const [open, setOpen] = React.useState(false);
   const [email, setEmail] = React.useState("");
   const [sending, setSending] = React.useState(false);
@@ -1735,8 +2006,6 @@ function ShareButton({ stageId, stageName, reportSections }: { stageId: string; 
         body: JSON.stringify({ stageId, stageName, recipientEmail: email.trim(), sections: reportSections }),
       });
       if (!res.ok) throw new Error("Failed");
-      const data = await res.json() as { mailtoHref?: string };
-      if (data.mailtoHref) window.location.href = data.mailtoHref;
       setSent(true);
       setEmail("");
       setTimeout(() => { setSent(false); setOpen(false); }, 2500);
@@ -1748,14 +2017,14 @@ function ShareButton({ stageId, stageName, reportSections }: { stageId: string; 
   }
 
   return (
-    <div style={{ position: "relative", display: "inline-block", marginRight: 8 }}>
+    <div style={{ position: "relative", display: fullWidth ? "block" : "inline-block", marginRight: fullWidth ? 0 : 8 }}>
       <button
         onClick={() => { setOpen((o) => !o); setSent(false); setError(""); }}
         style={{
-          display: "inline-flex", alignItems: "center", gap: 6,
+          display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
           background: "none", border: "1px solid #e5e7eb", borderRadius: 8,
-          padding: "7px 14px", fontSize: 13, fontWeight: 500, color: "#6b7280",
-          cursor: "pointer", fontFamily: "inherit",
+          padding: fullWidth ? "12px" : "7px 14px", fontSize: 13, fontWeight: 500, color: "#6b7280",
+          cursor: "pointer", fontFamily: "inherit", width: fullWidth ? "100%" : undefined,
         }}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1823,14 +2092,66 @@ function ShareButton({ stageId, stageName, reportSections }: { stageId: string; 
   );
 }
 
+// ─── Toast Notification ───────────────────────────────────────────────────────
+
+function Toast({ message, visible }: { message: string; visible: boolean }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: 32,
+        right: 32,
+        zIndex: 9999,
+        background: "#111827",
+        color: "#fff",
+        borderRadius: 10,
+        padding: "14px 20px",
+        fontSize: 13,
+        fontWeight: 600,
+        boxShadow: "0 8px 24px rgba(0,0,0,0.18)",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(12px)",
+        transition: "opacity 300ms, transform 300ms",
+        pointerEvents: "none",
+      }}
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="7" stroke="#4ade80" strokeWidth="1.5" />
+        <path d="M5 8l2 2 4-4" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      {message}
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
+
+type OutputVersion = {
+  id: string;
+  sections: Record<string, unknown>;
+  createdAt: string;
+  version: number;
+  confidence: number | null;
+  tags: string[];
+};
 
 export function StrategyFlow({
   initialRunningJobs = [],
   initialCompletedOutputs = {},
+  initialSavedAnswers = {},
+  companyName = "",
+  initialCompletedOutputIds = {},
+  allOutputsByStage = {},
 }: {
   initialRunningJobs?: { stageId: string; sessionId: string }[];
   initialCompletedOutputs?: Record<string, Record<string, unknown>>;
+  initialSavedAnswers?: Record<string, Record<string, unknown>>;
+  companyName?: string;
+  initialCompletedOutputIds?: Record<string, string>;
+  allOutputsByStage?: Record<string, OutputVersion[]>;
 }) {
   // sectionsToMarkdown needs to be defined before useState so we can use it in initial state
   function sectionsToMarkdownInit(sections: Record<string, unknown>): string {
@@ -1867,7 +2188,7 @@ export function StrategyFlow({
     }
     const eb = sections.evidence_base as { sources?: string[]; quotes?: string[] } | undefined;
     if (eb?.sources && eb.sources.length > 0) {
-      lines.push(`## Sources\n\n${eb.sources.map((s) => `- ${s}`).join("\n")}`);
+      lines.push(`## Sources\n\n${eb.sources.map((s, i) => `${i + 1}. ${s}`).join("\n")}`);
     }
     return lines.join("\n\n---\n\n");
   }
@@ -1876,10 +2197,13 @@ export function StrategyFlow({
   STAGES.forEach((stage) => {
     const runningJob = initialRunningJobs.find((j) => j.stageId === stage.id);
     const completedSections = initialCompletedOutputs[stage.id];
+    const savedAnswers = initialSavedAnswers[stage.id] ?? {};
+    const hasSavedAnswers = Object.keys(savedAnswers).length > 0;
     initialState[stage.id] = {
       status: "active",
-      answers: {},
-      currentQuestion: 0,
+      answers: savedAnswers as Record<string, AnswerValue>,
+      // Set currentQuestion past the end so allAnswered=true when answers are loaded
+      currentQuestion: (completedSections && hasSavedAnswers) ? stage.questions.length : 0,
       reportStatus: runningJob ? "generating" : completedSections ? "complete" : "none",
       report: completedSections ? sectionsToMarkdownInit(completedSections) : null,
       reportSections: completedSections,
@@ -1887,6 +2211,7 @@ export function StrategyFlow({
   });
 
   const [stageStates, setStageStates] = useState<Record<string, StageState>>(initialState);
+  const isMobile = useIsMobile();
   // Priority: running job stage → first completed stage → frame
   const firstRunningStage = initialRunningJobs[0]?.stageId
     ?? Object.keys(initialCompletedOutputs)[0]
@@ -1897,9 +2222,46 @@ export function StrategyFlow({
   // If we have a completed output for the first stage, default to report tab
   const hasCompletedFirst = !!initialCompletedOutputs[firstRunningStage] && initialRunningJobs.length === 0;
   const [activeTab, setActiveTab] = useState<"qa" | "report">(hasCompletedFirst ? "report" : "qa");
+  const [redTeamState, setRedTeamState] = useState<"idle" | "running" | "shown" | "acknowledged">("idle");
+  const [redTeamChallenges, setRedTeamChallenges] = useState<{ title: string; detail: string; severity: string }[]>([]);
   const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const messageIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const reportTopRef = useRef<HTMLDivElement | null>(null);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [deckModalOpen, setDeckModalOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Record<string, Array<{ role: "user"|"assistant"; content: string }>>>({});
+  const [chatInput, setChatInput] = useState<Record<string, string>>({});
+  const [chatLoading, setChatLoading] = useState<Record<string, boolean>>({});
+  const [chatStreaming, setChatStreaming] = useState<Record<string, string>>({});
+
+  // Version history state: stageId → whether the panel is open
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState<Record<string, boolean>>({});
+  // Active version per stage: stageId → outputId (null = use default/latest)
+  const [activeVersionOutputId, setActiveVersionOutputId] = useState<Record<string, string | null>>({});
+  // Output IDs per stage (most recent)
+  const [outputIds] = useState<Record<string, string>>(initialCompletedOutputIds);
+  // Tags state: outputId → string[]
+  const [outputTags, setOutputTags] = useState<Record<string, string[]>>(() => {
+    const map: Record<string, string[]> = {};
+    for (const versions of Object.values(allOutputsByStage)) {
+      for (const v of versions) {
+        map[v.id] = v.tags ?? [];
+      }
+    }
+    return map;
+  });
+  // Tag dropdown open state: stageId → boolean
+  const [tagDropdownOpen, setTagDropdownOpen] = useState<Record<string, boolean>>({});
+  // Custom tag input per stage
+  const [customTagInput, setCustomTagInput] = useState<Record<string, string>>({});
+
+  // Strategic bet suggestions for Commit stage
+  type BetSuggestion = { "Bet name": string; "Action": string; "Outcome": string; "Hypothesis": string };
+  const [betSuggestions, setBetSuggestions] = useState<BetSuggestion[]>([]);
+  const [betsLoading, setBetsLoading] = useState(false);
+  const [betsFetched, setBetsFetched] = useState(false);
 
   // Cleanup intervals on unmount
   useEffect(() => {
@@ -1968,6 +2330,10 @@ export function StrategyFlow({
               return updated;
             });
             setActiveTab("report");
+            setTimeout(() => {
+              reportTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 100);
+            showToast(`${STAGES.find((s) => s.id === resumeStageId)?.name ?? ""} report ready`);
           }, 500);
         } else if (statusData.status === "failed") {
           stopPolling();
@@ -1998,6 +2364,52 @@ export function StrategyFlow({
     }));
   }
 
+  // ── Tag helpers ─────────────────────────────────────────────────────────────
+
+  const PRESET_TAGS = ["Draft", "Reviewed", "Board-ready", "Archived", "V1", "V2"];
+
+  async function saveTagsForOutput(outputId: string, tags: string[]) {
+    setOutputTags((prev) => ({ ...prev, [outputId]: tags }));
+    try {
+      await fetch(`/api/outputs/${outputId}/tags`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tags }),
+      });
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  async function toggleTag(outputId: string, tag: string) {
+    const current = outputTags[outputId] ?? [];
+    const next = current.includes(tag) ? current.filter((t) => t !== tag) : [...current, tag];
+    await saveTagsForOutput(outputId, next);
+  }
+
+  async function addCustomTag(outputId: string, tag: string) {
+    const trimmed = tag.trim();
+    if (!trimmed) return;
+    const current = outputTags[outputId] ?? [];
+    if (current.includes(trimmed)) return;
+    await saveTagsForOutput(outputId, [...current, trimmed]);
+  }
+
+  // ── Version history helpers ─────────────────────────────────────────────────
+
+  function getActiveReport(stageId: string): { report: string | null; sections: Record<string, unknown> | null } {
+    const activeId = activeVersionOutputId[stageId];
+    if (activeId) {
+      const versions = allOutputsByStage[stageId] ?? [];
+      const v = versions.find((ver) => ver.id === activeId);
+      if (v) {
+        return { report: sectionsToMarkdownInit(v.sections), sections: v.sections };
+      }
+    }
+    const state = stageStates[stageId];
+    return { report: state?.report ?? null, sections: (state?.reportSections as Record<string, unknown> | null) ?? null };
+  }
+
   function handleAnswer(val: AnswerValue) {
     updateStage(activeStageId, {
       answers: { ...activeState.answers, [currentQ.id]: val },
@@ -2011,6 +2423,41 @@ export function StrategyFlow({
   }
 
   const sectionsToMarkdown = sectionsToMarkdownInit;
+
+  function showToast(msg: string) {
+    setToastMessage(msg);
+    setToastVisible(true);
+    setTimeout(() => setToastVisible(false), 3500);
+  }
+
+  async function handleRedTeamCheck() {
+    setRedTeamState("running");
+
+    // Build sections from all prior completed stages
+    const priorSections: Record<string, Record<string, unknown>> = {};
+    for (const stage of STAGES) {
+      if (stage.id === "commit") break;
+      const state = stageStates[stage.id];
+      if (state?.reportSections) {
+        priorSections[stage.id] = state.reportSections as Record<string, unknown>;
+      }
+    }
+
+    try {
+      const res = await fetch("/api/strategy/red-team", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priorSections }),
+      });
+      const data = await res.json() as { challenges?: { title: string; detail: string; severity: string }[] };
+      setRedTeamChallenges(data.challenges ?? []);
+      setRedTeamState("shown");
+    } catch {
+      // If red team fails, skip it and proceed directly
+      setRedTeamState("acknowledged");
+      handleRunReport();
+    }
+  }
 
   async function handleRunReport() {
     // Clear any existing poll
@@ -2039,20 +2486,60 @@ export function StrategyFlow({
     const frameAnswers = stageStates["frame"]?.answers ?? {};
     const persona = typeof frameAnswers["persona"] === "string" ? frameAnswers["persona"] : undefined;
 
-    // Build prior stage summaries for cascade context
+    // Build prior stage summaries for cascade context — pass full sections so Commit has complete picture
     const priorReports: { stageId: string; stageName: string; summary: string }[] = [];
     for (const stage of STAGES) {
       if (stage.id === activeStageId) break;
       const stageState = stageStates[stage.id];
       if (stageState?.reportSections) {
-        const sections = stageState.reportSections;
-        const execSummary = typeof sections.executive_summary === "string" ? sections.executive_summary : "";
-        const whatMatters = typeof sections.what_matters === "string" ? sections.what_matters : "";
-        const recommendation = typeof sections.recommendation === "string" ? sections.recommendation : "";
+        const s = stageState.reportSections;
+        const parts: string[] = [];
+
+        if (typeof s.executive_summary === "string" && s.executive_summary) parts.push(`**Executive Summary**\n${s.executive_summary}`);
+        if (typeof s.what_matters === "string" && s.what_matters) parts.push(`**What Matters Most**\n${s.what_matters}`);
+        if (typeof s.recommendation === "string" && s.recommendation) parts.push(`**Recommendation**\n${s.recommendation}`);
+        if (typeof s.business_implications === "string" && s.business_implications) parts.push(`**Business Implications**\n${s.business_implications}`);
+
+        if (Array.isArray(s.assumptions) && (s.assumptions as string[]).length > 0) {
+          parts.push(`**Key Assumptions**\n${(s.assumptions as string[]).map((a: string) => `- ${a}`).join("\n")}`);
+        }
+
+        const conf = s.confidence as { score?: number; rationale?: string } | undefined;
+        if (conf?.score !== undefined) {
+          const pct = Math.round((conf.score as number) * 100);
+          parts.push(`**Confidence**\nScore: ${pct}%${conf.rationale ? `\n${conf.rationale}` : ""}`);
+        }
+
+        if (Array.isArray(s.risks) && (s.risks as unknown[]).length > 0) {
+          const riskLines = (s.risks as { risk: string; severity: string; mitigation: string }[]).map(
+            (r) => `- [${r.severity}] ${r.risk} — Mitigation: ${r.mitigation}`
+          );
+          parts.push(`**Risks**\n${riskLines.join("\n")}`);
+        }
+
+        if (Array.isArray(s.actions) && (s.actions as unknown[]).length > 0) {
+          const actionLines = (s.actions as { action: string; owner: string; deadline: string; priority: string }[]).map(
+            (a) => `- [${a.priority}] ${a.action} (Owner: ${a.owner}, Deadline: ${a.deadline})`
+          );
+          parts.push(`**Priority Actions**\n${actionLines.join("\n")}`);
+        }
+
+        if (Array.isArray(s.monitoring) && (s.monitoring as unknown[]).length > 0) {
+          const monLines = (s.monitoring as { metric: string; target: string; frequency: string }[]).map(
+            (m) => `- ${m.metric}: target ${m.target} (${m.frequency})`
+          );
+          parts.push(`**Monitoring**\n${monLines.join("\n")}`);
+        }
+
+        const eb = s.evidence_base as { sources?: string[] } | undefined;
+        if (eb?.sources && eb.sources.length > 0) {
+          parts.push(`**Sources**\n${eb.sources.map((src: string) => `- ${src}`).join("\n")}`);
+        }
+
         priorReports.push({
           stageId: stage.id,
           stageName: stage.name,
-          summary: [execSummary, whatMatters, recommendation].filter(Boolean).join("\n\n"),
+          summary: parts.join("\n\n"),
         });
       }
     }
@@ -2115,6 +2602,11 @@ export function StrategyFlow({
                 return updated;
               });
               setActiveTab("report");
+              // Scroll to top of report and show toast
+              setTimeout(() => {
+                reportTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 100);
+              showToast(`${STAGES.find((s) => s.id === activeStageId)?.name ?? ""} report ready`);
             }, 500);
           } else if (statusData.status === "failed") {
             stopPolling();
@@ -2132,18 +2624,128 @@ export function StrategyFlow({
   }
 
   function handleContinue() {
+    // Navigate to first incomplete (no completed report) stage after current
     const currentIdx = STAGES.findIndex((s) => s.id === activeStageId);
-    const nextStage = STAGES[currentIdx + 1];
-    if (nextStage) {
-      setActiveStageId(nextStage.id);
-      setActiveTab("qa");
+    // Look for the next stage that doesn't have a completed report
+    let targetStage = STAGES[currentIdx + 1];
+    for (let i = currentIdx + 1; i < STAGES.length; i++) {
+      if (stageStates[STAGES[i].id]?.reportStatus !== "complete") {
+        targetStage = STAGES[i];
+        break;
+      }
     }
+    if (targetStage) {
+      setActiveStageId(targetStage.id);
+      const targetComplete = stageStates[targetStage.id]?.reportStatus === "complete";
+      setActiveTab(targetComplete ? "report" : "qa");
+    }
+  }
+
+  async function handleChatSendWithText(stageId: string, text: string) {
+    if (!text || chatLoading[stageId]) return;
+
+    const stage = stageStates[stageId];
+    const sections = stage?.reportSections as Record<string, unknown> | null;
+    if (!sections) return;
+
+    const s = sections;
+    const parts: string[] = [`=== ${stageId.charAt(0).toUpperCase() + stageId.slice(1)} Stage Report ===`];
+    if (s.executive_summary) parts.push(`Executive Summary:\n${s.executive_summary}`);
+    if (s.what_matters) parts.push(`What Matters Most:\n${s.what_matters}`);
+    if (s.recommendation) parts.push(`Recommendation:\n${s.recommendation}`);
+    if (s.business_implications) parts.push(`Business Implications:\n${s.business_implications}`);
+    if (Array.isArray(s.assumptions) && (s.assumptions as string[]).length > 0) {
+      parts.push(`Key Assumptions:\n${(s.assumptions as string[]).map((a: unknown) => `- ${a}`).join("\n")}`);
+    }
+    const context = parts.join("\n\n");
+
+    const prevMessages = chatMessages[stageId] ?? [];
+    const newMessages = [...prevMessages, { role: "user" as const, content: text }];
+
+    setChatMessages(prev => ({ ...prev, [stageId]: newMessages }));
+    setChatInput(prev => ({ ...prev, [stageId]: "" }));
+    setChatLoading(prev => ({ ...prev, [stageId]: true }));
+    setChatStreaming(prev => ({ ...prev, [stageId]: "" }));
+
+    try {
+      const response = await fetch("/api/strategy/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newMessages, context, stageId }),
+      });
+      if (!response.ok) throw new Error("Chat failed");
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        accumulated += decoder.decode(value, { stream: true });
+        setChatStreaming(prev => ({ ...prev, [stageId]: accumulated }));
+      }
+      setChatMessages(prev => ({
+        ...prev,
+        [stageId]: [...(prev[stageId] ?? []), { role: "assistant", content: accumulated }]
+      }));
+      setChatStreaming(prev => ({ ...prev, [stageId]: "" }));
+    } catch {
+      setChatMessages(prev => ({
+        ...prev,
+        [stageId]: [...(prev[stageId] ?? []), { role: "assistant", content: "Sorry, something went wrong. Please try again." }]
+      }));
+    } finally {
+      setChatLoading(prev => ({ ...prev, [stageId]: false }));
+    }
+  }
+
+  async function handleChatSend(stageId: string) {
+    const text = (chatInput[stageId] ?? "").trim();
+    await handleChatSendWithText(stageId, text);
+  }
+
+  function getStageSuggestedQuestions(stageId: string): string[] {
+    const questions: Record<string, string[]> = {
+      frame: [
+        "What is the core strategic problem in one sentence?",
+        "What are the key winning conditions?",
+        "What are the most important decision boundaries?",
+      ],
+      diagnose: [
+        "Where is product-market fit strongest and weakest?",
+        "What are the top 3 competitive threats?",
+        "Which capability gaps are most critical to address?",
+      ],
+      decide: [
+        "What were the main options considered?",
+        "What is the recommended direction and why?",
+        "What are the kill criteria for this direction?",
+      ],
+      position: [
+        "Who is our most important target customer segment?",
+        "What is our key competitive advantage?",
+        "How defensible is our position?",
+      ],
+      commit: [
+        "What are the top strategic bets?",
+        "What are the company OKRs?",
+        "What are the key 30-day milestones?",
+      ],
+    };
+    return questions[stageId] ?? [];
   }
 
   const isGenerating = activeState.reportStatus === "generating";
   const isReportComplete = activeState.reportStatus === "complete";
   const currentStageIdx = STAGES.findIndex((s) => s.id === activeStageId);
   const nextStage = STAGES[currentStageIdx + 1];
+  // Find the true "next destination" for the Continue button — first incomplete stage after current
+  const nextIncompleteStage = (() => {
+    for (let i = currentStageIdx + 1; i < STAGES.length; i++) {
+      if (stageStates[STAGES[i].id]?.reportStatus !== "complete") return STAGES[i];
+    }
+    return null; // all subsequent stages complete
+  })();
+  const allStagesComplete = STAGES.every((s) => stageStates[s.id]?.reportStatus === "complete");
 
   return (
     <div
@@ -2155,18 +2757,68 @@ export function StrategyFlow({
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}
     >
+      {/* Print CSS — hides everything except the report content */}
+      <style>{`
+        @media print {
+          /* Hide navigation, sidebars, action bars, chat, Q&A, version history, feedback, tag pickers */
+          nav, aside, header,
+          [data-no-print],
+          [id="report-print-area"] ~ * {
+            display: none !important;
+          }
+          /* Show only the report print area */
+          body > * { display: none !important; }
+          #report-print-area,
+          #report-print-area * {
+            display: block !important;
+            visibility: visible !important;
+          }
+          #report-print-area {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            max-width: 740px !important;
+            margin: 0 auto !important;
+            padding: 32px 48px !important;
+            font-family: Georgia, 'Times New Roman', serif !important;
+            font-size: 11pt !important;
+            line-height: 1.7 !important;
+            color: #111827 !important;
+          }
+          /* Print header injected before report area */
+          #report-print-area::before {
+            content: "${companyName ? companyName + " — " : ""}${activeStage.name} Report";
+            display: block !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+            font-size: 20pt !important;
+            font-weight: 700 !important;
+            color: #111827 !important;
+            margin-bottom: 4pt !important;
+            padding-bottom: 12pt !important;
+            border-bottom: 2px solid #111827 !important;
+          }
+          h2 { font-size: 13pt !important; margin-top: 18pt !important; page-break-after: avoid !important; }
+          h3 { font-size: 11pt !important; margin-top: 12pt !important; page-break-after: avoid !important; }
+          p, li { orphans: 3; widows: 3; }
+          hr { border: none !important; border-top: 1px solid #e5e7eb !important; }
+          a { color: inherit !important; text-decoration: none !important; }
+          @page { size: A4; margin: 20mm 18mm; }
+        }
+      `}</style>
       {/* Stage Navigation Rail */}
       <div
         style={{
-          height: 112,
+          height: isMobile ? 64 : 84,
           borderBottom: "1px solid #e5e7eb",
           display: "flex",
           alignItems: "center",
-          paddingLeft: 48,
-          paddingRight: 48,
+          paddingLeft: isMobile ? 16 : 48,
+          paddingRight: isMobile ? 16 : 48,
           gap: 0,
           background: "#fff",
           flexShrink: 0,
+          overflowX: isMobile ? "auto" : "visible",
         }}
       >
         {STAGES.map((stage, idx) => {
@@ -2176,56 +2828,61 @@ export function StrategyFlow({
           const isLocked = state.status === "locked";
 
           return (
-            <div key={stage.id} style={{ display: "flex", alignItems: "center" }}>
+            <div key={stage.id} style={{ display: "flex", alignItems: "center", height: isMobile ? 64 : 84 }}>
               <button
                 onClick={() => setActiveStageId(stage.id)}
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 8,
+                  gap: 10,
                   background: "none",
                   border: "none",
+                  borderBottom: isActive ? "2px solid #a3e635" : "2px solid transparent",
                   cursor: "pointer",
                   padding: "6px 10px",
-                  borderRadius: 6,
+                  height: "100%",
+                  borderRadius: 0,
+                  transition: "border-color 150ms",
                 }}
               >
                 <span
                   style={{
-                    width: 40,
-                    height: 40,
+                    width: isMobile ? 38 : 52,
+                    height: isMobile ? 38 : 52,
                     borderRadius: "50%",
-                    background: isComplete ? "#059669" : isActive ? "#111827" : "#e5e7eb",
-                    color: isComplete || isActive ? "#fff" : "#9ca3af",
+                    background: isComplete ? "#111827" : isActive ? "#111827" : "#f3f4f6",
+                    color: isComplete ? "#a3e635" : isActive ? "#a3e635" : "#9ca3af",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 13,
+                    fontSize: isMobile ? 13 : 15,
                     fontWeight: 700,
                     flexShrink: 0,
                   }}
                 >
                   {isComplete ? (
-                    <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
-                      <path d="M1 5l3.5 3.5L11 1" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width="16" height="13" viewBox="0 0 12 10" fill="none">
+                      <path d="M1 5l3.5 3.5L11 1" stroke="#a3e635" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   ) : (
                     idx + 1
                   )}
                 </span>
-                <span
-                  style={{
-                    fontSize: 13,
-                    fontWeight: isActive ? 600 : 500,
-                    color: isLocked ? "#9ca3af" : "#111827",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {stage.name}
-                </span>
+                {!isMobile && (
+                  <span
+                    style={{
+                      fontSize: 17,
+                      fontWeight: isActive ? 800 : 600,
+                      color: isLocked ? "#9ca3af" : isActive ? "#111827" : "#374151",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {stage.name}
+                  </span>
+                )}
               </button>
               {idx < STAGES.length - 1 && (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ margin: "0 2px" }}>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ margin: "0 2px", flexShrink: 0 }}>
                   <path d="M6 4l4 4-4 4" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               )}
@@ -2240,48 +2897,93 @@ export function StrategyFlow({
         return (
           <div style={{ borderBottom: "1px solid #e5e7eb", background: "#fff" }}>
             {/* Hero band */}
-            <div style={{ padding: "40px 48px 36px" }}>
-              <h1 style={{ fontSize: 36, fontWeight: 800, color: "#111827", marginBottom: 6, letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            <div style={{ padding: isMobile ? "16px 16px 20px" : "20px 48px 24px" }}>
+              <h1 style={{ fontSize: isMobile ? 24 : 36, fontWeight: 800, color: "#111827", marginBottom: 6, letterSpacing: "-0.02em", lineHeight: 1.1 }}>
                 {activeStage.name}
               </h1>
               {hero?.goal && (
-                <p style={{ fontSize: 13, fontWeight: 700, color: "#374151", marginBottom: 20, lineHeight: 1.5 }}>
+                <p style={{ fontSize: isMobile ? 17 : 19, fontWeight: 700, color: "#111827", marginBottom: 16, lineHeight: 1.5 }}>
                   Goal: {hero.goal}
                 </p>
               )}
-              <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.7, marginBottom: 0 }}>
+              <p style={{ fontSize: 17, color: "#374151", lineHeight: 1.7, marginBottom: 0 }}>
                 {hero?.description ?? activeStage.purpose}
               </p>
             </div>
-            {/* Deliverables strip */}
-            {hero?.deliverables && (
-              <div style={{ padding: "14px 48px", background: "#f9fafb", borderTop: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginRight: 4 }}>Outputs</span>
-                {hero.deliverables.map((d) => {
-                  const sectionId = "section-" + d.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-                  const canLink = activeState.reportStatus === "complete";
-                  return canLink ? (
+            {/* Output navigation strip */}
+            <div style={{ borderTop: "1px solid #e5e7eb", background: "#f9fafb" }}>
+              {/* Row 1: Standard section pills — always present, active when report complete */}
+              <div style={{ padding: isMobile ? "10px 16px 8px" : "12px 48px 8px", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginRight: 4, whiteSpace: "nowrap" }}>Report</span>
+                {STANDARD_REPORT_PILLS.map((pill) => {
+                  const isComplete = activeState.reportStatus === "complete";
+                  return isComplete ? (
                     <button
-                      key={d}
+                      key={pill.label}
                       onClick={() => {
                         setActiveTab("report");
                         setTimeout(() => {
-                          const el = document.getElementById(sectionId);
-                          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                          const el = document.getElementById(pill.anchor);
+                          if (el) {
+                            const y = el.getBoundingClientRect().top + window.scrollY - 220;
+                            window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+                          }
                         }, 50);
                       }}
-                      style={{ fontSize: 13, fontWeight: 500, color: "#2563eb", background: "#fff", border: "1px solid #bfdbfe", borderRadius: 20, padding: "4px 14px", cursor: "pointer", fontFamily: "inherit" }}
+                      style={{ fontSize: 12, fontWeight: 500, color: "#2563eb", background: "#fff", border: "1px solid #bfdbfe", borderRadius: 20, padding: "3px 11px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
                     >
-                      {d}
+                      {pill.label}
                     </button>
                   ) : (
-                    <span key={d} style={{ fontSize: 13, fontWeight: 500, color: "#374151", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 20, padding: "4px 14px" }}>
-                      {d}
+                    <span key={pill.label} style={{ fontSize: 12, fontWeight: 500, color: "#9ca3af", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 20, padding: "3px 11px", whiteSpace: "nowrap" }}>
+                      {pill.label}
                     </span>
                   );
                 })}
               </div>
-            )}
+              {/* Row 2: Stage-specific section pills — from deliverables (pre-run) or ### headings (post-run) */}
+              {(() => {
+                const isComplete = activeState.reportStatus === "complete";
+                const stagePills = isComplete && activeState.report
+                  ? extractSubheadings(activeState.report)
+                  : (hero?.deliverables ?? []).map((d) => ({
+                      label: d,
+                      anchor: "subsection-" + d.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
+                    }));
+                if (stagePills.length === 0) return null;
+                return (
+                  <div style={{ padding: isMobile ? "0 16px 10px" : "0 48px 10px", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginRight: 4, whiteSpace: "nowrap" }}>
+                      {activeStage.name}
+                    </span>
+                    {stagePills.map((pill) => (
+                      isComplete ? (
+                        <button
+                          key={pill.label}
+                          onClick={() => {
+                            setActiveTab("report");
+                            setTimeout(() => {
+                              const el = document.getElementById(pill.anchor);
+                              if (el) {
+                                const y = el.getBoundingClientRect().top + window.scrollY - 220;
+                                window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+                              }
+                            }, 50);
+                          }}
+                          style={{ fontSize: 12, fontWeight: 500, color: "#374151", background: "#fff", border: "1px solid #d1d5db", borderRadius: 20, padding: "3px 11px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                        >
+                          {pill.label}
+                        </button>
+                      ) : (
+                        <span key={pill.label} style={{ fontSize: 12, fontWeight: 500, color: "#9ca3af", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 20, padding: "3px 11px", whiteSpace: "nowrap" }}>
+                          {pill.label}
+                        </span>
+                      )
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
           </div>
         );
       })()}
@@ -2293,8 +2995,8 @@ export function StrategyFlow({
             display: "flex",
             alignItems: "center",
             borderBottom: "1px solid #e5e7eb",
-            paddingLeft: 48,
-            paddingRight: 48,
+            paddingLeft: isMobile ? 16 : 48,
+            paddingRight: isMobile ? 16 : 48,
             background: "#fff",
             flexShrink: 0,
             gap: 0,
@@ -2306,12 +3008,12 @@ export function StrategyFlow({
               onClick={() => setActiveTab(tab)}
               style={{
                 padding: "14px 20px",
-                fontSize: 13,
+                fontSize: 16,
                 fontWeight: activeTab === tab ? 600 : 500,
                 color: activeTab === tab ? "#111827" : "#6b7280",
                 background: "none",
                 border: "none",
-                borderBottom: activeTab === tab ? "2px solid #111827" : "2px solid transparent",
+                borderBottom: activeTab === tab ? "2px solid #a3e635" : "2px solid transparent",
                 cursor: "pointer",
                 fontFamily: "inherit",
                 marginBottom: -1,
@@ -2321,157 +3023,460 @@ export function StrategyFlow({
               {tab === "qa" ? "Questions & Answers" : `${activeStage.name} Report`}
             </button>
           ))}
-          <div style={{ flex: 1 }} />
-          {/* PDF download button */}
+        </div>
+      )}
+
+      {/* Action bar — below tab strip, above report content */}
+      {isReportComplete && activeTab === "report" && !isMobile && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "10px 48px", borderBottom: "1px solid #e5e7eb",
+          background: "#fff", flexShrink: 0,
+        }}>
+          {/* PDF download */}
           <button
-            onClick={async () => {
-              const report = activeState.report;
-              if (!report) return;
-              const { jsPDF } = await import("jspdf");
-              const doc = new jsPDF({ unit: "mm", format: "a4" });
-              const pageW = doc.internal.pageSize.getWidth();
-              const margin = 20;
-              const maxW = pageW - margin * 2;
-
-              // ── Logo (top-left, concentric squares + wordmark) ──
-              const lx = margin;
-              const ly = 14;
-              const sz = 14; // outer square size in mm
-              doc.setDrawColor(17, 24, 39);
-              doc.setLineWidth(0.8);
-              doc.rect(lx, ly, sz, sz); // outer
-              doc.setLineWidth(0.6);
-              const inset1 = 2.5;
-              doc.rect(lx + inset1, ly + inset1, sz - inset1 * 2, sz - inset1 * 2); // mid
-              const inset2 = 4.8;
-              doc.rect(lx + inset2, ly + inset2, sz - inset2 * 2, sz - inset2 * 2); // inner
-              // Wordmark
-              const tx = lx + sz + 4;
-              doc.setFont("helvetica", "bold");
-              doc.setFontSize(6.5);
-              doc.setTextColor(17, 24, 39);
-              doc.text("THE", tx, ly + 4);
-              doc.text("NTH", tx, ly + 8.5);
-              doc.text("LAYER", tx, ly + 13);
-
-              let y = ly + sz + 8;
-
-              // Title
-              doc.setFont("helvetica", "bold");
-              doc.setFontSize(18);
-              doc.setTextColor(17, 24, 39);
-              doc.text(`${activeStage.name} Report`, margin, y);
-              y += 8;
-              doc.setFont("helvetica", "normal");
-              doc.setFontSize(10);
-              doc.setTextColor(156, 163, 175);
-              doc.text(new Date().toLocaleDateString("en-GB"), margin, y);
-              y += 10;
-
-              const lines = report.split("\n");
-              for (const line of lines) {
-                if (y > 270) { doc.addPage(); y = 20; }
-                if (line.startsWith("## ")) {
-                  y += 4;
-                  doc.setFont("helvetica", "bold");
-                  doc.setFontSize(12);
-                  doc.setTextColor(17, 24, 39);
-                  doc.text(line.slice(3), margin, y);
-                  y += 7;
-                } else if (line === "---") {
-                  doc.setDrawColor(229, 231, 235);
-                  doc.setLineWidth(0.3);
-                  doc.line(margin, y, pageW - margin, y);
-                  y += 6;
-                } else if (line.trim() === "") {
-                  y += 3;
-                } else {
-                  doc.setFont("helvetica", "normal");
-                  doc.setFontSize(10);
-                  doc.setTextColor(55, 65, 81);
-                  const plain = line.replace(/\*\*(.*?)\*\*/g, "$1").replace(/_(.*?)_/g, "$1").replace(/^- /, "• ");
-                  const wrapped = doc.splitTextToSize(plain, maxW);
-                  for (const wline of wrapped) {
-                    if (y > 275) { doc.addPage(); y = 20; }
-                    doc.text(wline, margin, y);
-                    y += 5;
-                  }
-                }
-              }
-              doc.save(`${activeStage.name}-Report.pdf`);
-            }}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              background: "none", border: "1px solid #e5e7eb", borderRadius: 8,
-              padding: "7px 14px", fontSize: 13, fontWeight: 500, color: "#6b7280",
-              cursor: "pointer", fontFamily: "inherit", marginRight: 8,
-            }}
+            onClick={() => { document.title = `${activeStage.name} Report — Inflexion`; window.print(); }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#111827", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 13, fontWeight: 600, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
             </svg>
             Download PDF
           </button>
-          {/* Share button */}
           <ShareButton stageId={activeStageId} stageName={activeStage.name} reportSections={activeState.reportSections} />
-          {nextStage ? (
-            <button
-              onClick={handleContinue}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                background: "#111827",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                padding: "8px 18px",
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              Continue to {nextStage.name}
-              <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                <path d="M3 7h8M8 4l3 3-3 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+          <div style={{ flex: 1 }} />
+          {nextIncompleteStage ? (
+            <button onClick={handleContinue} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#111827", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+              Continue to {nextIncompleteStage.name}
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
-          ) : (
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                background: "#059669",
-                color: "#fff",
-                borderRadius: 8,
-                padding: "8px 18px",
-                fontSize: 13,
-                fontWeight: 600,
-              }}
-            >
-              <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                <path d="M1.5 7.5l4 4 7-8" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Strategy Complete
+          ) : allStagesComplete ? (
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <button onClick={() => { setActiveStageId("commit"); setActiveTab("report"); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#059669", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M1.5 7.5l4 4 7-8" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                View Full Strategy
+              </button>
+              <button onClick={() => setDeckModalOpen(true)} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#fff", color: "#111827", border: "1.5px solid #111827", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" /></svg>
+                Unlock Strategy Deck
+              </button>
             </div>
+          ) : (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f3f4f6", color: "#6b7280", borderRadius: 8, padding: "8px 18px", fontSize: 13, fontWeight: 600 }}>Last stage</div>
           )}
         </div>
       )}
 
-      {/* Feedback bar — sticky below tab strip, only on report tab */}
+      {/* Feedback bar */}
       {isReportComplete && activeTab === "report" && (
         <ReportFeedback stageId={activeStageId} stageName={activeStage.name} />
+      )}
+
+      {/* Toast */}
+      <Toast message={toastMessage} visible={toastVisible} />
+
+      {/* Strategy Deck Modal */}
+      {deckModalOpen && (
+        <div
+          onClick={() => setDeckModalOpen(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "#fff", borderRadius: 16, maxWidth: 560, width: "100%", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}
+          >
+            {/* Header */}
+            <div style={{ background: "#111827", padding: "28px 32px 24px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a3e635" strokeWidth="1.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0 1 18 16.5h-2.25m-7.5 0h7.5m-7.5 0-1 3m8.5-3 1 3m0 0 .5 1.5m-.5-1.5h-9.5m0 0-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
+                    </svg>
+                    <p style={{ fontSize: 18, fontWeight: 700, color: "#fff", margin: 0 }}>Strategy Deck</p>
+                  </div>
+                  <p style={{ fontSize: 13, color: "#9ca3af", margin: 0 }}>A board-ready presentation generated from your 5 completed strategy reports.</p>
+                </div>
+                <button onClick={() => setDeckModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", padding: 4 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+            {/* Slide list */}
+            <div style={{ padding: "24px 32px" }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 16 }}>What&apos;s included — 12 slides</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  { n: "01", label: "The Strategic Moment", source: "Frame" },
+                  { n: "02", label: "Current Reality", source: "Diagnose" },
+                  { n: "03", label: "Competitive Position", source: "Diagnose" },
+                  { n: "04", label: "Strategic Options Considered", source: "Decide" },
+                  { n: "05", label: "Recommended Direction", source: "Decide" },
+                  { n: "06", label: "What Must Be True", source: "Decide" },
+                  { n: "07", label: "Market Position", source: "Position" },
+                  { n: "08", label: "Competitive Advantage", source: "Position" },
+                  { n: "09", label: "Strategic Bets", source: "Commit" },
+                  { n: "10", label: "OKRs", source: "Commit" },
+                  { n: "11", label: "100-Day Plan", source: "Commit" },
+                  { n: "12", label: "Governance & Kill Criteria", source: "Commit" },
+                ].map((slide) => (
+                  <div key={slide.n} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", width: 24, flexShrink: 0 }}>{slide.n}</span>
+                    <span style={{ fontSize: 13, color: "#111827", flex: 1 }}>{slide.label}</span>
+                    <span style={{ fontSize: 11, color: "#6b7280", background: "#f3f4f6", borderRadius: 6, padding: "2px 8px" }}>{slide.source}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid #f3f4f6" }}>
+                <p style={{ fontSize: 12, color: "#9ca3af", margin: "0 0 16px" }}>
+                  Your board-ready PowerPoint deck, generated from all 5 strategy reports.
+                </p>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button
+                    onClick={() => setDeckModalOpen(false)}
+                    style={{ padding: "10px 20px", fontSize: 13, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "inherit" }}
+                  >
+                    Close
+                  </button>
+                  <DeckDownloadButton
+                    companyName={companyName}
+                    outputs={Object.fromEntries(
+                      Object.entries(stageStates)
+                        .filter(([, s]) => s.reportSections != null)
+                        .map(([id, s]) => [id, s.reportSections])
+                    ) as Record<string, unknown>}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Body */}
       {isReportComplete && activeTab === "report" ? (
         /* Report tab — full width */
-        <div style={{ flex: 1, overflowY: "auto", padding: "48px 48px 80px" }}>
-          <div id="report-print-area" style={{ maxWidth: 800 }}>
-            {activeState.report && renderReport(activeState.report)}
+        <div style={{ flex: 1, overflowY: "auto", padding: isMobile ? "16px 16px 80px" : "24px 48px 80px" }}>
+          <div ref={reportTopRef} />
+          <div id="report-print-area" style={{ maxWidth: "100%" }}>
+            {/* Persona tag */}
+            {(() => {
+              const persona = typeof stageStates["frame"]?.answers?.["persona"] === "string"
+                ? (stageStates["frame"].answers["persona"] as string)
+                : Array.isArray(stageStates["frame"]?.answers?.["persona"])
+                  ? (stageStates["frame"].answers["persona"] as string[])[0]
+                  : null;
+              return persona ? (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#f3f4f6", borderRadius: 6, padding: "4px 10px", marginBottom: 20, fontSize: 12, color: "#6b7280" }}>
+                  <svg width="11" height="11" viewBox="0 0 14 14" fill="none">
+                    <circle cx="7" cy="5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+                    <path d="M2 12c0-2.761 2.239-5 5-5s5 2.239 5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                  Framed for: {persona}
+                </div>
+              ) : null;
+            })()}
+            {/* Stage-specific tags */}
+            {(() => {
+              const currentOutputId = outputIds[activeStageId];
+              const tags = currentOutputId ? (outputTags[currentOutputId] ?? []) : [];
+              if (!tags.length) return null;
+              const STAGE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+                frame:    { bg: "#f9fafb",  text: "#374151", border: "#d1d5db" },
+                diagnose: { bg: "#eff6ff",  text: "#1e40af", border: "#bfdbfe" },
+                decide:   { bg: "#f5f3ff",  text: "#6d28d9", border: "#ddd6fe" },
+                position: { bg: "#f0fdf4",  text: "#065f46", border: "#bbf7d0" },
+                commit:   { bg: "#fffbeb",  text: "#92400e", border: "#fde68a" },
+              };
+              const col = STAGE_COLORS[activeStageId] ?? STAGE_COLORS.frame;
+              return (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 20 }}>
+                  {tags.map((tag) => (
+                    <span key={tag} style={{ fontSize: 11, fontWeight: 600, color: col.text, background: col.bg, border: `1px solid ${col.border}`, padding: "2px 10px", borderRadius: 999 }}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              );
+            })()}
+            {/* Stale report warning — time-based or content contradiction */}
+            {(() => {
+              const { sections } = getActiveReport(activeStageId);
+              const createdAt = sections?.createdAt ? new Date(sections.createdAt as string) : null;
+              const daysOld = createdAt ? Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+              const reportSections = activeState.reportSections as Record<string, unknown> | null;
+              const isContentStale = reportSections?._stale === true;
+              const staledBy = reportSections?._staledBy as string | undefined;
+              const staleReasons = reportSections?._staleReasons as string[] | undefined;
+
+              if (isContentStale) {
+                return (
+                  <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 8, padding: "12px 16px", marginBottom: 16 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c2410c" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: "#c2410c", margin: 0 }}>
+                        Contradictions detected — flagged stale by {staledBy ? `the ${staledBy.charAt(0).toUpperCase() + staledBy.slice(1)} stage` : "a later stage"}
+                      </p>
+                    </div>
+                    {staleReasons && staleReasons.length > 0 && (
+                      <ul style={{ margin: "0 0 4px 18px", padding: 0 }}>
+                        {staleReasons.map((r, i) => (
+                          <li key={i} style={{ fontSize: 12, color: "#9a3412", lineHeight: 1.6 }}>{r}</li>
+                        ))}
+                      </ul>
+                    )}
+                    <p style={{ fontSize: 11, color: "#c2410c", margin: 0 }}>Consider re-running this stage to resolve the contradictions.</p>
+                  </div>
+                );
+              }
+
+              if (daysOld < 90) return null;
+              return (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 8, padding: "10px 14px", marginBottom: 16 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                  <p style={{ fontSize: 12, color: "#92400e", margin: 0 }}>
+                    This report is <strong>{daysOld} days old</strong> — market conditions may have changed. Consider re-running this stage.
+                  </p>
+                </div>
+              );
+            })()}
+            {/* Low confidence quality gate */}
+            {(() => {
+              const conf = activeState.reportSections?.confidence as { score?: number } | undefined;
+              const score = conf?.score;
+              if (!score || score >= 0.50) return null;
+              const pct = Math.round(score * 100);
+              return (
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 10, background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 8, padding: "12px 16px", marginBottom: 16 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#92400e" strokeWidth="1.5" style={{ flexShrink: 0, marginTop: 1 }}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                  <div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "#92400e", margin: "0 0 2px" }}>Low confidence: {pct}%</p>
+                    <p style={{ fontSize: 12, color: "#92400e", margin: 0, lineHeight: 1.5 }}>
+                      The evidence base for this report may be insufficient to commit to this direction. Consider re-running the stage with stronger inputs or additional context.
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+            {/* Version history banner — shown when viewing an older version */}
+            {activeVersionOutputId[activeStageId] && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: 8, padding: "10px 14px", marginBottom: 16 }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" /></svg>
+                <p style={{ fontSize: 12, color: "#1e40af", margin: 0, flex: 1 }}>
+                  You are viewing an older version of this report.
+                </p>
+                <button
+                  onClick={() => setActiveVersionOutputId((prev) => ({ ...prev, [activeStageId]: null }))}
+                  style={{ fontSize: 11, color: "#1d4ed8", background: "none", border: "1px solid #bfdbfe", borderRadius: 6, padding: "3px 10px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                >
+                  Back to latest
+                </button>
+              </div>
+            )}
+            {getActiveReport(activeStageId).report && renderReport(getActiveReport(activeStageId).report!)}
+            {/* Version history panel */}
+            {(() => {
+              const versions = allOutputsByStage[activeStageId] ?? [];
+              if (versions.length < 2) return null;
+              const isOpen = versionHistoryOpen[activeStageId] ?? false;
+              return (
+                <div style={{ marginTop: 24, borderTop: "1px solid #e5e7eb", paddingTop: 16 }}>
+                  <button
+                    onClick={() => setVersionHistoryOpen((prev) => ({ ...prev, [activeStageId]: !prev[activeStageId] }))}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "none", border: "none", padding: 0, fontSize: 12, color: "#6b7280", cursor: "pointer", fontFamily: "inherit" }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" /></svg>
+                    Version history ({versions.length})
+                    <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 150ms" }}>
+                      <path d="M3 5l4 4 4-4"/>
+                    </svg>
+                  </button>
+                  {isOpen && (
+                    <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+                      {versions.map((ver) => {
+                        const isActive = (activeVersionOutputId[activeStageId] ?? outputIds[activeStageId]) === ver.id;
+                        const confPct = ver.confidence != null ? `${Math.round(ver.confidence * 100)}%` : null;
+                        return (
+                          <div
+                            key={ver.id}
+                            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: isActive ? "#f0fdf4" : "#f9fafb", border: `1px solid ${isActive ? "#bbf7d0" : "#e5e7eb"}`, borderRadius: 8 }}
+                          >
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                                <span style={{ fontSize: 12, fontWeight: 600, color: "#111827" }}>v{ver.version}</span>
+                                <span style={{ fontSize: 11, color: "#6b7280" }}>{new Date(ver.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                                {confPct && (
+                                  <span style={{ fontSize: 11, background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 20, padding: "1px 8px", color: "#374151" }}>
+                                    {confPct} confidence
+                                  </span>
+                                )}
+                                {(outputTags[ver.id] ?? []).map((tag) => (
+                                  <span key={tag} style={{ fontSize: 10, background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 20, padding: "1px 7px", color: "#6b7280" }}>{tag}</span>
+                                ))}
+                              </div>
+                            </div>
+                            {!isActive && (
+                              <button
+                                onClick={() => setActiveVersionOutputId((prev) => ({ ...prev, [activeStageId]: ver.id }))}
+                                style={{ fontSize: 11, padding: "4px 12px", background: "none", border: "1px solid #e5e7eb", borderRadius: 6, cursor: "pointer", color: "#374151", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                              >
+                                View
+                              </button>
+                            )}
+                            {isActive && (
+                              <span style={{ fontSize: 11, color: "#16a34a", fontWeight: 500 }}>Current</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
+          {/* Per-stage chat */}
+          {isReportComplete && activeTab === "report" && (
+            <div style={{ maxWidth: 800, marginTop: 48, paddingTop: 32, borderTop: "1.5px solid #e5e7eb" }}>
+              <div style={{ marginBottom: 20 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: "#111827", margin: "0 0 4px" }}>Ask this report</h3>
+                <p style={{ fontSize: 13, color: "#6b7280", margin: 0 }}>Ask follow-up questions about the {activeStage.name} analysis.</p>
+              </div>
+
+              {/* Messages */}
+              {((chatMessages[activeStageId] ?? []).length > 0 || chatStreaming[activeStageId]) && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+                  {(chatMessages[activeStageId] ?? []).map((msg, i) => (
+                    <div key={i} style={{
+                      alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
+                      background: msg.role === "user" ? "#111827" : "#f9fafb",
+                      border: msg.role === "assistant" ? "1px solid #e5e7eb" : "none",
+                      borderRadius: msg.role === "user" ? "12px 12px 0 12px" : "12px 12px 12px 0",
+                      padding: "10px 14px",
+                      fontSize: 13,
+                      color: msg.role === "user" ? "#fff" : "#374151",
+                      maxWidth: "80%",
+                      lineHeight: 1.6,
+                    }}>
+                      {msg.role === "assistant" ? renderWithCitations(msg.content) : msg.content}
+                    </div>
+                  ))}
+                  {chatStreaming[activeStageId] && (
+                    <div style={{
+                      alignSelf: "flex-start",
+                      background: "#f9fafb",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "12px 12px 12px 0",
+                      padding: "10px 14px",
+                      fontSize: 13,
+                      color: "#374151",
+                      maxWidth: "80%",
+                      lineHeight: 1.6,
+                    }}>
+                      {renderWithCitations(chatStreaming[activeStageId])}▋
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Suggested questions — only when no messages yet */}
+              {(chatMessages[activeStageId] ?? []).length === 0 && !chatLoading[activeStageId] && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+                  {getStageSuggestedQuestions(activeStageId).map((q) => (
+                    <button
+                      key={q}
+                      onClick={async () => {
+                        setChatInput(prev => ({ ...prev, [activeStageId]: q }));
+                        await handleChatSendWithText(activeStageId, q);
+                      }}
+                      style={{ fontSize: 12, color: "#374151", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 20, padding: "6px 14px", cursor: "pointer", fontFamily: "inherit" }}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Input */}
+              <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+                <textarea
+                  value={chatInput[activeStageId] ?? ""}
+                  onChange={(e) => setChatInput(prev => ({ ...prev, [activeStageId]: e.target.value }))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleChatSend(activeStageId);
+                    }
+                  }}
+                  placeholder={`Ask a question about the ${activeStage.name} report…`}
+                  disabled={chatLoading[activeStageId]}
+                  rows={2}
+                  style={{ flex: 1, padding: "10px 14px", fontSize: 13, border: "1.5px solid #e5e7eb", borderRadius: 10, resize: "none", fontFamily: "inherit", color: "#111827", outline: "none", background: chatLoading[activeStageId] ? "#f9fafb" : "#fff" }}
+                />
+                <button
+                  onClick={() => handleChatSend(activeStageId)}
+                  disabled={chatLoading[activeStageId] || !(chatInput[activeStageId] ?? "").trim()}
+                  style={{ padding: "10px 18px", fontSize: 13, fontWeight: 600, background: (chatLoading[activeStageId] || !(chatInput[activeStageId] ?? "").trim()) ? "#e5e7eb" : "#111827", color: (chatLoading[activeStageId] || !(chatInput[activeStageId] ?? "").trim()) ? "#9ca3af" : "#fff", border: "none", borderRadius: 10, cursor: (chatLoading[activeStageId] || !(chatInput[activeStageId] ?? "").trim()) ? "not-allowed" : "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                >
+                  {chatLoading[activeStageId] ? "…" : "Send"}
+                </button>
+              </div>
+              <p style={{ fontSize: 11, color: "#9ca3af", marginTop: 8 }}>Press Enter to send · Shift+Enter for new line</p>
+            </div>
+          )}
+          {/* Mobile: action buttons at bottom of report */}
+          {isMobile && (
+            <div style={{ marginTop: 40, paddingBottom: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+              {/* Download + Share row */}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={() => { document.title = `${activeStage.name} Report — Inflexion`; window.print(); }}
+                  style={{
+                    flex: 1,
+                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
+                    background: "#111827", border: "none", borderRadius: 8,
+                    padding: "12px", fontSize: 13, fontWeight: 600, color: "#fff",
+                    cursor: "pointer", fontFamily: "inherit",
+                  }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Download PDF
+                </button>
+                <div style={{ flex: 1 }}>
+                  <ShareButton stageId={activeStageId} stageName={activeStage.name} reportSections={activeState.reportSections} fullWidth />
+                </div>
+              </div>
+              {/* Continue button */}
+              {nextStage && (
+                <button
+                  onClick={handleContinue}
+                  style={{
+                    width: "100%",
+                    padding: "16px 24px",
+                    background: "#111827",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 10,
+                    fontWeight: 600,
+                    fontSize: 15,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                >
+                  Continue to {nextStage.name}
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M3 7h8M8 4l3 3-3 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         /* Q&A view — always shown (normal, generating, or Q&A tab when complete) */
@@ -2479,13 +3484,15 @@ export function StrategyFlow({
           style={{
             flex: 1,
             display: "flex",
+            flexDirection: isMobile ? "column" : "row",
             minHeight: 0,
-            gap: 32,
-            padding: "64px 48px 48px",
+            gap: isMobile ? 24 : 32,
+            padding: isMobile ? "24px 16px 48px" : "64px 48px 48px",
             pointerEvents: isGenerating ? "none" : "auto",
             opacity: isGenerating ? 0.6 : 1,
             transition: "opacity 200ms",
             position: "relative",
+            overflowY: isMobile ? "auto" : "visible",
           }}
         >
           {/* Generating overlay banner */}
@@ -2512,14 +3519,14 @@ export function StrategyFlow({
                 }}
               >
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: "#fff", margin: "0 0 8px" }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "#a3e635", margin: "0 0 8px" }}>
                     Generating {activeStage.name} report...
                   </p>
-                  <div style={{ height: 3, background: "rgba(255,255,255,0.2)", borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ height: 3, background: "rgba(163,230,53,0.2)", borderRadius: 2, overflow: "hidden" }}>
                     <div
                       style={{
                         height: "100%",
-                        background: "#fff",
+                        background: "#a3e635",
                         borderRadius: 2,
                         width: `${progressValue}%`,
                         transition: "width 150ms ease-out",
@@ -2527,9 +3534,23 @@ export function StrategyFlow({
                     />
                   </div>
                 </div>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap" }}>
-                  {progressMessage}
-                </span>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <p style={{ fontSize: 12, color: "rgba(163,230,53,0.7)", margin: "0 0 2px", whiteSpace: "nowrap" }}>
+                    {progressMessage}
+                  </p>
+                  <p style={{ fontSize: 11, color: "rgba(163,230,53,0.4)", margin: 0, whiteSpace: "nowrap" }}>
+                    ~3–5 min
+                  </p>
+                </div>
+              </div>
+              {/* Email notification note */}
+              <div style={{ textAlign: "center", marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                </svg>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>
+                  We&apos;ll email you when your report is ready
+                </p>
               </div>
             </div>
           )}
@@ -2537,7 +3558,7 @@ export function StrategyFlow({
           {/* Left: Question area */}
           <div
             style={{
-              width: "55%",
+              width: isMobile ? "100%" : "55%",
               flexShrink: 0,
               display: "flex",
               flexDirection: "column",
@@ -2546,6 +3567,34 @@ export function StrategyFlow({
           >
             {!allAnswered && !isGenerating ? (
               <>
+                {activeStageId === "commit" && activeTab === "qa" && (() => {
+                  // Check for at-risk or invalidated assumptions across all prior stages
+                  const issues: string[] = [];
+
+                  // Check if diagnose has no completed output (can't commit without diagnosis)
+                  if (!initialCompletedOutputs["diagnose"]) issues.push("Diagnose stage not yet completed — strategic bets may lack an evidence base");
+                  if (!initialCompletedOutputs["position"]) issues.push("Position stage not yet completed — commitment without a defined market position is high risk");
+
+                  if (issues.length === 0) return null;
+
+                  return (
+                    <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, padding: "14px 16px", marginBottom: 20 }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c2410c" strokeWidth="1.5" style={{ flexShrink: 0, marginTop: 1 }}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                        <div>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: "#c2410c", margin: "0 0 6px" }}>Review before committing</p>
+                          {issues.map((issue, i) => (
+                            <p key={i} style={{ fontSize: 12, color: "#9a3412", margin: "0 0 4px" }}>· {issue}</p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+                {/* Question counter */}
+                <p style={{ fontSize: 12, fontWeight: 600, color: "#9ca3af", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 8, marginTop: 0 }}>
+                  Question {activeState.currentQuestion + 1} of {activeStage.questions.length}
+                </p>
                 {/* Question text */}
                 <p
                   style={{
@@ -2570,6 +3619,119 @@ export function StrategyFlow({
                     {currentQ.hint}
                   </p>
                 )}
+
+                {/* AI-generated strategic bet suggestions for Commit stage */}
+                {activeStageId === "commit" && currentQ.id === "strategic_bets" && (() => {
+                  const currentEntries = Array.isArray(currentAnswer) ? currentAnswer as Array<Record<string,string>> : [];
+                  const max = currentQ.maxSelections ?? 3;
+
+                  // Auto-fetch on first render of this question
+                  if (!betsFetched && !betsLoading) {
+                    setBetsLoading(true);
+                    setBetsFetched(true);
+                    const persona = stageStates["frame"]?.answers?.["persona"] as string | undefined;
+                    const priorSections: Record<string, Record<string, unknown>> = {};
+                    for (const s of ["frame", "diagnose", "decide", "position"]) {
+                      if (initialCompletedOutputs[s]) priorSections[s] = initialCompletedOutputs[s] as Record<string, unknown>;
+                    }
+                    fetch("/api/strategy/suggest-bets", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ companyName: stageStates["frame"]?.answers?.["company_name"] ?? "your company", persona, priorSections }),
+                    })
+                      .then((r) => r.json())
+                      .then((data) => { if (data.bets) setBetSuggestions(data.bets); })
+                      .catch(() => {})
+                      .finally(() => setBetsLoading(false));
+                  }
+
+                  const addedNames = new Set(currentEntries.map((e) => e["Bet name"]));
+                  const available = betSuggestions.filter((b) => !addedNames.has(b["Bet name"]));
+
+                  return (
+                    <div style={{ marginBottom: 20 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                        <p style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", margin: 0 }}>
+                          AI-generated bet suggestions — based on your full strategy analysis
+                        </p>
+                        {betsLoading && (
+                          <span style={{ fontSize: 11, color: "#6b7280", fontStyle: "italic" }}>Generating…</span>
+                        )}
+                        {!betsLoading && betSuggestions.length > 0 && (
+                          <button
+                            onClick={() => { setBetsFetched(false); setBetSuggestions([]); }}
+                            style={{ fontSize: 11, color: "#9ca3af", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit" }}
+                          >
+                            ↻ Regenerate
+                          </button>
+                        )}
+                      </div>
+
+                      {betsLoading && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                          {[1,2,3].map((i) => (
+                            <div key={i} style={{ height: 80, background: "#f9fafb", borderRadius: 8, border: "1px solid #f3f4f6", animation: "pulse 1.5s ease-in-out infinite" }} />
+                          ))}
+                        </div>
+                      )}
+
+                      {!betsLoading && available.length > 0 && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 400, overflowY: "auto" }}>
+                          {available.map((bet, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                background: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: 10,
+                                padding: "14px 16px", position: "relative",
+                              }}
+                            >
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 8 }}>
+                                <p style={{ fontSize: 13, fontWeight: 700, color: "#111827", margin: 0 }}>{bet["Bet name"]}</p>
+                                <button
+                                  disabled={currentEntries.length >= max}
+                                  onClick={() => {
+                                    if (currentEntries.length >= max) return;
+                                    handleAnswer([...currentEntries, { ...bet }]);
+                                  }}
+                                  style={{
+                                    fontSize: 11, fontWeight: 600, padding: "4px 12px", borderRadius: 20, border: "none",
+                                    background: currentEntries.length >= max ? "#e5e7eb" : "#111827",
+                                    color: currentEntries.length >= max ? "#9ca3af" : "#fff",
+                                    cursor: currentEntries.length >= max ? "not-allowed" : "pointer",
+                                    fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" as const,
+                                  }}
+                                >
+                                  {currentEntries.length >= max ? "Full" : "+ Add bet"}
+                                </button>
+                              </div>
+                              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                {[["Action", "#1e40af", "#dbeafe"], ["Outcome", "#065f46", "#d1fae5"], ["Hypothesis", "#6b7280", "#f3f4f6"]].map(([label, color, bg]) => (
+                                  <div key={label} style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+                                    <span style={{ fontSize: 10, fontWeight: 700, color, background: bg, borderRadius: 4, padding: "1px 6px", flexShrink: 0, marginTop: 2, textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>{label}</span>
+                                    <span style={{ fontSize: 12, color: "#374151", lineHeight: 1.5 }}>{bet[label as keyof typeof bet]}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {!betsLoading && betSuggestions.length === 0 && betsFetched && (
+                        <p style={{ fontSize: 13, color: "#9ca3af", fontStyle: "italic" }}>
+                          Could not generate suggestions — complete at least one prior stage and try again.
+                        </p>
+                      )}
+
+                      {currentEntries.length > 0 && (
+                        <p style={{ fontSize: 12, color: "#6b7280", marginTop: 10, marginBottom: 0 }}>
+                          {currentEntries.length}/{max} bets added below — edit any field or add your own.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 <QuestionInput
                   question={currentQ}
                   answer={currentAnswer}
@@ -2664,7 +3826,13 @@ export function StrategyFlow({
                 {!isGenerating && !isReportComplete && (
                   <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                     <button
-                      onClick={handleRunReport}
+                      onClick={() => {
+                        if (activeStageId === "commit" && redTeamState === "idle") {
+                          handleRedTeamCheck();
+                        } else {
+                          handleRunReport();
+                        }
+                      }}
                       style={{
                         padding: "14px 32px",
                         background: "#111827",
@@ -2703,6 +3871,59 @@ export function StrategyFlow({
                     </button>
                   </div>
                 )}
+
+                {/* Red team gate — shown before Commit report runs */}
+                {activeStageId === "commit" && redTeamState === "running" && (
+                  <div style={{ marginTop: 20, padding: "20px 24px", background: "#111827", borderRadius: 12, color: "#fff" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#a3e635", animation: "pulse 1.5s infinite" }} />
+                      <p style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: 0 }}>Running red team analysis...</p>
+                    </div>
+                    <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>Checking your strategy for contradictions, blind spots, and unvalidated assumptions before generating the final report.</p>
+                  </div>
+                )}
+
+                {activeStageId === "commit" && redTeamState === "shown" && redTeamChallenges.length > 0 && (
+                  <div style={{ marginTop: 20, border: "1px solid #fde68a", borderRadius: 12, overflow: "hidden" }}>
+                    <div style={{ background: "#111827", padding: "16px 20px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a3e635" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: 0 }}>Red Team Pre-Flight: {redTeamChallenges.length} challenge{redTeamChallenges.length !== 1 ? "s" : ""} identified</p>
+                      </div>
+                      <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>Review these before generating your final Commit report. You can proceed anyway or go back and address them.</p>
+                    </div>
+                    <div style={{ padding: "16px 20px", background: "#fff", display: "flex", flexDirection: "column", gap: 10 }}>
+                      {redTeamChallenges.map((c, i) => {
+                        const sevColor = c.severity === "critical" ? "#fee2e2" : c.severity === "high" ? "#fef3c7" : "#f3f4f6";
+                        const sevText = c.severity === "critical" ? "#991b1b" : c.severity === "high" ? "#92400e" : "#374151";
+                        return (
+                          <div key={i} style={{ padding: "12px 14px", borderRadius: 8, background: sevColor, border: `1px solid ${sevText}22` }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                              <span style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: sevText }}>{c.severity}</span>
+                              <p style={{ fontSize: 13, fontWeight: 700, color: "#111827", margin: 0 }}>{c.title}</p>
+                            </div>
+                            <p style={{ fontSize: 12, color: "#374151", margin: 0, lineHeight: 1.6 }}>{c.detail}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div style={{ padding: "14px 20px", borderTop: "1px solid #e5e7eb", background: "#f9fafb", display: "flex", gap: 10, alignItems: "center" }}>
+                      <button
+                        onClick={() => { setRedTeamState("acknowledged"); handleRunReport(); }}
+                        style={{ padding: "10px 20px", background: "#111827", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
+                      >
+                        Acknowledged — Generate Report Anyway
+                      </button>
+                      <button
+                        onClick={() => setRedTeamState("idle")}
+                        style={{ padding: "10px 16px", background: "none", border: "1.5px solid #e5e7eb", borderRadius: 8, fontSize: 13, color: "#6b7280", cursor: "pointer", fontFamily: "inherit" }}
+                      >
+                        Go Back
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {isReportComplete && (
                   <button
                     onClick={() => setActiveTab("report")}

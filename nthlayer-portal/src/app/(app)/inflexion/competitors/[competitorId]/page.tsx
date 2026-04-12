@@ -29,6 +29,7 @@ export default async function CompetitorDetailPage({ params }: { params: Promise
         sections: output.sections as Record<string, unknown>,
         confidence: output.confidence,
         sources: output.sources,
+        tags: output.tags ?? [],
         companyName: output.company.name,
         createdAt: output.createdAt.toISOString(),
         version: output.version,

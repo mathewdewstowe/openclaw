@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { hashPassword, createToken } from "@/lib/auth";
 import { registerSchema } from "@/lib/validations";
 import { cookies } from "next/headers";
-import { notifyAdmin } from "@/lib/email";
+import { sendNewUserNotification } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -36,10 +36,7 @@ export async function POST(req: Request) {
     });
 
     // Notify matthew@nthlayer.co.uk of new signup (fire-and-forget)
-    notifyAdmin(
-      `New signup: ${name} — ${company}`,
-      `New user registered on Nth Layer Portal.\n\nName: ${name}\nEmail: ${email}\nCompany: ${company}\nJob Title: ${jobTitle}\nTime: ${new Date().toISOString()}`
-    );
+    sendNewUserNotification({ name, email, company, jobTitle });
 
     const token = await createToken(user.id);
     const cookieStore = await cookies();

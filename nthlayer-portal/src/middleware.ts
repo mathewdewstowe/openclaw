@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret-change-me");
-
 const publicPaths = [
   "/login",
   "/register",
   "/forgot-password",
   "/reset-password",
   "/api/auth/login",
+  "/api/auth/login-form",
   "/api/auth/register",
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
@@ -17,6 +16,16 @@ const publicPaths = [
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Enforce HTTPS in production (Cloudflare sets x-forwarded-proto)
+  if (
+    process.env.NODE_ENV === "production" &&
+    req.headers.get("x-forwarded-proto") === "http"
+  ) {
+    const httpsUrl = req.nextUrl.clone();
+    httpsUrl.protocol = "https:";
+    return NextResponse.redirect(httpsUrl, { status: 301 });
+  }
 
   // Public paths
   if (publicPaths.some((p) => pathname.startsWith(p))) {
@@ -40,6 +49,7 @@ export async function middleware(req: NextRequest) {
   }
 
   try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret-change-me");
     await jwtVerify(token, secret);
     return NextResponse.next();
   } catch {

@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
             userId: user.id,
             workflowType: stageId,
             status: "running",
-            metadata: { sessionId },
+            metadata: { sessionId, answers },
           },
         });
       }

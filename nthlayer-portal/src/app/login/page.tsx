@@ -1,52 +1,113 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function LoginPage() {
-  const router = useRouter();
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const serverError = searchParams.get("error");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [validationError, setValidationError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
+  const error = validationError || serverError;
 
-    // Client-side validation
-    if (!email.trim()) { setError("Please enter your email address"); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError("That doesn't look like a valid email address. Please check and try again."); return; }
-    if (!password) { setError("Please enter your password"); return; }
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    setValidationError("");
 
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Login failed");
-        return;
-      }
-
-      // Reset disclaimer so it shows again after every login
-      try { sessionStorage.removeItem("nthlayer_disclaimer_accepted_v1"); } catch {}
-
-      router.push("/inflexion/overview");
-      router.refresh();
-    } catch {
-      setError("Something went wrong");
-    } finally {
-      setLoading(false);
+    if (!email.trim()) {
+      e.preventDefault();
+      setValidationError("Please enter your email address");
+      return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      e.preventDefault();
+      setValidationError("That doesn't look like a valid email address.");
+      return;
+    }
+    if (!password) {
+      e.preventDefault();
+      setValidationError("Please enter your password");
+      return;
+    }
+
+    // Validation passed — let the native form submit to /api/auth/login-form
+    // The server will set the cookie and redirect. No e.preventDefault().
+    setLoading(true);
+    try { sessionStorage.removeItem("nthlayer_disclaimer_accepted_v1"); } catch {}
   }
 
+  return (
+    <form
+      method="post"
+      action="/api/auth/login-form"
+      onSubmit={handleSubmit}
+      className="space-y-4"
+    >
+      {error && (
+        <div className="rounded-md bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
+          {error}
+        </div>
+      )}
+
+      <div>
+        <label htmlFor="email" className="block text-sm font-medium mb-1.5">
+          Email
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+          className="w-full rounded-md border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+        />
+      </div>
+
+      <div>
+        <div className="flex items-baseline justify-between mb-1.5">
+          <label htmlFor="password" className="block text-sm font-medium">
+            Password
+          </label>
+          <Link href="/forgot-password" className="text-xs text-[var(--primary)] hover:underline">
+            Forgot password?
+          </Link>
+        </div>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
+          className="w-full rounded-md border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full rounded-md bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 transition-opacity"
+      >
+        {loading ? "Signing in..." : "Sign In"}
+      </button>
+
+      <p className="text-center text-sm text-[var(--muted-foreground)]">
+        No account?{" "}
+        <Link href="/register" className="text-[var(--primary)] hover:underline">
+          Register
+        </Link>
+      </p>
+    </form>
+  );
+}
+
+export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero banner */}
@@ -68,7 +129,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Two-column layout: marketing panel left, form right */}
+      {/* Two-column layout */}
       <div className="flex flex-1 flex-col lg:flex-row">
         {/* Left: marketing panel */}
         <div className="flex flex-1 items-center justify-center px-6 py-12 lg:px-12 lg:py-16 border-b lg:border-b-0 lg:border-r border-[var(--border)] bg-[var(--muted)]/30">
@@ -111,68 +172,13 @@ export default function LoginPage() {
         </div>
 
         {/* Right: sign-in form */}
-        <div className="flex flex-1 items-start justify-start px-6 py-12 lg:px-12 lg:py-16">
-      <div className="w-full max-w-md space-y-8">
-        <div>
-          <h1 className="text-4xl font-bold tracking-tight">Sign in</h1>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-red-500/10 border border-red-500/20 px-4 py-3 text-sm text-red-400">
-              {error}
-            </div>
-          )}
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1.5">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-            />
+        <div className="flex flex-1 items-start justify-start px-6 pt-20 pb-12 lg:px-12 lg:pt-28 lg:pb-16">
+          <div className="w-full max-w-md space-y-8">
+            <h1 className="text-4xl font-bold tracking-tight">Sign in</h1>
+            <Suspense fallback={null}>
+              <LoginForm />
+            </Suspense>
           </div>
-
-          <div>
-            <div className="flex items-baseline justify-between mb-1.5">
-              <label htmlFor="password" className="block text-sm font-medium">
-                Password
-              </label>
-              <Link href="/forgot-password" className="text-xs text-[var(--primary)] hover:underline">
-                Forgot password?
-              </Link>
-            </div>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-md border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 transition-opacity"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-
-          <p className="text-center text-sm text-[var(--muted-foreground)]">
-            No account?{" "}
-            <Link href="/register" className="text-[var(--primary)] hover:underline">
-              Register
-            </Link>
-          </p>
-        </form>
-      </div>
         </div>
       </div>
     </div>

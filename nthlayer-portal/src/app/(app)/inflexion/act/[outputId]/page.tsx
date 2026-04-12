@@ -46,6 +46,7 @@ export default async function ActOutputPage({ params }: { params: Promise<{ outp
           sections,
           confidence: output.confidence,
           sources: output.sources,
+          tags: output.tags ?? [],
           companyName: output.company.name,
           createdAt: output.createdAt.toISOString(),
           version: output.version,

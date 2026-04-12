@@ -33,7 +33,7 @@ export interface OutputSections {
   recommendation: string;
   business_implications: string;
   evidence_base: { sources: string[]; quotes: string[] };
-  assumptions: string[];
+  assumptions: (string | { text: string; fragility: "low" | "medium" | "high"; testable: boolean; status: "unvalidated" | "validated" | "at_risk" | "invalidated" })[];
   confidence: { score: number; rationale: string };
   risks: { risk: string; severity: "high" | "medium" | "low"; mitigation: string }[];
   actions: { action: string; owner: string; deadline: string; priority: "critical" | "high" | "medium" | "low" }[];
@@ -65,7 +65,7 @@ export const SECTION_LABELS: Record<string, string> = {
   confidence: "Confidence",
   risks: "Risks",
   actions: "Actions",
-  monitoring: "Monitoring",
+  monitoring: "Metrics",
 };
 
 // ─── Workflow metadata ───────────────────────────────────────

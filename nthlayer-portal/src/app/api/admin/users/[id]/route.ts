@@ -26,3 +26,25 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   await db.user.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }
+
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.systemRole !== "super_admin" && user.systemRole !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { id } = await params;
+  const body = await req.json();
+  const { planId } = body;
+
+  if (!planId || typeof planId !== "string") {
+    return NextResponse.json({ error: "planId is required" }, { status: 400 });
+  }
+
+  const target = await db.user.findUnique({ where: { id }, select: { id: true } });
+  if (!target) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+  await db.user.update({ where: { id }, data: { planId } });
+  return NextResponse.json({ ok: true });
+}

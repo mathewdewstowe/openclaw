@@ -1,0 +1,8 @@
+{
+  "name": "inflexion-mcp-search",
+  "account_id": "351ba64ed34484d9eaccd45f329456b3",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true
+}

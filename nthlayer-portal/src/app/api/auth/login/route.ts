@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { verifyPassword, createToken } from "@/lib/auth";
 import { loginSchema } from "@/lib/validations";
-import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
@@ -35,8 +34,11 @@ export async function POST(req: Request) {
     });
 
     const token = await createToken(user.id);
-    const cookieStore = await cookies();
-    cookieStore.set("token", token, {
+
+    const response = NextResponse.json({
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    });
+    response.cookies.set("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -44,11 +46,10 @@ export async function POST(req: Request) {
       path: "/",
     });
 
-    return NextResponse.json({
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
-    });
+    return response;
   } catch (error) {
-    console.error("Login error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Login error:", msg, error);
+    return NextResponse.json({ error: msg || "Internal server error" }, { status: 500 });
   }
 }

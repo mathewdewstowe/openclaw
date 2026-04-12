@@ -11,7 +11,9 @@ export default async function AdminCompaniesPage() {
   if (!user) redirect("/login");
   if (user.systemRole !== "super_admin" && user.systemRole !== "admin") redirect("/inflexion/overview");
 
-  const [companies, plans] = await Promise.all([
+  const dbAny = db as unknown as Record<string, any>;
+
+  const [companies, plans, shares, feedbacks] = await Promise.all([
     db.company.findMany({
       orderBy: { createdAt: "desc" },
       include: {
@@ -24,6 +26,8 @@ export default async function AdminCompaniesPage() {
       },
     }),
     db.plan.findMany({ orderBy: { sortOrder: "asc" }, select: { id: true, displayName: true } }),
+    dbAny.outputShare?.findMany({ orderBy: { createdAt: "desc" }, take: 50, include: { sharedBy: true, company: true } }).catch(() => []) ?? [],
+    dbAny.outputFeedback?.findMany({ orderBy: { createdAt: "desc" }, take: 50 }).catch(() => []) ?? [],
   ]);
 
   return (
@@ -81,6 +85,55 @@ export default async function AdminCompaniesPage() {
           </table>
         </div>
       )}
+
+      {/* Shares */}
+      <div id="shares" style={{ marginTop: 48, marginBottom: 48 }}>
+        <p style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>Report Shares ({shares.length})</p>
+        {shares.length === 0 ? <p style={{ fontSize: 13, color: "#9ca3af" }}>No shares yet.</p> : (
+          <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, overflow: "hidden", background: "#fff" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead><tr>{["Stage", "Company", "Shared By", "Recipient", "Date"].map(h => <th key={h} style={{ textAlign: "left", fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", padding: "0 12px 10px", borderBottom: "1px solid #e5e7eb" }}>{h}</th>)}</tr></thead>
+              <tbody>
+                {shares.map((s: any) => (
+                  <tr key={s.id}>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#374151", borderBottom: "1px solid #f3f4f6" }}><span style={{ textTransform: "capitalize" }}>{s.workflowType}</span></td>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#374151", borderBottom: "1px solid #f3f4f6" }}>{s.company?.name ?? s.companyId}</td>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#374151", borderBottom: "1px solid #f3f4f6" }}>{s.sharedBy?.name ?? s.sharedBy?.email ?? s.userId}</td>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#374151", borderBottom: "1px solid #f3f4f6" }}>{s.recipientEmail}</td>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#9ca3af", borderBottom: "1px solid #f3f4f6", whiteSpace: "nowrap" }}>{new Date(s.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Feedback */}
+      <div id="feedback" style={{ marginBottom: 48 }}>
+        <p style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>Report Feedback ({feedbacks.length})</p>
+        {feedbacks.length === 0 ? <p style={{ fontSize: 13, color: "#9ca3af" }}>No feedback yet.</p> : (
+          <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, overflow: "hidden", background: "#fff" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead><tr>{["Stage", "Overall", "Accuracy", "Depth", "Actionability", "Relevance", "Comment", "Date"].map(h => <th key={h} style={{ textAlign: "left", fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.06em", padding: "0 12px 10px", borderBottom: "1px solid #e5e7eb" }}>{h}</th>)}</tr></thead>
+              <tbody>
+                {feedbacks.map((f: any) => (
+                  <tr key={f.id}>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#374151", borderBottom: "1px solid #f3f4f6" }}><span style={{ textTransform: "capitalize" }}>{f.workflowType}</span></td>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#374151", borderBottom: "1px solid #f3f4f6" }}>{"★".repeat(f.overallRating)}{"☆".repeat(5 - f.overallRating)}</td>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#374151", borderBottom: "1px solid #f3f4f6" }}>{f.accuracy ?? "—"}</td>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#374151", borderBottom: "1px solid #f3f4f6" }}>{f.depth ?? "—"}</td>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#374151", borderBottom: "1px solid #f3f4f6" }}>{f.actionability ?? "—"}</td>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#374151", borderBottom: "1px solid #f3f4f6" }}>{f.relevance ?? "—"}</td>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#374151", borderBottom: "1px solid #f3f4f6", maxWidth: 240 }}>{f.comment ?? "—"}</td>
+                    <td style={{ padding: "10px 12px", fontSize: 13, color: "#9ca3af", borderBottom: "1px solid #f3f4f6", whiteSpace: "nowrap" }}>{new Date(f.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

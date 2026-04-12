@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEntitlements } from "@/lib/contexts/entitlements";
 import { useCompany } from "@/lib/contexts/company";
+import { useIsMobile } from "@/lib/hooks/use-is-mobile";
 
 // ─── Nav structure ───────────────────────────────────────────
 
@@ -18,11 +19,15 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/inflexion/overview", label: "Dashboard", icon: "grid" },
+  { href: "/inflexion/actions", label: "Actions", icon: "check-square" },
+  { href: "/inflexion/risks", label: "Risks", icon: "alert-triangle" },
+  { href: "/inflexion/assumptions", label: "Assumptions", icon: "lightbulb" },
+  { href: "/inflexion/monitoring", label: "Metrics", icon: "bar-chart" },
   { href: "/inflexion/strategy", label: "Frame", icon: "frame", section: "Strategy" },
-  { href: "/inflexion/strategy", label: "Diagnose", icon: "search" },
-  { href: "/inflexion/strategy", label: "Decide", icon: "scale" },
-  { href: "/inflexion/strategy", label: "Position", icon: "target" },
-  { href: "/inflexion/strategy", label: "Commit", icon: "zap" },
+  { href: "/inflexion/diagnose", label: "Diagnose", icon: "search" },
+  { href: "/inflexion/decide", label: "Decide", icon: "scale" },
+  { href: "/inflexion/position", label: "Position", icon: "target" },
+  { href: "/inflexion/commit", label: "Commit", icon: "zap" },
   { href: "/inflexion/competitors", label: "Competitors", icon: "crosshair", section: "Intelligence", entitlement: "access_competitor" },
   { href: "/inflexion/signals", label: "Signals", icon: "activity", entitlement: "access_decide" },
   { href: "/inflexion/monitor", label: "Monitor", icon: "eye", entitlement: "access_decide" },
@@ -120,6 +125,26 @@ const ICONS: Record<string, React.ReactNode> = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
     </svg>
   ),
+  "check-square": (
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+  ),
+  "alert-triangle": (
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+    </svg>
+  ),
+  lightbulb: (
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+    </svg>
+  ),
+  "bar-chart": (
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+    </svg>
+  ),
 };
 
 // ─── Component ───────────────────────────────────────────────
@@ -130,6 +155,7 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
   const { entitlements, planName, systemRole } = useEntitlements();
   const { activeCompany, companies, setActiveCompany } = useCompany();
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const isAdmin = systemRole === "super_admin" || systemRole === "admin";
 
@@ -152,10 +178,61 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
   }
 
 
+  // Mobile bottom tab bar items (5 main)
+  const MOBILE_TABS = [
+    { href: "/inflexion/overview", label: "Overview", icon: "grid" },
+    { href: "/inflexion/strategy", label: "Strategy", icon: "frame" },
+    { href: "/inflexion/chat", label: "Ask Me", icon: "message-square" },
+    { href: "/inflexion/actions", label: "Actions", icon: "check-square" },
+    { href: "/inflexion/risks", label: "Risks", icon: "alert-triangle" },
+  ];
+
   return (
     <>
       {open && (
         <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={onClose} />
+      )}
+
+      {/* Mobile bottom tab bar */}
+      {isMobile && (
+        <nav
+          style={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 45,
+            background: "#fff",
+            borderTop: "1px solid #e5e7eb",
+            display: "flex",
+            height: 60,
+          }}
+        >
+          {MOBILE_TABS.map((tab) => {
+            const active = isActive(tab.href);
+            return (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 3,
+                  textDecoration: "none",
+                  color: active ? "#111827" : "#9ca3af",
+                  fontSize: 10,
+                  fontWeight: active ? 600 : 500,
+                }}
+              >
+                <span style={{ color: active ? "#111827" : "#9ca3af" }}>{ICONS[tab.icon]}</span>
+                {tab.label}
+              </Link>
+            );
+          })}
+        </nav>
       )}
 
       <aside
@@ -221,9 +298,47 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
             const showSection = !!item.section && (idx === 0 || NAV_ITEMS[idx - 1].section !== item.section);
             const active = isActive(item.href);
             const locked = isLocked(item);
+            const isBeforeStrategy = item.section === "Strategy" && NAV_ITEMS[idx - 1]?.section !== "Strategy";
 
             return (
               <div key={`${item.href}-${item.label}`}>
+                {/* Ask Me — injected before Strategy section */}
+                {isBeforeStrategy && (
+                  <div style={{ padding: "16px 12px 4px" }}>
+                    <Link
+                      href="/inflexion/chat"
+                      onClick={onClose}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "12px 16px",
+                        borderRadius: 10,
+                        background: isActive("/inflexion/chat") ? "#111827" : "#111827",
+                        textDecoration: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        transition: "opacity 150ms",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.88"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
+                    >
+                      <span style={{ color: "#a3e635", flexShrink: 0 }}>
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                        </svg>
+                      </span>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: 0, lineHeight: 1.2 }}>Ask Me</p>
+                        <p style={{ fontSize: 11, color: "#6b7280", margin: 0, marginTop: 1 }}>Ask your strategy anything</p>
+                      </div>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M3 7h8M8 4l3 3-3 3" stroke="#a3e635" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </Link>
+                  </div>
+                )}
+
                 {showSection && (
                   <p style={{
                     padding: "20px 20px 6px",
@@ -317,6 +432,7 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
                 { href: "/inflexion/admin/plans", label: "Plans" },
                 { href: "/inflexion/admin/companies", label: "Companies" },
                 { href: "/inflexion/admin/jobs", label: "Jobs" },
+                { href: "/inflexion/admin/feedback", label: "Feedback" },
               ].map((item) => (
                 <Link
                   key={item.href}

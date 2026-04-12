@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -151,14 +152,32 @@ model Output {
   version      Int      @default(1)
   confidence   Float?
   sources      String[]
+  tags         String[] @default([])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  job Job?
+  job         Job?
+  itemStatuses ItemStatus[]
 
   @@index([companyId])
   @@index([workflowType])
   @@map("outputs")
+}
+
+model ItemStatus {
+  id        String   @id @default(cuid())
+  outputId  String
+  output    Output   @relation(fields: [outputId], references: [id], onDelete: Cascade)
+  companyId String
+  itemType  String   // "assumption" | "risk" | "action"
+  itemIndex Int      // position in the array
+  status    String   // type-specific status value
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+
+  @@unique([outputId, itemType, itemIndex])
+  @@index([companyId, itemType])
+  @@map("item_statuses")
 }
 
 model OutputFeedback {
@@ -410,4 +429,27 @@ model IntegrationInterest {
   createdAt   DateTime @default(now())
 
   @@map("integration_interests")
+}
+
+// Per-item accept/decline feedback for learning & improvement
+model ItemFeedback {
+  id           String   @id @default(cuid())
+  outputId     String
+  companyId    String
+  userId       String
+  itemType     String   // "risk" | "action" | "monitor"
+  itemIndex    Int
+  itemText     String   // snapshot of the item text for analysis
+  workflowType String   // "frame" | "diagnose" | "decide" | "position" | "commit"
+  feedback     String   // "accepted" | "declined"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([outputId, itemType, itemIndex, userId])
+  @@index([companyId])
+  @@index([userId])
+  @@index([workflowType])
+  @@index([feedback])
+  @@index([itemType])
+  @@map("item_feedback")
 }
