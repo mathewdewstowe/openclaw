@@ -288,7 +288,7 @@ function completionScore(company: CompanyData): { score: number; missing: string
   return { score: Math.round((done / total) * 100), missing };
 }
 
-export function CompanyProfileForm({ company }: { company: CompanyData }) {
+export function CompanyProfileForm({ company, onSaved, hideHeader }: { company: CompanyData; onSaved?: () => void; hideHeader?: boolean }) {
   const isMobile = useIsMobile();
   const profile = company.profile ?? {};
 
@@ -369,6 +369,7 @@ export function CompanyProfileForm({ company }: { company: CompanyData }) {
 
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
+      onSaved?.();
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -420,33 +421,35 @@ export function CompanyProfileForm({ company }: { company: CompanyData }) {
   return (
     <div style={{ width: "100%", minWidth: 0 }}>
       {/* Header */}
-      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "flex-start", gap: isMobile ? 12 : 0, marginBottom: 24 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#111827", marginBottom: 4 }}>Company Profile</h1>
-          <p style={{ fontSize: 14, color: "#6b7280" }}>
-            Context that shapes the quality of every analysis.
-          </p>
+      {!hideHeader && (
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "flex-start", gap: isMobile ? 12 : 0, marginBottom: 24 }}>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color: "#111827", marginBottom: 4 }}>Company Profile</h1>
+            <p style={{ fontSize: 14, color: "#6b7280" }}>
+              Context that shapes the quality of every analysis.
+            </p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {saved && <span style={{ fontSize: 13, color: "#059669", fontWeight: 500 }}>Saved</span>}
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              style={{
+                padding: "9px 20px",
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#fff",
+                background: saving ? "#9ca3af" : "#111827",
+                border: "none",
+                borderRadius: 8,
+                cursor: saving ? "default" : "pointer",
+              }}
+            >
+              {saving ? "Saving..." : "Save"}
+            </button>
+          </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {saved && <span style={{ fontSize: 13, color: "#059669", fontWeight: 500 }}>Saved</span>}
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            style={{
-              padding: "9px 20px",
-              fontSize: 14,
-              fontWeight: 600,
-              color: "#fff",
-              background: saving ? "#9ca3af" : "#111827",
-              border: "none",
-              borderRadius: 8,
-              cursor: saving ? "default" : "pointer",
-            }}
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Completion bar */}
       <div style={{ ...sectionStyle, marginBottom: 20 }}>

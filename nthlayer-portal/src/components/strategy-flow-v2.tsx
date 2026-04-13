@@ -2110,7 +2110,7 @@ function AnswerChip({ text }: { text: string }) {
         color: "#374151",
         borderRadius: 4,
         padding: "4px 10px",
-        fontSize: 13,
+        fontSize: 15,
         fontWeight: 500,
         marginRight: 6,
         marginBottom: 6,
@@ -2165,9 +2165,9 @@ function AnswerSummaryPanel({
             <div key={q.id}>
               <p
                 style={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: "#374151",
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: "#111827",
                   marginBottom: 8,
                   marginTop: 0,
                   lineHeight: 1.4,
@@ -3487,6 +3487,7 @@ export function StrategyFlow({
                   height: "100%",
                   borderRadius: 0,
                   transition: "border-color 150ms",
+                  fontFamily: "inherit",
                 }}
               >
                 <span
@@ -3533,6 +3534,35 @@ export function StrategyFlow({
             </div>
           );
         })}
+
+        {/* Unlock button — far right */}
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent("open-profile-modal"))}
+          style={{
+            marginLeft: "auto",
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            background: "#111827",
+            border: "none",
+            borderRadius: 8,
+            padding: "8px 16px",
+            fontSize: 13,
+            fontWeight: 700,
+            color: "#fff",
+            cursor: "pointer",
+            flexShrink: 0,
+            fontFamily: "inherit",
+            whiteSpace: "nowrap",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "#1f2937"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "#111827"; }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a3e635" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+          Unlock
+        </button>
       </div>
 
       {/* Stage Header */}

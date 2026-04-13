@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getUserEntitlements, getUserPlanName, getUserCompanies } from "@/lib/entitlements";
 import { AppShellV2 } from "@/components/app-shell-v2";
+import { CompanyProfileModal } from "@/components/company-profile-modal";
 import type { PlanEntitlements } from "@/lib/types/entitlements";
 
 export default async function AppLayout({
@@ -32,6 +33,18 @@ export default async function AppLayout({
     role: ca.role,
   }));
 
+  // First company for profile modal
+  const activeCompanyRaw = companyAccess[0]?.company ?? null;
+  const activeCompanyForModal = activeCompanyRaw ? {
+    id: activeCompanyRaw.id,
+    name: activeCompanyRaw.name,
+    url: activeCompanyRaw.url ?? null,
+    sector: activeCompanyRaw.sector ?? null,
+    location: (activeCompanyRaw as unknown as { location?: string | null }).location ?? null,
+    description: activeCompanyRaw.description ?? null,
+    profile: (activeCompanyRaw as unknown as { profile?: Record<string, unknown> | null }).profile ?? null,
+  } : null;
+
   return (
     <AppShellV2
       email={user.email}
@@ -40,6 +53,9 @@ export default async function AppLayout({
       entitlements={entitlements as unknown as PlanEntitlements}
       companies={companies}
     >
+      {activeCompanyForModal && (
+        <CompanyProfileModal company={activeCompanyForModal as Parameters<typeof CompanyProfileModal>[0]["company"]} />
+      )}
       {children}
     </AppShellV2>
   );

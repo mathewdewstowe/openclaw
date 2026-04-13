@@ -222,8 +222,9 @@ export default async function OverviewPage() {
 
       {/* Strategy cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
-        {WORKFLOW_CARDS.map((wf) => {
+        {WORKFLOW_CARDS.map((wf, cardIdx) => {
           const done = completedStages.has(wf.stageId);
+          const dotCount = cardIdx + 1;
           return (
             <a
               key={wf.num}
@@ -238,6 +239,7 @@ export default async function OverviewPage() {
                 background: done ? "#f0fdf4" : "#f3f4f6",
                 cursor: "pointer",
                 transition: "border-color 150ms, box-shadow 150ms",
+                position: "relative",
               }}
             >
               {done ? (
@@ -249,7 +251,7 @@ export default async function OverviewPage() {
               ) : (
                 <p style={{ fontSize: 28, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", marginBottom: 8 }}>{wf.num}</p>
               )}
-              <p style={{ fontSize: 17, fontWeight: 700, color: "#111827", marginBottom: 8 }}>{wf.label}</p>
+              <p style={{ fontSize: 22, fontWeight: 700, color: "#111827", marginBottom: 8 }}>{wf.label}</p>
               <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, flex: 1 }}>{wf.detail}</p>
               {done && (
                 <div style={{ marginTop: 16 }}>
@@ -273,6 +275,20 @@ export default async function OverviewPage() {
                   </span>
                 </div>
               )}
+              {/* Progress dots — bottom right */}
+              <div style={{ position: "absolute", bottom: 14, right: 14, display: "flex", gap: 4 }}>
+                {Array.from({ length: dotCount }).map((_, di) => (
+                  <div
+                    key={di}
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: done ? "#a3e635" : di < completedStages.size ? "#111827" : "#d1d5db",
+                    }}
+                  />
+                ))}
+              </div>
             </a>
           );
         })}
