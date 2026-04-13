@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEntitlements } from "@/lib/contexts/entitlements";
@@ -15,6 +15,7 @@ type NavItem = {
   icon: string;
   section?: string;
   entitlement?: string; // key in PlanEntitlements
+  comingSoon?: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -24,10 +25,11 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/inflexion/assumptions", label: "Assumptions", icon: "lightbulb" },
   { href: "/inflexion/monitoring", label: "Metrics", icon: "bar-chart" },
   { href: "/inflexion/strategy", label: "Frame", icon: "frame", section: "Strategy" },
-  { href: "/inflexion/diagnose", label: "Diagnose", icon: "search" },
-  { href: "/inflexion/decide", label: "Decide", icon: "scale" },
-  { href: "/inflexion/position", label: "Position", icon: "target" },
-  { href: "/inflexion/commit", label: "Commit", icon: "zap" },
+  { href: "/inflexion/strategy", label: "Diagnose", icon: "search" },
+  { href: "/inflexion/strategy", label: "Decide", icon: "scale" },
+  { href: "/inflexion/strategy", label: "Position", icon: "target" },
+  { href: "/inflexion/strategy", label: "Commit", icon: "zap" },
+  { href: "#", label: "Knowledge Base", icon: "book", section: "Knowledge", comingSoon: true },
   { href: "/inflexion/competitors", label: "Competitors", icon: "crosshair", section: "Intelligence", entitlement: "access_competitor" },
   { href: "/inflexion/signals", label: "Signals", icon: "activity", entitlement: "access_decide" },
   { href: "/inflexion/monitor", label: "Monitor", icon: "eye", entitlement: "access_decide" },
@@ -125,6 +127,11 @@ const ICONS: Record<string, React.ReactNode> = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
     </svg>
   ),
+  book: (
+    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+    </svg>
+  ),
   "check-square": (
     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -155,9 +162,14 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
   const { entitlements, planName, systemRole } = useEntitlements();
   const { activeCompany, companies, setActiveCompany } = useCompany();
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [navCounts, setNavCounts] = useState<{ actions: number; risks: number; assumptions: number; metrics: number } | null>(null);
   const isMobile = useIsMobile();
 
   const isAdmin = systemRole === "super_admin" || systemRole === "admin";
+
+  useEffect(() => {
+    fetch("/api/inflexion/counts").then((r) => r.json()).then(setNavCounts).catch(() => {});
+  }, [activeCompany?.id]);
 
   function isActive(href: string) {
     if (href === "/inflexion/strategy") return pathname === href || pathname.startsWith("/inflexion/strategy");
@@ -254,7 +266,6 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
           </div>
           <div>
             <p style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.2, color: "#111" }}>Nth Layer</p>
-            <p style={{ fontSize: 11, color: "#9ca3af", lineHeight: 1.3, letterSpacing: "0.02em" }}>Inflexion</p>
           </div>
           <button onClick={onClose} className="ml-auto lg:hidden" style={{ color: "#9ca3af", background: "none", border: "none", cursor: "pointer" }}>
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -274,10 +285,10 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
               }}
               style={{
                 width: "100%",
-                padding: "8px 10px",
-                fontSize: 13,
-                fontWeight: 500,
-                color: "#374151",
+                padding: "10px 12px",
+                fontSize: 15,
+                fontWeight: 700,
+                color: "#111827",
                 background: "#f9fafb",
                 border: "1px solid #e5e7eb",
                 borderRadius: 8,
@@ -298,6 +309,7 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
             const showSection = !!item.section && (idx === 0 || NAV_ITEMS[idx - 1].section !== item.section);
             const active = isActive(item.href);
             const locked = isLocked(item);
+            const comingSoon = !!item.comingSoon;
             const isBeforeStrategy = item.section === "Strategy" && NAV_ITEMS[idx - 1]?.section !== "Strategy";
 
             return (
@@ -352,7 +364,13 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
                   </p>
                 )}
 
-                {locked ? (
+                {comingSoon ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "1px 12px", padding: "9px 12px", borderRadius: 8, fontSize: 14, fontWeight: 500, color: "#d1d5db", cursor: "default", userSelect: "none" }}>
+                    <span style={{ color: "#e5e7eb", flexShrink: 0 }}>{ICONS[item.icon]}</span>
+                    <span style={{ flex: 1 }}>{item.label}</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: "#9ca3af", background: "#f3f4f6", borderRadius: 20, padding: "2px 7px", whiteSpace: "nowrap" }}>Soon</span>
+                  </div>
+                ) : locked ? (
                   <Link
                     href={item.href}
                     onClick={onClose}
@@ -406,7 +424,19 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
                     }}
                   >
                     <span style={{ color: active ? "#334155" : "#9ca3af", flexShrink: 0 }}>{ICONS[item.icon]}</span>
-                    {item.label}
+                    <span style={{ flex: 1 }}>{item.label}</span>
+                    {navCounts && item.href === "/inflexion/actions" && navCounts.actions > 0 && (
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.actions}</span>
+                    )}
+                    {navCounts && item.href === "/inflexion/risks" && navCounts.risks > 0 && (
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.risks}</span>
+                    )}
+                    {navCounts && item.href === "/inflexion/assumptions" && navCounts.assumptions > 0 && (
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.assumptions}</span>
+                    )}
+                    {navCounts && item.href === "/inflexion/monitoring" && navCounts.metrics > 0 && (
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.metrics}</span>
+                    )}
                   </Link>
                 )}
               </div>

@@ -120,7 +120,7 @@ export function sendNewUserNotification({
     </div>
   `);
 
-  sendEmail({ to: ADMIN_EMAIL, subject: `New signup: ${name} — ${company ?? email}`, html, text }).catch(() => {});
+  return sendEmail({ to: ADMIN_EMAIL, subject: `New signup: ${name} — ${company ?? email}`, html, text }).catch(() => {});
 }
 
 const STAGE_NAMES: Record<string, string> = {

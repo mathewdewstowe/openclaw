@@ -54,7 +54,7 @@ export function DeckCTA({
             <p style={{ fontSize: 17, fontWeight: 700, color: "#fff", margin: "0 0 4px" }}>
               Strategy Deck — unlocks when all 5 stages are complete
             </p>
-            <p style={{ fontSize: 14, color: "#6b7280", margin: 0 }}>
+            <p style={{ fontSize: 14, color: "#fff", margin: 0 }}>
               {completedStages} of 5 stages done · {5 - completedStages} remaining
             </p>
           </div>

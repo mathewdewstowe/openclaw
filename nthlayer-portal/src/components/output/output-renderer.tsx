@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { SECTION_ORDER, SECTION_LABELS } from "@/lib/types/output";
+import { SECTION_ORDER, SECTION_LABELS, STAGE_SECTION_LABELS, STAGE_HIDDEN_SECTIONS } from "@/lib/types/output";
 import { FreshnessBadge } from "@/components/freshness-badge";
 
 interface OutputData {
@@ -19,7 +19,10 @@ interface OutputData {
 }
 
 // Sections that sit in the right column (actionable / quantitative)
-const RIGHT_COLUMN_SECTIONS = new Set(["risks", "actions", "monitoring"]);
+const RIGHT_COLUMN_SECTIONS = new Set(["risks", "actions", "monitoring", "kill_criteria", "okrs", "strategic_bets", "hundred_day_plan"]);
+
+// Optional sections — only render when populated (backward compat with existing outputs)
+const OPTIONAL_SECTIONS = new Set(["kill_criteria", "okrs", "strategic_bets", "hundred_day_plan"]);
 
 // Stage colours
 const STAGE_COLORS: Record<string, { border: string; bg: string; text: string }> = {
@@ -40,8 +43,22 @@ export function OutputRenderer({
   const stage = output.workflowType;
   const stageColor = STAGE_COLORS[stage] ?? STAGE_COLORS.frame;
 
-  const leftSections  = SECTION_ORDER.filter((s) => !RIGHT_COLUMN_SECTIONS.has(s));
-  const rightSections = SECTION_ORDER.filter((s) => RIGHT_COLUMN_SECTIONS.has(s));
+  // Hide sections that this stage does not produce, and skip empty optional sections
+  const hiddenForStage = new Set(STAGE_HIDDEN_SECTIONS[stage] ?? []);
+  const isVisible = (s: string) => {
+    if (hiddenForStage.has(s)) return false;
+    if (OPTIONAL_SECTIONS.has(s)) {
+      const content = output.sections[s];
+      return content !== undefined && content !== null && !(Array.isArray(content) && content.length === 0);
+    }
+    // Also hide required sections if agent returned empty array (backward compat)
+    const content = output.sections[s];
+    if (Array.isArray(content) && content.length === 0) return false;
+    return true;
+  };
+
+  const leftSections  = SECTION_ORDER.filter((s) => !RIGHT_COLUMN_SECTIONS.has(s) && isVisible(s));
+  const rightSections = SECTION_ORDER.filter((s) => RIGHT_COLUMN_SECTIONS.has(s) && isVisible(s));
 
   return (
     <div style={{ maxWidth: 1200 }}>
@@ -133,7 +150,13 @@ function SectionCard({
   compact?: boolean;
 }) {
   const content = output.sections[sectionKey];
-  const label = SECTION_LABELS[sectionKey];
+  const stage = output.workflowType;
+  const label = STAGE_SECTION_LABELS[stage]?.[sectionKey] ?? SECTION_LABELS[sectionKey];
+
+  // Skip optional sections that have no data (backward compat)
+  if (OPTIONAL_SECTIONS.has(sectionKey) && (!content || (Array.isArray(content) && content.length === 0))) {
+    return null;
+  }
 
   if (!isVisible) {
     return (
@@ -216,6 +239,18 @@ function SectionContent({ sectionKey, content, compact = false }: { sectionKey: 
 
     case "monitoring":
       return <MonitoringSection content={content as { metric: string; target: string; frequency: string }[]} />;
+
+    case "kill_criteria":
+      return <KillCriteriaSection content={content as { criterion: string; trigger: string; response: string }[]} />;
+
+    case "okrs":
+      return <OKRsSection content={content as { objective: string; key_results: string[] }[]} />;
+
+    case "strategic_bets":
+      return <StrategicBetsSection content={content as { bet: string; hypothesis: string; investment: string }[]} />;
+
+    case "hundred_day_plan":
+      return <HundredDayPlanSection content={content as { milestone: string; timeline: string; owner: string; deliverable: string }[]} />;
 
     default:
       return <TextSection content={String(content)} />;
@@ -553,6 +588,129 @@ function MonitoringSection({ content }: { content: { metric: string; target: str
         </div>
       ))}
     </div>
+    </div>
+  );
+}
+
+function KillCriteriaSection({ content }: { content: { criterion: string; trigger: string; response: string }[] }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {content.map((k, i) => (
+        <div key={i} style={{
+          background: "#fff",
+          border: "1px solid #fecaca",
+          borderLeft: "4px solid #ef4444",
+          borderRadius: 10,
+          padding: "14px 18px",
+        }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: "#111827", margin: "0 0 10px" }}>{k.criterion}</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#991b1b", background: "#fee2e2", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Trigger</span>
+              <span style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>{k.trigger}</span>
+            </div>
+            <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#065f46", background: "#dcfce7", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Response</span>
+              <span style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>{k.response}</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function OKRsSection({ content }: { content: { objective: string; key_results: string[] }[] }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {content.map((okr, i) => (
+        <div key={i} style={{
+          background: "#fff",
+          border: "1px solid #bfdbfe",
+          borderLeft: "4px solid #3b82f6",
+          borderRadius: 10,
+          padding: "14px 18px",
+        }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: "#111827", margin: "0 0 8px" }}>{okr.objective}</p>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            {(okr.key_results ?? []).map((kr, j) => (
+              <li key={j} style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.6, marginBottom: 2 }}>{kr}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StrategicBetsSection({ content }: { content: { bet: string; hypothesis: string; investment: string }[] }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {content.map((b, i) => (
+        <div key={i} style={{
+          background: "#fff",
+          border: "1px solid #fde68a",
+          borderLeft: "4px solid #f59e0b",
+          borderRadius: 10,
+          padding: "14px 18px",
+        }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: "#111827", margin: "0 0 10px" }}>{b.bet}</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#92400e", background: "#fef3c7", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Hypothesis</span>
+              <span style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>{b.hypothesis}</span>
+            </div>
+            <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#1e40af", background: "#dbeafe", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Investment</span>
+              <span style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>{b.investment}</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function HundredDayPlanSection({ content }: { content: { milestone: string; timeline: string; owner: string; deliverable: string }[] }) {
+  const timelineColor: Record<string, string> = {
+    "30 days": "#059669",
+    "60 days": "#d97706",
+    "90 days": "#7c3aed",
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {content.map((m, i) => {
+        const color = timelineColor[m.timeline] ?? "#6b7280";
+        return (
+          <div key={i} style={{
+            background: "#fff",
+            border: "1px solid #e5e7eb",
+            borderLeft: `4px solid ${color}`,
+            borderRadius: 10,
+            padding: "14px 18px",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: color, padding: "2px 8px", borderRadius: 4 }}>{m.timeline}</span>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "#111827", margin: 0 }}>{m.milestone}</p>
+            </div>
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+              {m.owner && (
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
+                  <span style={{ fontSize: 12, color: "#6b7280" }}>{m.owner}</span>
+                </div>
+              )}
+              {m.deliverable && (
+                <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#4b5563", background: "#f3f4f6", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Deliverable</span>
+                  <span style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>{m.deliverable}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

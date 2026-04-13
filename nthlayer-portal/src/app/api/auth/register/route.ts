@@ -35,8 +35,8 @@ export async function POST(req: Request) {
       data: { name, company, jobTitle, email, passwordHash },
     });
 
-    // Notify matthew@nthlayer.co.uk of new signup (fire-and-forget)
-    sendNewUserNotification({ name, email, company, jobTitle });
+    // Notify matthew@nthlayer.co.uk of new signup
+    await sendNewUserNotification({ name, email, company, jobTitle });
 
     const token = await createToken(user.id);
     const cookieStore = await cookies();

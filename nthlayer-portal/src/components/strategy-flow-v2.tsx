@@ -84,9 +84,38 @@ const STANDARD_REPORT_PILLS: Array<{ label: string; anchor: string }> = [
   { label: "Confidence",          anchor: "section-confidence" },
   { label: "Risks",               anchor: "section-risks" },
   { label: "Actions",             anchor: "section-actions" },
-  { label: "Metrics",             anchor: "section-monitoring" },
+  { label: "Metrics",             anchor: "section-metrics" },
   { label: "Sources",             anchor: "section-sources" },
 ];
+
+// Stage-aware label overrides for section pills
+const STAGE_PILL_LABELS: Record<string, Record<string, string>> = {
+  frame:    { Recommendation: "Strategic Hypothesis" },
+  diagnose: { Recommendation: "Emerging Direction" },
+  position: { Recommendation: "Positioning Recommendation" },
+  commit:   { Sources: "Evidence Inherited" },
+};
+
+// Sections hidden per stage (pills not shown)
+const STAGE_HIDDEN_PILLS: Record<string, Set<string>> = {
+  frame:    new Set(["Actions", "Metrics"]),
+  diagnose: new Set(["Actions", "Metrics"]),
+  decide:   new Set(["Metrics"]),
+  position: new Set(["Actions", "Metrics"]),
+  commit:   new Set(),
+};
+
+function getReportPillsForStage(stageId: string): Array<{ label: string; anchor: string }> {
+  const hidden = STAGE_HIDDEN_PILLS[stageId] ?? new Set();
+  const labelOverrides = STAGE_PILL_LABELS[stageId] ?? {};
+
+  return STANDARD_REPORT_PILLS
+    .filter((pill) => !hidden.has(pill.label))
+    .map((pill) => ({
+      ...pill,
+      label: labelOverrides[pill.label] ?? pill.label,
+    }));
+}
 
 // Extract ### sub-headings from a markdown report string → navigable anchor pills
 function extractSubheadings(markdown: string): Array<{ label: string; anchor: string }> {
@@ -246,6 +275,22 @@ const STAGES: Stage[] = [
         ],
       },
       {
+        id: "vision",
+        required: false,
+        question: "What is the company's current vision?",
+        type: "free-text",
+        placeholder: "e.g. To be the leading employee experience platform in Europe.",
+        hint: "The long-term aspirational destination — where the company is ultimately headed. Leave blank if there isn't a formal statement.",
+      },
+      {
+        id: "mission",
+        required: false,
+        question: "What is the company's current mission?",
+        type: "free-text",
+        placeholder: "e.g. To help companies build connected, engaged workforces.",
+        hint: "The purpose the company exists to fulfil — what it does and for whom. Leave blank if there isn't a formal statement.",
+      },
+      {
         id: "strategic_question",
         required: true,
         question: "In one sentence — what is the core strategic question you are trying to answer?",
@@ -366,6 +411,20 @@ const STAGES: Stage[] = [
           { value: "Limited differentiation — competing on price or service", label: "Limited differentiation — competing on price or service" },
           { value: "Moat is eroding as competitors catch up", label: "Moat is eroding as competitors catch up" },
           { value: "Other", label: "Other" },
+        ],
+      },
+      {
+        id: "current_challenges",
+        required: false,
+        question: "What are the top 3 challenges the business is facing right now?",
+        hint: "Name each challenge and briefly describe why it matters. Up to 3.",
+        type: "structured-repeater",
+        maxSelections: 3,
+        addLabel: "Add Challenge",
+        repeaterFields: ["Challenge", "Why it matters"],
+        repeaterFieldPlaceholders: [
+          "e.g. Sales cycle too long, NRR declining, product-market misalignment",
+          "e.g. It's compressing ARR growth and making forecasting unreliable",
         ],
       },
       {
@@ -801,43 +860,399 @@ function renderInlineBold(text: string): React.ReactNode[] {
   );
 }
 
+// Citation state — reset at start of each renderReport call
+let _citeMap: Map<string, number> | null = null;
+let _citeIdx = 0;
+function _getCite(val: string): number {
+  if (!_citeMap) { _citeMap = new Map(); _citeIdx = 0; }
+  if (!_citeMap.has(val)) _citeMap.set(val, ++_citeIdx);
+  return _citeMap.get(val)!;
+}
+
 function renderInlineContent(text: string): React.ReactNode[] {
-  // Handle **bold**, _italic_, and URLs
+  // Handle **bold**, _italic_, URLs, and numeric citations
+  const numPat = /(\$[\d,]+(?:\.\d+)?(?:\s*(?:billion|million|bn|k|M|B))?(?:\s*(?:ARR|MRR|ACV))?|\b\d{1,3}(?:,\d{3})+(?:\.\d+)?|\b\d+(?:\.\d+)?(?:\s*(?:billion|million|bn))\b|\b\d+(?:\.\d+)?%)/g;
   const parts = text.split(/(\*\*[^*]+\*\*|_[^_]+_|https?:\/\/[^\s)]+)/g);
-  return parts.map((part, i) => {
+  const result: React.ReactNode[] = [];
+  parts.forEach((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i} style={{ fontWeight: 700, color: "#111827" }}>{part.slice(2, -2)}</strong>;
+      result.push(<strong key={i} style={{ fontWeight: 700, color: "#111827" }}>{part.slice(2, -2)}</strong>);
+      return;
     }
     if (part.startsWith("_") && part.endsWith("_") && part.length > 2) {
-      return <em key={i} style={{ fontStyle: "italic", color: "#6b7280" }}>{part.slice(1, -1)}</em>;
+      result.push(<em key={i} style={{ fontStyle: "italic", color: "#6b7280" }}>{part.slice(1, -1)}</em>);
+      return;
     }
     if (part.startsWith("http://") || part.startsWith("https://")) {
-      return (
+      result.push(
         <a key={i} href={part} target="_blank" rel="noopener noreferrer"
           style={{ color: "#2563eb", wordBreak: "break-all", textDecoration: "none" }}
           onMouseOver={(e) => (e.currentTarget.style.textDecoration = "underline")}
           onMouseOut={(e) => (e.currentTarget.style.textDecoration = "none")}
         >{part}</a>
       );
+      return;
     }
-    return part;
+    // Detect numbers and add superscript citation markers
+    numPat.lastIndex = 0;
+    let lastIdx = 0;
+    let m: RegExpExecArray | null;
+    while ((m = numPat.exec(part)) !== null) {
+      if (m.index > lastIdx) result.push(part.slice(lastIdx, m.index));
+      const cNum = _getCite(m[0]);
+      result.push(
+        <span key={`c-${i}-${m.index}`}>
+          {m[0]}<sup style={{ fontSize: "0.62em", color: "#9ca3af", fontWeight: 600, marginLeft: "1px", lineHeight: 0 }}>{cNum}</sup>
+        </span>
+      );
+      lastIdx = numPat.lastIndex;
+    }
+    result.push(part.slice(lastIdx));
   });
+  return result;
 }
 
-function renderReport(text: string): React.ReactNode {
+const SEVERITY_REPORT_META: Record<string, { color: string; bg: string; dot: string }> = {
+  Critical: { color: "#7f1d1d", bg: "#fef2f2", dot: "#dc2626" },
+  High:     { color: "#991b1b", bg: "#fee2e2", dot: "#ef4444" },
+  Medium:   { color: "#92400e", bg: "#fef3c7", dot: "#f59e0b" },
+  Low:      { color: "#065f46", bg: "#d1fae5", dot: "#10b981" },
+};
+const PRIORITY_REPORT_META: Record<string, { color: string; bg: string }> = {
+  High:   { color: "#991b1b", bg: "#fee2e2" },
+  Medium: { color: "#92400e", bg: "#fef3c7" },
+  Low:    { color: "#065f46", bg: "#d1fae5" },
+};
+
+function renderRisksCards(risks: { risk: string; severity?: string; mitigation?: string }[]): React.ReactNode {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {risks.map((r, i) => {
+        const sev = SEVERITY_REPORT_META[r.severity ?? ""];
+        return (
+          <div key={i} style={{ background: "#fff", border: "1px solid", borderColor: sev ? sev.bg : "#e5e7eb", borderLeft: `4px solid ${sev?.dot ?? "#e5e7eb"}`, borderRadius: 10, padding: "14px 18px" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: r.mitigation ? 10 : 0 }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: 0, lineHeight: 1.5, flex: 1 }}>{r.risk}</p>
+              {sev && r.severity && (
+                <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: sev.bg, color: sev.color, flexShrink: 0 }}>{r.severity}</span>
+              )}
+            </div>
+            {r.mitigation && (
+              <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" style={{ flexShrink: 0, marginTop: 2 }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                </svg>
+                <p style={{ fontSize: 14, color: "#4b5563", margin: 0, lineHeight: 1.6 }}>
+                  <span style={{ fontWeight: 600, color: "#9ca3af", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", marginRight: 6 }}>Mitigation:</span>
+                  {r.mitigation}
+                </p>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const REPORT_ACTION_STATUSES = [
+  { value: "not_started", label: "Not Started", color: "#6b7280", bg: "#f3f4f6" },
+  { value: "in_progress", label: "In Progress", color: "#1e40af", bg: "#dbeafe" },
+  { value: "completed",   label: "Completed",   color: "#065f46", bg: "#d1fae5" },
+  { value: "blocked",     label: "Blocked",     color: "#991b1b", bg: "#fee2e2" },
+  { value: "deferred",    label: "Deferred",    color: "#92400e", bg: "#fef3c7" },
+];
+const REPORT_MONITORING_STATUSES = [
+  { value: "tracking",  label: "Tracking",  color: "#1e40af", bg: "#dbeafe" },
+  { value: "on_track",  label: "On Track",  color: "#065f46", bg: "#d1fae5" },
+  { value: "off_track", label: "Off Track", color: "#991b1b", bg: "#fee2e2" },
+  { value: "at_risk",   label: "At Risk",   color: "#92400e", bg: "#fef3c7" },
+  { value: "paused",    label: "Paused",    color: "#6b7280", bg: "#f3f4f6" },
+];
+const REPORT_ASSUMPTION_STATUSES = [
+  { value: "unvalidated", label: "Unvalidated", color: "#6b7280", bg: "#f3f4f6" },
+  { value: "validated",   label: "Validated",   color: "#065f46", bg: "#d1fae5" },
+  { value: "at_risk",     label: "At Risk",     color: "#92400e", bg: "#fef3c7" },
+  { value: "invalidated", label: "Invalidated", color: "#991b1b", bg: "#fee2e2" },
+];
+
+function ReportStatusPills({ statuses, defaultValue }: { statuses: { value: string; label: string; color: string; bg: string }[]; defaultValue: string }) {
+  const [current, setCurrent] = React.useState(defaultValue);
+  const active = statuses.find((s) => s.value === current) ?? statuses[0];
+  return (
+    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      {statuses.map((s) => (
+        <button
+          key={s.value}
+          onClick={() => setCurrent(s.value)}
+          style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, border: "1.5px solid", borderColor: current === s.value ? s.color : "#e5e7eb", background: current === s.value ? s.bg : "#fff", color: current === s.value ? s.color : "#9ca3af", cursor: "pointer", fontFamily: "inherit" }}
+        >
+          {current === s.value && <span style={{ marginRight: 4 }}>●</span>}
+          {s.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function renderActionsCards(actions: { action: string; owner?: string; deadline?: string; priority?: string }[]): React.ReactNode {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {actions.map((a, i) => {
+        const pri = PRIORITY_REPORT_META[a.priority ?? ""];
+        return (
+          <div key={i} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 10, padding: "16px 20px" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: 0, lineHeight: 1.5, flex: 1 }}>{a.action}</p>
+              {pri && a.priority && <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 20, background: pri.bg, color: pri.color, flexShrink: 0 }}>{a.priority}</span>}
+            </div>
+            {/* Owner + Deadline */}
+            {(a.owner || a.deadline) && (
+              <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 10 }}>
+                {a.owner && (
+                  <span style={{ fontSize: 12, color: "#9ca3af", display: "flex", alignItems: "center", gap: 5 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
+                    <span style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", fontSize: 10, marginRight: 4 }}>Owner</span>
+                    <span style={{ color: "#374151", fontWeight: 500 }}>{a.owner}</span>
+                  </span>
+                )}
+                {a.deadline && (
+                  <span style={{ fontSize: 12, color: "#9ca3af", display: "flex", alignItems: "center", gap: 5 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+                    <span style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", fontSize: 10, marginRight: 4 }}>Deadline</span>
+                    <span style={{ color: "#374151", fontWeight: 500 }}>{a.deadline}</span>
+                  </span>
+                )}
+              </div>
+            )}
+            {/* Status pills */}
+            <ReportStatusPills statuses={REPORT_ACTION_STATUSES} defaultValue="not_started" />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function renderMonitoringCards(monitoring: { metric: string; target?: string; frequency?: string }[]): React.ReactNode {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {monitoring.map((m, i) => (
+        <div key={i} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 10, padding: "16px 20px" }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: "0 0 10px", lineHeight: 1.5 }}>{m.metric}</p>
+          {/* Target + Frequency */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+            {m.target && (
+              <span style={{ fontSize: 12, color: "#9ca3af", display: "flex", alignItems: "flex-start", gap: 5 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ marginTop: 1, flexShrink: 0 }}><path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                <span style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", fontSize: 10, marginRight: 4 }}>Target</span>
+                <span style={{ color: "#374151", fontWeight: 500 }}>{m.target}</span>
+              </span>
+            )}
+            {m.frequency && (
+              <span style={{ fontSize: 12, color: "#9ca3af", display: "flex", alignItems: "center", gap: 5 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                <span style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", fontSize: 10, marginRight: 4 }}>Frequency</span>
+                <span style={{ color: "#374151", fontWeight: 500 }}>{m.frequency}</span>
+              </span>
+            )}
+          </div>
+          {/* Status pills */}
+          <ReportStatusPills statuses={REPORT_MONITORING_STATUSES} defaultValue="tracking" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function renderAssumptionsCards(assumptions: string[]): React.ReactNode {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {assumptions.map((text, i) => (
+        <div key={i} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 10, padding: "16px 20px" }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 12 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" style={{ flexShrink: 0, marginTop: 2 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+            </svg>
+            <p style={{ fontSize: 14, fontWeight: 500, color: "#111827", margin: 0, lineHeight: 1.5 }}>{text}</p>
+          </div>
+          <ReportStatusPills statuses={REPORT_ASSUMPTION_STATUSES} defaultValue="unvalidated" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function renderKillCriteriaCards(items: { criterion: string; trigger: string; response: string }[]): React.ReactNode {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {items.map((k, i) => (
+        <div key={i} style={{ background: "#fff", border: "1px solid #fecaca", borderLeft: "4px solid #ef4444", borderRadius: 10, padding: "16px 20px" }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: "0 0 10px", lineHeight: 1.5 }}>{k.criterion}</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: 12, color: "#6b7280", display: "flex", gap: 6, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#991b1b", background: "#fee2e2", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Trigger</span>
+              <span style={{ lineHeight: 1.5 }}>{k.trigger}</span>
+            </span>
+            <span style={{ fontSize: 12, color: "#6b7280", display: "flex", gap: 6, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#065f46", background: "#dcfce7", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Response</span>
+              <span style={{ lineHeight: 1.5 }}>{k.response}</span>
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function renderOKRsCards(items: { objective: string; key_results: string[] }[]): React.ReactNode {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {items.map((okr, i) => (
+        <div key={i} style={{ background: "#fff", border: "1px solid #bfdbfe", borderLeft: "4px solid #3b82f6", borderRadius: 10, padding: "16px 20px" }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: "0 0 8px", lineHeight: 1.5 }}>{okr.objective}</p>
+          <ul style={{ margin: 0, paddingLeft: 20 }}>
+            {(okr.key_results ?? []).map((kr, j) => (
+              <li key={j} style={{ fontSize: 13, color: "#374151", lineHeight: 1.7, marginBottom: 2 }}>{kr}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function renderStrategicBetsCards(items: { bet: string; hypothesis: string; investment: string }[]): React.ReactNode {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {items.map((b, i) => (
+        <div key={i} style={{ background: "#fff", border: "1px solid #fde68a", borderLeft: "4px solid #f59e0b", borderRadius: 10, padding: "16px 20px" }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: "0 0 10px", lineHeight: 1.5 }}>{b.bet}</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: 12, color: "#6b7280", display: "flex", gap: 6, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#92400e", background: "#fef3c7", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Hypothesis</span>
+              <span style={{ lineHeight: 1.5 }}>{b.hypothesis}</span>
+            </span>
+            <span style={{ fontSize: 12, color: "#6b7280", display: "flex", gap: 6, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#1e40af", background: "#dbeafe", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Investment</span>
+              <span style={{ lineHeight: 1.5 }}>{b.investment}</span>
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function renderHundredDayPlanCards(items: { milestone: string; timeline: string; owner: string; deliverable: string }[]): React.ReactNode {
+  const timelineColor: Record<string, string> = { "30 days": "#059669", "60 days": "#d97706", "90 days": "#7c3aed" };
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {items.map((m, i) => {
+        const color = timelineColor[m.timeline] ?? "#6b7280";
+        return (
+          <div key={i} style={{ background: "#fff", border: "1px solid #e5e7eb", borderLeft: `4px solid ${color}`, borderRadius: 10, padding: "16px 20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: color, padding: "2px 8px", borderRadius: 4 }}>{m.timeline}</span>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: 0, lineHeight: 1.5 }}>{m.milestone}</p>
+            </div>
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+              {m.owner && <span style={{ fontSize: 12, color: "#6b7280" }}><span style={{ fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginRight: 4 }}>Owner</span>{m.owner}</span>}
+              {m.deliverable && <span style={{ fontSize: 12, color: "#6b7280" }}><span style={{ fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginRight: 4 }}>Deliverable</span>{m.deliverable}</span>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function renderReport(text: string, sections?: Record<string, unknown>): React.ReactNode {
+  // Reset citation counter for each new report render
+  _citeMap = null;
+  _citeIdx = 0;
+
+  // Split into major sections at ## boundaries
+  const rawSections = text.split(/\n(?=## )/);
+  const allNodes: React.ReactNode[] = [];
+
+  for (let si = 0; si < rawSections.length; si++) {
+    const sectionText = rawSections[si].trim();
+    if (!sectionText) continue;
+
+    let heading = "";
+    let bodyText = sectionText;
+
+    if (sectionText.startsWith("## ")) {
+      const nl = sectionText.indexOf("\n");
+      heading = nl > 0 ? sectionText.slice(3, nl).trim() : sectionText.slice(3).trim();
+      bodyText = nl > 0 ? sectionText.slice(nl + 1).trim() : "";
+    }
+
+    const sectionId = heading ? "section-" + heading.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") : `pre-${si}`;
+
+    // Use structured card rendering for Risks / Actions / Monitoring sections
+    let structuredContent: React.ReactNode | null = null;
+    if (sections) {
+      const h = heading.toLowerCase();
+      if (h === "risks" && Array.isArray(sections.risks) && sections.risks.length > 0) {
+        structuredContent = renderRisksCards(sections.risks as { risk: string; severity?: string; mitigation?: string }[]);
+      } else if (h === "actions" && Array.isArray(sections.actions) && sections.actions.length > 0) {
+        structuredContent = renderActionsCards(sections.actions as { action: string; owner?: string; deadline?: string; priority?: string }[]);
+      } else if ((h === "monitoring" || h === "metrics") && Array.isArray(sections.monitoring) && sections.monitoring.length > 0) {
+        structuredContent = renderMonitoringCards(sections.monitoring as { metric: string; target?: string; frequency?: string }[]);
+      } else if ((h === "key assumptions" || h === "assumptions") && Array.isArray(sections.assumptions) && sections.assumptions.length > 0) {
+        structuredContent = renderAssumptionsCards(sections.assumptions as string[]);
+      } else if (h === "kill criteria" && Array.isArray(sections.kill_criteria) && sections.kill_criteria.length > 0) {
+        structuredContent = renderKillCriteriaCards(sections.kill_criteria as { criterion: string; trigger: string; response: string }[]);
+      } else if (h === "okrs" && Array.isArray(sections.okrs) && sections.okrs.length > 0) {
+        structuredContent = renderOKRsCards(sections.okrs as { objective: string; key_results: string[] }[]);
+      } else if (h === "strategic bets" && Array.isArray(sections.strategic_bets) && sections.strategic_bets.length > 0) {
+        structuredContent = renderStrategicBetsCards(sections.strategic_bets as { bet: string; hypothesis: string; investment: string }[]);
+      } else if (h === "100-day plan" && Array.isArray(sections.hundred_day_plan) && sections.hundred_day_plan.length > 0) {
+        structuredContent = renderHundredDayPlanCards(sections.hundred_day_plan as { milestone: string; timeline: string; owner: string; deliverable: string }[]);
+      }
+    }
+
+    const innerNodes = structuredContent ?? renderReportBlocks(bodyText, si * 1000);
+
+    if (heading) {
+      allNodes.push(
+        <div key={si} id={sectionId} style={{
+          background: "#f9fafb",
+          border: "1px solid #f0f0f0",
+          borderRadius: 10,
+          padding: "20px 24px",
+          marginBottom: 16,
+        }}>
+          <p style={{ fontSize: 11, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14, marginTop: 0 }}>
+            {heading}
+          </p>
+          {innerNodes}
+        </div>
+      );
+    } else {
+      allNodes.push(<div key={si}>{innerNodes}</div>);
+    }
+  }
+
+  return <>{allNodes}</>;
+}
+
+function renderReportBlocks(text: string, keyOffset: number): React.ReactNode[] {
   const blocks = text.split(/\n\n+/);
   const nodes: React.ReactNode[] = [];
 
   for (let i = 0; i < blocks.length; i++) {
     const trimmed = blocks[i].trim();
     if (!trimmed) continue;
+    const key = keyOffset + i;
 
-    // ## Heading
+    // ## Heading (shouldn't appear inside a section body, but handle gracefully)
     if (trimmed.startsWith("## ")) {
       const heading = trimmed.slice(3);
-      const sectionId = "section-" + heading.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
       nodes.push(
-        <p key={i} id={sectionId} style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginBottom: 10, marginTop: nodes.length === 0 ? 0 : 28 }}>
+        <p key={key} style={{ fontSize: 17, fontWeight: 700, color: "#111827", marginBottom: 10, marginTop: nodes.length === 0 ? 0 : 28 }}>
           {heading}
         </p>
       );
@@ -891,7 +1306,7 @@ function renderReport(text: string): React.ReactNode {
                       <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: "50%", background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#6b7280", marginTop: 1 }}>
                         {match[1]}
                       </span>
-                      <span style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, flex: 1 }}>{renderInlineContent(match[2])}</span>
+                      <span style={{ fontSize: 14, color: "#374151", lineHeight: 1.8, flex: 1 }}>{renderInlineContent(match[2])}</span>
                     </div>
                   );
                 })}
@@ -901,7 +1316,7 @@ function renderReport(text: string): React.ReactNode {
             subnodes.push(
               <ul key={k} style={{ margin: "0 0 16px", paddingLeft: 20 }}>
                 {blines.map((l, m) => (
-                  <li key={m} style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, marginBottom: 6 }}>
+                  <li key={m} style={{ fontSize: 14, color: "#374151", lineHeight: 1.8, marginBottom: 6 }}>
                     {renderInlineContent(l.trimStart().slice(2))}
                   </li>
                 ))}
@@ -916,11 +1331,11 @@ function renderReport(text: string): React.ReactNode {
                     return (
                       <div key={m} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
                         <span style={{ color: "#9ca3af", flexShrink: 0, marginTop: 2 }}>•</span>
-                        <span style={{ fontSize: 15, color: "#374151", lineHeight: 1.8 }}>{renderInlineContent(t2.slice(2))}</span>
+                        <span style={{ fontSize: 14, color: "#374151", lineHeight: 1.8 }}>{renderInlineContent(t2.slice(2))}</span>
                       </div>
                     );
                   }
-                  return <p key={m} style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, margin: "0 0 6px" }}>{renderInlineContent(t2)}</p>;
+                  return <p key={m} style={{ fontSize: 14, color: "#374151", lineHeight: 1.8, margin: "0 0 6px" }}>{renderInlineContent(t2)}</p>;
                 })}
               </div>
             );
@@ -928,7 +1343,7 @@ function renderReport(text: string): React.ReactNode {
             subnodes.push(
               <div key={k} style={{ marginBottom: 20 }}>
                 {blines.map((l, m) => (
-                  <p key={m} style={{ fontSize: 15, lineHeight: 1.8, color: "#374151", margin: m === 0 ? "0 0 2px" : "0" }}>
+                  <p key={m} style={{ fontSize: 14, lineHeight: 1.8, color: "#374151", margin: m === 0 ? "0 0 2px" : "0" }}>
                     {renderInlineContent(l)}
                   </p>
                 ))}
@@ -936,7 +1351,7 @@ function renderReport(text: string): React.ReactNode {
             );
           } else {
             subnodes.push(
-              <p key={k} style={{ fontSize: 15, lineHeight: 1.8, color: "#374151", marginBottom: 16, marginTop: 0 }}>
+              <p key={k} style={{ fontSize: 14, lineHeight: 1.8, color: "#374151", marginBottom: 16, marginTop: 0 }}>
                 {renderInlineContent(bt)}
               </p>
             );
@@ -952,8 +1367,8 @@ function renderReport(text: string): React.ReactNode {
             {group.map((sec, idx) => {
               const subId = "subsection-" + sec.heading.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
               return (
-                <div key={idx} id={subId} style={{ background: "#f9fafb", borderRadius: 8, padding: "14px 16px", border: "1px solid #f3f4f6" }}>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8, marginTop: 0 }}>
+                <div key={idx} id={subId} style={{ background: "#fff", borderRadius: 8, padding: "14px 16px", border: "1px solid #e5e7eb" }}>
+                  <p style={{ fontSize: 11, fontWeight: 800, color: "#374151", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8, marginTop: 0 }}>
                     {sec.heading}
                   </p>
                   {renderSubBody(sec.bodyBlocks)}
@@ -963,16 +1378,15 @@ function renderReport(text: string): React.ReactNode {
           </div>
         );
       } else {
-        // 1 or 4+: render normally (stacked)
+        // 1 or 4+: render as cards (stacked)
         for (const sec of group) {
           const subId = "subsection-" + sec.heading.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
           nodes.push(
-            <div key={subId} id={subId}>
+            <div key={subId} id={subId} style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 8, padding: "14px 18px", marginBottom: 10 }}>
               <p style={{
-                fontSize: 11, fontWeight: 700, color: "#6b7280",
-                marginBottom: 6, marginTop: 22,
-                textTransform: "uppercase", letterSpacing: "0.07em",
-                paddingBottom: 6, borderBottom: "1px solid #f3f4f6",
+                fontSize: 11, fontWeight: 800, color: "#374151",
+                marginBottom: 8, marginTop: 0,
+                textTransform: "uppercase", letterSpacing: "0.08em",
               }}>
                 {sec.heading}
               </p>
@@ -1005,7 +1419,7 @@ function renderReport(text: string): React.ReactNode {
                 <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: "50%", background: isUrl ? "#dbeafe" : "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: isUrl ? "#1d4ed8" : "#6b7280", marginTop: 1 }}>
                   {match[1]}
                 </span>
-                <span style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, flex: 1 }}>
+                <span style={{ fontSize: 14, color: "#374151", lineHeight: 1.8, flex: 1 }}>
                   {isUrl
                     ? <a href={match[2]} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "none", wordBreak: "break-all", fontSize: 12 }}>{match[2]}</a>
                     : renderInlineContent(match[2])
@@ -1027,7 +1441,7 @@ function renderReport(text: string): React.ReactNode {
           <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: "50%", background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#6b7280", marginTop: 1 }}>
             {singleNumbered[1]}
           </span>
-          <span style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, flex: 1 }}>{renderInlineContent(singleNumbered[2])}</span>
+          <span style={{ fontSize: 14, color: "#374151", lineHeight: 1.8, flex: 1 }}>{renderInlineContent(singleNumbered[2])}</span>
         </div>
       );
       continue;
@@ -1038,7 +1452,7 @@ function renderReport(text: string): React.ReactNode {
       nodes.push(
         <ul key={i} style={{ margin: "0 0 16px", paddingLeft: 20 }}>
           {lines.map((l, j) => (
-            <li key={j} style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, marginBottom: 6 }}>
+            <li key={j} style={{ fontSize: 14, color: "#374151", lineHeight: 1.8, marginBottom: 6 }}>
               {renderInlineContent(l.trimStart().slice(2))}
             </li>
           ))}
@@ -1057,11 +1471,11 @@ function renderReport(text: string): React.ReactNode {
               return (
                 <div key={j} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
                   <span style={{ color: "#9ca3af", flexShrink: 0, marginTop: 2 }}>•</span>
-                  <span style={{ fontSize: 15, color: "#374151", lineHeight: 1.8 }}>{renderInlineContent(t.slice(2))}</span>
+                  <span style={{ fontSize: 14, color: "#374151", lineHeight: 1.8 }}>{renderInlineContent(t.slice(2))}</span>
                 </div>
               );
             }
-            return <p key={j} style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, margin: "0 0 6px" }}>{renderInlineContent(t)}</p>;
+            return <p key={j} style={{ fontSize: 14, color: "#374151", lineHeight: 1.8, margin: "0 0 6px" }}>{renderInlineContent(t)}</p>;
           })}
         </div>
       );
@@ -1073,22 +1487,37 @@ function renderReport(text: string): React.ReactNode {
       nodes.push(
         <div key={i} style={{ marginBottom: 20 }}>
           {lines.map((l, j) => (
-            <p key={j} style={{ fontSize: 13, lineHeight: 1.7, color: "#374151", margin: j === 0 ? "0 0 2px" : "0" }}>
+            <p key={j} style={{ fontSize: 14, lineHeight: 1.7, color: "#374151", margin: j === 0 ? "0 0 2px" : "0" }}>
               {renderInlineContent(l)}
             </p>
           ))}
         </div>
       );
     } else {
-      nodes.push(
-        <p key={i} style={{ fontSize: 15, lineHeight: 1.8, color: "#374151", marginBottom: 16, marginTop: 0 }}>
-          {renderInlineContent(trimmed)}
-        </p>
-      );
+      // If paragraph starts with **bold.** followed by body text, render bold on its own line
+      const boldLeadMatch = trimmed.match(/^(\*\*[^*]+\*\*\.?)\s+([\s\S]+)$/);
+      if (boldLeadMatch) {
+        nodes.push(
+          <div key={i} style={{ marginBottom: 16 }}>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: "#374151", margin: "0 0 3px", fontWeight: 600 }}>
+              {renderInlineContent(boldLeadMatch[1])}
+            </p>
+            <p style={{ fontSize: 14, lineHeight: 1.8, color: "#374151", margin: 0 }}>
+              {renderInlineContent(boldLeadMatch[2])}
+            </p>
+          </div>
+        );
+      } else {
+        nodes.push(
+          <p key={i} style={{ fontSize: 14, lineHeight: 1.8, color: "#374151", marginBottom: 16, marginTop: 0 }}>
+            {renderInlineContent(trimmed)}
+          </p>
+        );
+      }
     }
   }
 
-  return <>{nodes}</>;
+  return nodes;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -1122,7 +1551,7 @@ function OptionCard({
         background: selected ? "#111827" : "#fff",
         color: selected ? "#fff" : disabled ? "#9ca3af" : "#374151",
         fontWeight: 500,
-        fontSize: 13,
+        fontSize: 15,
         cursor: disabled ? "not-allowed" : "pointer",
         textAlign: "left",
         transition: "all 150ms",
@@ -1736,13 +2165,12 @@ function AnswerSummaryPanel({
             <div key={q.id}>
               <p
                 style={{
-                  fontSize: 12,
+                  fontSize: 15,
                   fontWeight: 600,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  color: "#9ca3af",
+                  color: "#374151",
                   marginBottom: 8,
                   marginTop: 0,
+                  lineHeight: 1.4,
                 }}
               >
                 {q.question}
@@ -2127,6 +2555,143 @@ function Toast({ message, visible }: { message: string; visible: boolean }) {
   );
 }
 
+// ─── PDF Generation ───────────────────────────────────────────────────────────
+
+const STAGE_DEFAULT_TAGS: Record<string, string[]> = {
+  frame:    ["Strategic Problem", "Market Context", "Winning Conditions", "Decision Boundaries", "Strategic Hypothesis"],
+  diagnose: ["Business Assessment", "Product-Market Fit", "Competitive Landscape", "Unit Economics", "Capability Assessment"],
+  decide:   ["Strategic Options", "Recommended Direction", "What Must Be True", "Kill Criteria"],
+  position: ["Target Customer", "Competitive Advantage", "Positioning Statement", "Structural Defensibility"],
+  commit:   ["Strategic Bets", "OKRs", "100-Day Plan", "Kill Criteria", "Resource Allocation"],
+};
+
+function stripMd(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^-{3,}$/gm, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .trim();
+}
+
+function renderSectionHtml(title: string, content: unknown): string {
+  if (!content) return "";
+  let body = "";
+  if (typeof content === "string") {
+    const paras = stripMd(content).split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+    body = paras.map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+  } else if (Array.isArray(content)) {
+    const items = (content as unknown[]).map((item) => {
+      if (typeof item === "string") return `<li>${stripMd(item)}</li>`;
+      if (item && typeof item === "object") {
+        const o = item as Record<string, unknown>;
+        if (o.text) return `<li><strong>${stripMd(String(o.text))}</strong>${o.fragility ? ` <span class="badge">${o.fragility}</span>` : ""}</li>`;
+        if (o.risk) return `<li><strong>${stripMd(String(o.risk))}</strong> <span class="badge ${o.severity}">${o.severity}</span>${o.mitigation ? `<br><span class="sub">Mitigation: ${stripMd(String(o.mitigation))}</span>` : ""}</li>`;
+        if (o.action) return `<li><strong>${stripMd(String(o.action))}</strong><br><span class="sub">${[o.priority, o.owner, o.deadline].filter(Boolean).join(" · ")}</span></li>`;
+        if (o.metric) return `<li><strong>${stripMd(String(o.metric))}</strong>: ${o.target ?? ""} <span class="sub">(${o.frequency ?? ""})</span></li>`;
+      }
+      return "";
+    }).filter(Boolean);
+    body = `<ul>${items.join("")}</ul>`;
+  }
+  return `<section><h2>${title}</h2>${body}</section>`;
+}
+
+function downloadReportPDF(stageName: string, companyName: string, sections: Record<string, unknown>, markdownReport?: string | null) {
+  const conf = sections.confidence as { score?: number; rationale?: string } | undefined;
+  const date = new Date().toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" });
+
+  // Convert markdown to simple HTML — strip citation tags like [Frame · Section]
+  function mdToHtml(md: string): string {
+    const lines = md.split("\n");
+    const htmlParts: string[] = [];
+    let inSection = false;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      // Strip citation tags [Stage · Section] and [N] superscripts
+      const clean = line.replace(/\[[^\]]+·[^\]]+\]/g, "").replace(/\[\d+\]/g, "").trim();
+      if (line.startsWith("## ")) {
+        if (inSection) htmlParts.push("</section>");
+        htmlParts.push(`<section><h2>${clean.replace(/^## /, "")}</h2>`);
+        inSection = true;
+      } else if (line.startsWith("### ")) {
+        htmlParts.push(`<h3>${clean.replace(/^### /, "")}</h3>`);
+      } else if (line.startsWith("---")) {
+        // section divider — skip
+      } else if (line.startsWith("**") && line.endsWith("**")) {
+        htmlParts.push(`<p><strong>${clean.slice(2, -2)}</strong></p>`);
+      } else if (line.startsWith("- ")) {
+        htmlParts.push(`<li>${clean.slice(2).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/_(.*?)_/g, "<em>$1</em>")}</li>`);
+      } else if (/^\d+\.\s/.test(line)) {
+        htmlParts.push(`<li>${clean.replace(/^\d+\.\s/, "").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")}</li>`);
+      } else if (clean) {
+        htmlParts.push(`<p>${clean.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/_(.*?)_/g, "<em>$1</em>")}</p>`);
+      }
+    }
+    if (inSection) htmlParts.push("</section>");
+    return htmlParts.join("\n");
+  }
+
+  const bodyContent = markdownReport
+    ? mdToHtml(markdownReport)
+    : "<p>No content available.</p>";
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>${stageName} Report — ${companyName} — Inflexion</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11pt;color:#111827;background:#fff;padding:0}
+  @media screen{body{max-width:760px;margin:0 auto;padding:32px 24px}}
+  @page{margin:18mm 20mm;size:A4}
+  .header{border-bottom:2px solid #111827;padding-bottom:16px;margin-bottom:32px}
+  .header h1{font-size:22pt;font-weight:800;color:#111827;margin-bottom:4px}
+  .header .company{font-size:13pt;color:#6b7280;margin-bottom:2px}
+  .header .meta{font-size:9pt;color:#9ca3af}
+  .conf{display:inline-block;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:4px 12px;font-size:10pt;font-weight:700;color:#374151;margin-top:10px}
+  section{margin-bottom:28px;page-break-inside:avoid}
+  h2{font-size:13pt;font-weight:700;color:#111827;margin-bottom:10px;padding-bottom:4px;border-bottom:1px solid #e5e7eb}
+  h3{font-size:9pt;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.07em;margin:20px 0 8px}
+  p{font-size:10.5pt;line-height:1.7;color:#374151;margin-bottom:8px}
+  ul,ol{padding-left:18px;margin:0 0 12px}
+  li{font-size:10.5pt;line-height:1.65;color:#374151;margin-bottom:6px}
+  li strong{color:#111827}
+  strong{color:#111827}
+  em{color:#6b7280;font-style:normal}
+  .footer{margin-top:40px;padding-top:12px;border-top:1px solid #e5e7eb;font-size:8.5pt;color:#9ca3af;display:flex;justify-content:space-between}
+  @media print{.no-print{display:none}.footer{position:fixed;bottom:10mm;left:20mm;right:20mm}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>${stageName} Report</h1>
+  <div class="company">${companyName}</div>
+  <div class="meta">${date} · Inflexion by Nth Layer</div>
+  ${conf?.score !== undefined ? `<div class="conf">Confidence: ${Math.round(conf.score * 100)}%</div>` : ""}
+</div>
+${bodyContent}
+<div class="footer">
+  <span>${stageName} Report — Inflexion · ${companyName}</span>
+  <span>${date}</span>
+</div>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${stageName}-Report-${companyName}-Inflexion.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 type OutputVersion = {
@@ -2166,7 +2731,34 @@ export function StrategyFlow({
     const conf = sections.confidence as { score?: number; rationale?: string } | undefined;
     if (conf) {
       const pct = conf.score !== undefined ? `${Math.round(conf.score * 100)}%` : "";
-      lines.push(`## Confidence\n\n**Score:** ${pct}\n\n${conf.rationale ?? ""}`);
+      const rationale = conf.rationale ?? "";
+      // Convert rationale to bullet points — split on (N) numbered items or sentence boundaries
+      let rationaleBullets: string;
+      if (/\(\d+\)/.test(rationale)) {
+        const parts = rationale.split(/(?=\(\d+\))/).map((s) => s.trim()).filter(Boolean);
+        // Check for preamble before first numbered item
+        const firstNumIdx = rationale.search(/\(\d+\)/);
+        const preamble = firstNumIdx > 0 ? rationale.slice(0, firstNumIdx).trim() : "";
+        const bullets = preamble ? [`- ${preamble}`, ...parts.map((p) => `- ${p.replace(/^\(\d+\)\s*/, "")}`)] : parts.map((p) => `- ${p.replace(/^\(\d+\)\s*/, "")}`);
+        rationaleBullets = bullets.join("\n");
+      } else {
+        // Split on ". " boundaries (sentence-level)
+        const sentences = rationale.split(/\.\s+(?=[A-Z])/).filter((s) => s.trim().length > 15);
+        rationaleBullets = sentences.length > 1
+          ? sentences.map((s) => `- ${s.trim().replace(/\.$/, "")}.`).join("\n")
+          : `- ${rationale}`;
+      }
+      const confLabel = conf.score !== undefined
+        ? conf.score >= 0.75 ? "High confidence" : conf.score >= 0.55 ? "Moderate confidence" : "Low confidence"
+        : "";
+      const confNote = conf.score !== undefined
+        ? conf.score >= 0.75
+          ? "The evidence base is strong. This report is reliable for decision-making."
+          : conf.score >= 0.55
+          ? "The evidence base is adequate. Some gaps exist — treat directional conclusions with appropriate caution."
+          : "The evidence base is limited. Treat conclusions as hypotheses to validate, not decisions to commit to."
+        : "";
+      lines.push(`## Confidence\n\n- **Score:** ${pct} — ${confLabel}\n- ${confNote}\n${rationaleBullets}`);
     }
     if (Array.isArray(sections.risks) && sections.risks.length > 0) {
       const riskLines = (sections.risks as { risk: string; severity: string; mitigation: string }[]).map(
@@ -2184,7 +2776,31 @@ export function StrategyFlow({
       const monLines = (sections.monitoring as { metric: string; target: string; frequency: string }[]).map(
         (m) => `**${m.metric}**\n${m.target} _(${m.frequency})_`
       );
-      lines.push(`## Monitoring\n\n${monLines.join("\n\n")}`);
+      lines.push(`## Metrics\n\n${monLines.join("\n\n")}`);
+    }
+    if (Array.isArray(sections.kill_criteria) && sections.kill_criteria.length > 0) {
+      const kcLines = (sections.kill_criteria as { criterion: string; trigger: string; response: string }[]).map(
+        (k) => `**${k.criterion}**\n_Trigger:_ ${k.trigger}\n_Response:_ ${k.response}`
+      );
+      lines.push(`## Kill Criteria\n\n${kcLines.join("\n\n")}`);
+    }
+    if (Array.isArray(sections.okrs) && sections.okrs.length > 0) {
+      const okrLines = (sections.okrs as { objective: string; key_results: string[] }[]).map(
+        (o) => `**${o.objective}**\n${(o.key_results ?? []).map((kr) => `- ${kr}`).join("\n")}`
+      );
+      lines.push(`## OKRs\n\n${okrLines.join("\n\n")}`);
+    }
+    if (Array.isArray(sections.strategic_bets) && sections.strategic_bets.length > 0) {
+      const betLines = (sections.strategic_bets as { bet: string; hypothesis: string; investment: string }[]).map(
+        (b) => `**${b.bet}**\n_Hypothesis:_ ${b.hypothesis}\n_Investment:_ ${b.investment}`
+      );
+      lines.push(`## Strategic Bets\n\n${betLines.join("\n\n")}`);
+    }
+    if (Array.isArray(sections.hundred_day_plan) && sections.hundred_day_plan.length > 0) {
+      const planLines = (sections.hundred_day_plan as { milestone: string; timeline: string; owner: string; deliverable: string }[]).map(
+        (p) => `**${p.milestone}** _(${p.timeline})_\nOwner: ${p.owner}\nDeliverable: ${p.deliverable}`
+      );
+      lines.push(`## 100-Day Plan\n\n${planLines.join("\n\n")}`);
     }
     const eb = sections.evidence_base as { sources?: string[]; quotes?: string[] } | undefined;
     if (eb?.sources && eb.sources.length > 0) {
@@ -2529,6 +3145,34 @@ export function StrategyFlow({
             (m) => `- ${m.metric}: target ${m.target} (${m.frequency})`
           );
           parts.push(`**Monitoring**\n${monLines.join("\n")}`);
+        }
+
+        if (Array.isArray(s.kill_criteria) && (s.kill_criteria as unknown[]).length > 0) {
+          const kcLines = (s.kill_criteria as { criterion: string; trigger: string; response: string }[]).map(
+            (k) => `- ${k.criterion} (Trigger: ${k.trigger} → Response: ${k.response})`
+          );
+          parts.push(`**Kill Criteria**\n${kcLines.join("\n")}`);
+        }
+
+        if (Array.isArray(s.okrs) && (s.okrs as unknown[]).length > 0) {
+          const okrLines = (s.okrs as { objective: string; key_results: string[] }[]).map(
+            (o) => `- ${o.objective}: ${(o.key_results ?? []).join("; ")}`
+          );
+          parts.push(`**OKRs**\n${okrLines.join("\n")}`);
+        }
+
+        if (Array.isArray(s.strategic_bets) && (s.strategic_bets as unknown[]).length > 0) {
+          const betLines = (s.strategic_bets as { bet: string; hypothesis: string; investment: string }[]).map(
+            (b) => `- ${b.bet} (Hypothesis: ${b.hypothesis}, Investment: ${b.investment})`
+          );
+          parts.push(`**Strategic Bets**\n${betLines.join("\n")}`);
+        }
+
+        if (Array.isArray(s.hundred_day_plan) && (s.hundred_day_plan as unknown[]).length > 0) {
+          const planLines = (s.hundred_day_plan as { milestone: string; timeline: string; owner: string; deliverable: string }[]).map(
+            (p) => `- [${p.timeline}] ${p.milestone} (Owner: ${p.owner}, Deliverable: ${p.deliverable})`
+          );
+          parts.push(`**100-Day Plan**\n${planLines.join("\n")}`);
         }
 
         const eb = s.evidence_base as { sources?: string[] } | undefined;
@@ -2914,8 +3558,7 @@ export function StrategyFlow({
             <div style={{ borderTop: "1px solid #e5e7eb", background: "#f9fafb" }}>
               {/* Row 1: Standard section pills — always present, active when report complete */}
               <div style={{ padding: isMobile ? "10px 16px 8px" : "12px 48px 8px", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#9ca3af", marginRight: 4, whiteSpace: "nowrap" }}>Report</span>
-                {STANDARD_REPORT_PILLS.map((pill) => {
+                {getReportPillsForStage(activeStage.id).map((pill) => {
                   const isComplete = activeState.reportStatus === "complete";
                   return isComplete ? (
                     <button
@@ -2930,7 +3573,7 @@ export function StrategyFlow({
                           }
                         }, 50);
                       }}
-                      style={{ fontSize: 12, fontWeight: 500, color: "#2563eb", background: "#fff", border: "1px solid #bfdbfe", borderRadius: 20, padding: "3px 11px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                      style={{ fontSize: 12, fontWeight: 600, color: "#a3e635", background: "#111827", border: "none", borderRadius: 20, padding: "3px 11px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
                     >
                       {pill.label}
                     </button>
@@ -2970,7 +3613,7 @@ export function StrategyFlow({
                               }
                             }, 50);
                           }}
-                          style={{ fontSize: 12, fontWeight: 500, color: "#374151", background: "#fff", border: "1px solid #d1d5db", borderRadius: 20, padding: "3px 11px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                          style={{ fontSize: 12, fontWeight: 600, color: "#a3e635", background: "#111827", border: "none", borderRadius: 20, padding: "3px 11px", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
                         >
                           {pill.label}
                         </button>
@@ -3035,7 +3678,7 @@ export function StrategyFlow({
         }}>
           {/* PDF download */}
           <button
-            onClick={() => { document.title = `${activeStage.name} Report — Inflexion`; window.print(); }}
+            onClick={() => { if (activeState.reportSections) downloadReportPDF(activeStage.name, companyName, activeState.reportSections, activeState.report); }}
             style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "#111827", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 13, fontWeight: 600, color: "#fff", cursor: "pointer", fontFamily: "inherit" }}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -3179,7 +3822,8 @@ export function StrategyFlow({
             {/* Stage-specific tags */}
             {(() => {
               const currentOutputId = outputIds[activeStageId];
-              const tags = currentOutputId ? (outputTags[currentOutputId] ?? []) : [];
+              const rawTags = currentOutputId ? (outputTags[currentOutputId] ?? []) : [];
+              const tags = rawTags.length > 0 ? rawTags : (STAGE_DEFAULT_TAGS[activeStageId] ?? []);
               if (!tags.length) return null;
               const STAGE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
                 frame:    { bg: "#f9fafb",  text: "#374151", border: "#d1d5db" },
@@ -3273,7 +3917,7 @@ export function StrategyFlow({
                 </button>
               </div>
             )}
-            {getActiveReport(activeStageId).report && renderReport(getActiveReport(activeStageId).report!)}
+            {(() => { const ar = getActiveReport(activeStageId); return ar.report && renderReport(ar.report, ar.sections ?? undefined); })()}
             {/* Version history panel */}
             {(() => {
               const versions = allOutputsByStage[activeStageId] ?? [];
@@ -3416,9 +4060,24 @@ export function StrategyFlow({
                 <button
                   onClick={() => handleChatSend(activeStageId)}
                   disabled={chatLoading[activeStageId] || !(chatInput[activeStageId] ?? "").trim()}
-                  style={{ padding: "10px 18px", fontSize: 13, fontWeight: 600, background: (chatLoading[activeStageId] || !(chatInput[activeStageId] ?? "").trim()) ? "#e5e7eb" : "#111827", color: (chatLoading[activeStageId] || !(chatInput[activeStageId] ?? "").trim()) ? "#9ca3af" : "#fff", border: "none", borderRadius: 10, cursor: (chatLoading[activeStageId] || !(chatInput[activeStageId] ?? "").trim()) ? "not-allowed" : "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    padding: "10px 18px", fontSize: 13, fontWeight: 700,
+                    background: "#111827",
+                    color: (chatLoading[activeStageId] || !(chatInput[activeStageId] ?? "").trim()) ? "rgba(255,255,255,0.3)" : "#fff",
+                    border: "none", borderRadius: 10,
+                    cursor: (chatLoading[activeStageId] || !(chatInput[activeStageId] ?? "").trim()) ? "not-allowed" : "pointer",
+                    fontFamily: "inherit", whiteSpace: "nowrap",
+                    opacity: (chatLoading[activeStageId] || !(chatInput[activeStageId] ?? "").trim()) ? 0.5 : 1,
+                    transition: "opacity 150ms",
+                  }}
                 >
                   {chatLoading[activeStageId] ? "…" : "Send"}
+                  {!chatLoading[activeStageId] && (
+                    <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                      <path d="M3 7h8M8 4l3 3-3 3" stroke="#a3e635" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
                 </button>
               </div>
               <p style={{ fontSize: 11, color: "#9ca3af", marginTop: 8 }}>Press Enter to send · Shift+Enter for new line</p>
@@ -3430,7 +4089,7 @@ export function StrategyFlow({
               {/* Download + Share row */}
               <div style={{ display: "flex", gap: 10 }}>
                 <button
-                  onClick={() => { document.title = `${activeStage.name} Report — Inflexion`; window.print(); }}
+                  onClick={() => { if (activeState.reportSections) downloadReportPDF(activeStage.name, companyName, activeState.reportSections, activeState.report); }}
                   style={{
                     flex: 1,
                     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
@@ -3487,7 +4146,7 @@ export function StrategyFlow({
             flexDirection: isMobile ? "column" : "row",
             minHeight: 0,
             gap: isMobile ? 24 : 32,
-            padding: isMobile ? "24px 16px 48px" : "64px 48px 48px",
+            padding: isMobile ? "16px 16px 48px" : "32px 48px 48px",
             pointerEvents: isGenerating ? "none" : "auto",
             opacity: isGenerating ? 0.6 : 1,
             transition: "opacity 200ms",
@@ -3543,12 +4202,12 @@ export function StrategyFlow({
                   </p>
                 </div>
               </div>
-              {/* Email notification note */}
-              <div style={{ textAlign: "center", marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5">
+              {/* Email notification note — inside dark card */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.08)", margin: "12px 48px 0" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(163,230,53,0.7)" strokeWidth="1.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                 </svg>
-                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0 }}>
+                <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", margin: 0 }}>
                   We&apos;ll email you when your report is ready
                 </p>
               </div>

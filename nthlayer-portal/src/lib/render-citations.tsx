@@ -35,11 +35,20 @@ export function renderWithCitations(text: string): React.ReactNode {
         </span>
       );
     }
-    return part.split("\n").map((line, j, arr) => (
-      <span key={`${i}-${j}`}>
-        {line}
-        {j < arr.length - 1 && <br />}
-      </span>
-    ));
+    // Render with bold + newlines
+    return part.split("\n").map((line, j, arr) => {
+      const boldParts = line.split(/(\*\*[^*]+\*\*)/g).map((chunk, k) => {
+        if (chunk.startsWith("**") && chunk.endsWith("**")) {
+          return <strong key={k} style={{ fontWeight: 700, color: "#111827" }}>{chunk.slice(2, -2)}</strong>;
+        }
+        return chunk;
+      });
+      return (
+        <span key={`${i}-${j}`}>
+          {boldParts}
+          {j < arr.length - 1 && <br />}
+        </span>
+      );
+    });
   });
 }

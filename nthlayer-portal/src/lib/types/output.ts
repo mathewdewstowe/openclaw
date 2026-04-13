@@ -38,6 +38,11 @@ export interface OutputSections {
   risks: { risk: string; severity: "high" | "medium" | "low"; mitigation: string }[];
   actions: { action: string; owner: string; deadline: string; priority: "critical" | "high" | "medium" | "low" }[];
   monitoring: { metric: string; target: string; frequency: string }[];
+  // Optional structured fields — populated by stages that produce them
+  kill_criteria?: { criterion: string; trigger: string; response: string }[];
+  okrs?: { objective: string; key_results: string[] }[];
+  strategic_bets?: { bet: string; hypothesis: string; investment: string }[];
+  hundred_day_plan?: { milestone: string; timeline: string; owner: string; deliverable: string }[];
 }
 
 // ─── Section metadata for rendering ──────────────────────────
@@ -53,6 +58,10 @@ export const SECTION_ORDER = [
   "risks",
   "actions",
   "monitoring",
+  "kill_criteria",
+  "okrs",
+  "strategic_bets",
+  "hundred_day_plan",
 ] as const;
 
 export const SECTION_LABELS: Record<string, string> = {
@@ -66,6 +75,33 @@ export const SECTION_LABELS: Record<string, string> = {
   risks: "Risks",
   actions: "Actions",
   monitoring: "Metrics",
+  kill_criteria: "Kill Criteria",
+  okrs: "OKRs",
+  strategic_bets: "Strategic Bets",
+  hundred_day_plan: "100-Day Plan",
+};
+
+// ─── Stage-aware section labels ─────────────────────────────────
+// Override default labels per stage where the section means something different.
+
+export const STAGE_SECTION_LABELS: Record<string, Partial<Record<string, string>>> = {
+  frame:    { recommendation: "Strategic Hypothesis" },
+  diagnose: { recommendation: "Emerging Direction" },
+  decide:   {}, // uses defaults — Recommendation is genuinely earned here
+  position: { recommendation: "Positioning Recommendation" },
+  commit:   { evidence_base: "Evidence Inherited" },
+};
+
+// ─── Stage-hidden sections ──────────────────────────────────────
+// Sections that should not be rendered for a given stage because
+// the stage does not produce them (agents are told not to return them).
+
+export const STAGE_HIDDEN_SECTIONS: Record<string, string[]> = {
+  frame:    ["actions", "monitoring"],
+  diagnose: ["actions", "monitoring"],
+  decide:   ["monitoring"],
+  position: ["actions", "monitoring"],
+  commit:   [],
 };
 
 // ─── Workflow metadata ───────────────────────────────────────

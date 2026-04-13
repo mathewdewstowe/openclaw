@@ -38,7 +38,7 @@ Return ONLY a JSON array of challenge objects with this structure:
 Return raw JSON only, no markdown, no explanation.`;
 
     const response = await client.messages.create({
-      model: "claude-opus-4-5",
+      model: "claude-opus-4-6",
       max_tokens: 1500,
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],

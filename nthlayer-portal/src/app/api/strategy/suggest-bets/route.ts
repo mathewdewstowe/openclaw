@@ -65,7 +65,7 @@ Based on this analysis, generate 8 strategic bets the business should consider c
 
   try {
     const response = await client.messages.create({
-      model: "claude-opus-4-5",
+      model: "claude-opus-4-6",
       max_tokens: 2048,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],

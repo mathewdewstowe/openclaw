@@ -13,9 +13,11 @@ const client = new Anthropic({
 });
 
 const ENVIRONMENT_ID = "env_01BG6FT972a92oDBJcBMwt2y";
+const FRAME_AGENT_ID = "agent_011CZxASTpo7h65YQMRVDDYN";
 const EXISTING_DIAGNOSE_AGENT_ID = "agent_011CZumeXoZuFJ35jRA8Ta2R";
 const DECIDE_AGENT_ID = "agent_011CZvZtjfw9foNabrMh92ii";
 const POSITION_AGENT_ID = "agent_011CZvZtkfyRGNw3S3RMjHMj";
+const COMMIT_AGENT_ID = "agent_011CZzKHr5KTkHYsLYcn2ke7";
 const ACT_AGENT_ID = "agent_011CZvZtmvNzntBKmhqtcwAS";
 
 const MCP_SEARCH_SERVER = {
@@ -24,81 +26,107 @@ const MCP_SEARCH_SERVER = {
   url: "https://inflexion-mcp-search.matthewdewstowe.workers.dev/mcp",
 };
 
-// ─── Tool definition (shared across all 4 agents) ─────────────
+// ─── Tool properties (shared building blocks) ─────────────────
 
-const PRODUCE_OUTPUT_TOOL = {
-  type: "custom" as const,
-  name: "produce_strategic_diagnosis",
-  description: "Call this tool when your analysis is complete. Pass all 10 sections of the structured output.",
-  input_schema: {
-    type: "object" as const,
-    required: [
-      "executive_summary", "what_matters", "recommendation",
-      "business_implications", "evidence_base", "assumptions",
-      "confidence", "risks", "actions", "monitoring",
-    ],
+const OUTPUT_PROPERTIES = {
+  executive_summary: { type: "string", description: "2-4 paragraph executive summary of the full analysis." },
+  what_matters: { type: "string", description: "The 3-5 forces or facts that dominate the strategic picture right now." },
+  recommendation: { type: "string", description: "The clear strategic recommendation. No hedging." },
+  business_implications: { type: "string", description: "What this means for revenue, product, and team." },
+  evidence_base: {
+    type: "object",
     properties: {
-      executive_summary: { type: "string", description: "2-4 paragraph executive summary of the full analysis." },
-      what_matters: { type: "string", description: "The 3-5 forces or facts that dominate the strategic picture right now." },
-      recommendation: { type: "string", description: "The clear strategic recommendation. No hedging." },
-      business_implications: { type: "string", description: "What this means for revenue, product, and team." },
-      evidence_base: {
-        type: "object",
-        properties: {
-          sources: { type: "array", items: { type: "string" }, description: "Sources used in the analysis." },
-          quotes: { type: "array", items: { type: "string" }, description: "Key verbatim quotes or data points that anchor the analysis." },
-        },
-        required: ["sources", "quotes"],
+      sources: { type: "array", items: { type: "string" }, description: "Sources used in the analysis." },
+      quotes: { type: "array", items: { type: "string" }, description: "Key verbatim quotes or data points that anchor the analysis." },
+    },
+    required: ["sources", "quotes"],
+  },
+  assumptions: { type: "array", items: { type: "string" }, description: "Explicit assumptions the analysis rests on." },
+  confidence: {
+    type: "object",
+    properties: {
+      score: { type: "number", description: "0.0–1.0. Be honest. Low scores are valuable." },
+      rationale: { type: "string", description: "Why this score. What would raise it." },
+    },
+    required: ["score", "rationale"],
+  },
+  risks: {
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        risk: { type: "string" },
+        severity: { type: "string", enum: ["high", "medium", "low"] },
+        mitigation: { type: "string" },
       },
-      assumptions: { type: "array", items: { type: "string" }, description: "Explicit assumptions the analysis rests on." },
-      confidence: {
-        type: "object",
-        properties: {
-          score: { type: "number", description: "0.0–1.0. Be honest. Low scores are valuable." },
-          rationale: { type: "string", description: "Why this score. What would raise it." },
-        },
-        required: ["score", "rationale"],
-      },
-      risks: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            risk: { type: "string" },
-            severity: { type: "string", enum: ["high", "medium", "low"] },
-            mitigation: { type: "string" },
-          },
-          required: ["risk", "severity", "mitigation"],
-        },
-      },
-      actions: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            action: { type: "string" },
-            owner: { type: "string" },
-            deadline: { type: "string" },
-            priority: { type: "string", enum: ["critical", "high", "medium", "low"] },
-          },
-          required: ["action", "owner", "deadline", "priority"],
-        },
-      },
-      monitoring: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            metric: { type: "string" },
-            target: { type: "string" },
-            frequency: { type: "string" },
-          },
-          required: ["metric", "target", "frequency"],
-        },
-      },
+      required: ["risk", "severity", "mitigation"],
     },
   },
+  actions: {
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        action: { type: "string" },
+        owner: { type: "string" },
+        deadline: { type: "string" },
+        priority: { type: "string", enum: ["critical", "high", "medium", "low"] },
+      },
+      required: ["action", "owner", "deadline", "priority"],
+    },
+  },
+  monitoring: {
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        metric: { type: "string" },
+        target: { type: "string" },
+        frequency: { type: "string" },
+      },
+      required: ["metric", "target", "frequency"],
+    },
+  },
+} as const;
+
+// ─── Per-stage required fields ─────────────────────────────────
+// Only require sections that the stage genuinely produces.
+// Actions and Monitoring are premature before Decide/Commit.
+
+const CORE_REQUIRED = [
+  "executive_summary", "what_matters", "recommendation",
+  "business_implications", "evidence_base", "assumptions",
+  "confidence", "risks",
+];
+
+const STAGE_REQUIRED: Record<string, string[]> = {
+  frame:    [...CORE_REQUIRED],                                       // no actions, no monitoring
+  diagnose: [...CORE_REQUIRED],                                       // no actions, no monitoring
+  decide:   [...CORE_REQUIRED, "actions"],                            // actions earned here, no monitoring
+  position: [...CORE_REQUIRED],                                       // no actions, no monitoring
+  commit:   [...CORE_REQUIRED, "actions", "monitoring"],              // all 10
 };
+
+function buildToolForStage(stage: string) {
+  const required = STAGE_REQUIRED[stage] ?? STAGE_REQUIRED.commit;
+  const description = required.includes("actions") && required.includes("monitoring")
+    ? "Call this tool when your analysis is complete. Pass all sections of the structured output."
+    : `Call this tool when your analysis is complete. Only the following sections are required: ${required.join(", ")}.`;
+
+  return {
+    type: "custom" as const,
+    name: "produce_strategic_diagnosis",
+    description,
+    input_schema: {
+      type: "object" as const,
+      required,
+      properties: OUTPUT_PROPERTIES,
+    },
+  };
+}
+
+// Legacy: shared tool for non-cascade agents (Act, etc.)
+const PRODUCE_OUTPUT_TOOL = buildToolForStage("commit");
 
 // ─── System prompts ────────────────────────────────────────────
 
@@ -292,6 +320,75 @@ ${SEARCH_INSTRUCTION}
 
 Call the produce_strategic_diagnosis tool with your complete analysis.`;
 
+// ─── Frame system prompt (cascade only) ──────────────────────────
+
+const FRAME_SYSTEM_PROMPT = `You are a strategic framing engine for Inflexion — a decision intelligence platform for operators, investors, and portfolio CEOs.
+
+Your role is to establish the precise strategic frame that all subsequent analysis builds on. You are defining the problem, not solving it.
+
+PRINCIPLES:
+- Your job is to frame, not to recommend. The recommendation field is your Strategic Hypothesis — the bet the business appears to be making. It is NOT a committed direction.
+- Anchor every claim in evidence. If you lack evidence, flag it explicitly as an assumption.
+- Never fabricate market data, competitor facts, or financial figures.
+- Be precise: vague frames produce vague strategies.
+- Surface what they haven't said. The most valuable frame often reframes the problem the company thinks it has.
+
+YOUR TASK:
+1. Establish what triggered this strategic review — what is actually at stake and why now
+2. Define what winning looks like in 24–36 months (specific, measurable conditions)
+3. Articulate the strategic hypothesis the business is betting on
+4. Set decision boundaries and risk appetite
+5. Research the macro context that constrains or enables the strategy
+
+STAGE OUTPUT RULES:
+- The recommendation field contains your STRATEGIC HYPOTHESIS — the bet the business is making. This is NOT a definitive recommendation. Frame it as: "The hypothesis this strategy is testing is..."
+- Do NOT return actions or monitoring sections — these are premature before diagnosis. You have not yet assessed what is true.
+- Focus your risks on threats to the frame itself: what would invalidate the hypothesis, change the problem definition, or shift the winning conditions.
+
+CONFIDENCE SCORING:
+Score 0.0–1.0 based on evidence quality:
+- 0.8–1.0: Direct company data + verified market facts + rich website content
+- 0.6–0.79: Partial company data + reasonable market inference
+- 0.4–0.59: Mostly public signals, limited company-specific data
+- Below 0.4: Heavy inference, minimal direct evidence
+
+${SEARCH_INSTRUCTION}
+
+Call the produce_strategic_diagnosis tool with your complete analysis.`;
+
+// ─── Commit system prompt (cascade only) ─────────────────────────
+
+const COMMIT_SYSTEM_PROMPT = `You are a strategic synthesis and execution planning engine for Inflexion — a decision intelligence platform for operators, investors, and portfolio CEOs.
+
+Your role is to synthesise ALL prior stage findings (Frame, Diagnose, Decide, Position) into a single cohesive, board-ready strategic document with a concrete execution plan. Strategy without execution is fiction.
+
+PRINCIPLES:
+- Do NOT simply repeat or summarise what was said in prior stages — synthesise it into a unified direction.
+- Make the strategy coherent, not a composite of four separate reports.
+- Every action must trace back to a strategic decision or positioning imperative from prior stages.
+- Confidence from earlier stages should inform how much hedge to build into the plan.
+
+YOUR TASK:
+1. Distil the inflection the business is navigating from all prior stages
+2. Name each strategic bet with its hypothesis
+3. Define OKRs (at least 3, each with 2–3 key results)
+4. Build a 100-day plan (milestones at 30, 60, and 90 days with specific owners and deliverables)
+5. Set kill criteria — the conditions that would cause a change in direction
+6. Define governance rhythm and horizon allocation
+
+STAGE OUTPUT RULES:
+- Do NOT use web search — all evidence has been gathered in prior stages.
+- The evidence_base field should ONLY reference sources cited in prior stages. Do NOT fabricate new URLs. Prefix the sources array with "Inherited from prior stages:" to make provenance clear.
+- The actions and monitoring fields are YOUR primary output — this is where they belong in the cascade. Make them concrete, owned, and time-bound.
+- Clearly distinguish your NEW assumptions from those inherited from prior stages.
+
+CONFIDENCE SCORING:
+Your confidence reflects the coherence and evidence quality of the full cascade:
+- Higher confidence: prior stages are consistent, evidence is strong, execution constraints are clear
+- Lower confidence: contradictions between stages, weak evidence, unclear capacity
+
+Call the produce_strategic_diagnosis tool with your complete analysis.`;
+
 // ─── Main ──────────────────────────────────────────────────────
 
 async function main() {
@@ -304,33 +401,42 @@ async function main() {
   };
   const agents = client.beta.agents as unknown as AgentApi;
 
-  async function updateAgent(id: string, label: string, system: string) {
+  async function updateAgent(id: string, label: string, system: string, stage?: string) {
     console.log(`Updating ${label} (${id})...`);
+    const tool = stage ? buildToolForStage(stage) : PRODUCE_OUTPUT_TOOL;
+    const useSearch = stage !== "commit"; // Commit does not use web search
     try {
       const existing = await agents.retrieve(id);
       await agents.update(id, {
         version: existing.version,
         system,
-        tools: [
-          PRODUCE_OUTPUT_TOOL,
-          { type: "mcp_toolset", mcp_server_name: "brave_search" },
-        ],
-        mcp_servers: [MCP_SEARCH_SERVER],
+        tools: useSearch
+          ? [tool, { type: "mcp_toolset", mcp_server_name: "brave_search" }]
+          : [tool],
+        mcp_servers: useSearch ? [MCP_SEARCH_SERVER] : [],
       });
-      console.log(`✓ ${label} updated`);
+      console.log(`✓ ${label} updated (required: ${(stage ? STAGE_REQUIRED[stage] : STAGE_REQUIRED.commit)?.join(", ")})`);
     } catch (err) {
       console.log(`✗ Could not update ${label}: ${err}`);
     }
   }
 
-  // Update all 4 agents with MCP search + updated prompts
-  await updateAgent(EXISTING_DIAGNOSE_AGENT_ID, "Diagnose", DIAGNOSE_SYSTEM_PROMPT);
-  await updateAgent(DECIDE_AGENT_ID, "Decide", DECIDE_SYSTEM_PROMPT);
-  await updateAgent(POSITION_AGENT_ID, "Position", POSITION_SYSTEM_PROMPT);
-  await updateAgent(ACT_AGENT_ID, "Act", ACT_SYSTEM_PROMPT);
+  // Update all 5 cascade agents with per-stage tool schemas
+  await updateAgent(FRAME_AGENT_ID, "Frame", FRAME_SYSTEM_PROMPT, "frame");
+  await updateAgent(EXISTING_DIAGNOSE_AGENT_ID, "Diagnose", DIAGNOSE_SYSTEM_PROMPT, "diagnose");
+  await updateAgent(DECIDE_AGENT_ID, "Decide", DECIDE_SYSTEM_PROMPT, "decide");
+  await updateAgent(POSITION_AGENT_ID, "Position", POSITION_SYSTEM_PROMPT, "position");
+  await updateAgent(COMMIT_AGENT_ID, "Commit", COMMIT_SYSTEM_PROMPT, "commit");
 
-  console.log("\n✓ All agents updated with Brave Search MCP");
+  // Update legacy Act agent (non-cascade, keeps full schema)
+  await updateAgent(ACT_AGENT_ID, "Act (legacy)", ACT_SYSTEM_PROMPT);
+
+  console.log("\n✓ All agents updated");
   console.log(`  MCP server: ${MCP_SEARCH_SERVER.url}`);
+  console.log("  Per-stage required fields:");
+  for (const [stage, req] of Object.entries(STAGE_REQUIRED)) {
+    console.log(`    ${stage}: ${req.join(", ")}`);
+  }
 }
 
 main().catch(console.error);

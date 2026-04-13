@@ -82,6 +82,16 @@ export default function MonitoringClient({ allItems, companyName, companyId, ini
           )}
         </div>
         <p style={{ fontSize: 14, color: "#6b7280", margin: 0 }}>Metrics and signals to track across every strategy stage for {companyName}</p>
+        <div style={{ display: "flex", gap: 16, marginTop: 16, marginBottom: 4, padding: "14px 18px", background: "#f9fafb", borderRadius: 10, border: "1px solid #e5e7eb", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: 6, border: "1.5px solid #10b981", background: "#d1fae5", color: "#065f46", fontSize: 13, fontWeight: 700 }}>✓</span>
+            <span style={{ fontSize: 12, color: "#374151" }}><strong>Accept</strong> — confirms this metric should be tracked as part of your strategy.</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 24, height: 24, borderRadius: 6, border: "1.5px solid #ef4444", background: "#fee2e2", color: "#991b1b", fontSize: 13, fontWeight: 700 }}>✗</span>
+            <span style={{ fontSize: 12, color: "#374151" }}><strong>Reject</strong> — flags this metric as not relevant. It will be deprioritised in future analysis.</span>
+          </div>
+        </div>
         {(acceptedCount > 0 || declinedCount > 0) && (
           <div style={{ display: "flex", gap: 12, marginTop: 10 }}>
             {acceptedCount > 0 && <span style={{ fontSize: 12, color: "#065f46", background: "#d1fae5", borderRadius: 20, padding: "3px 10px", fontWeight: 600 }}>✓ {acceptedCount} accepted</span>}

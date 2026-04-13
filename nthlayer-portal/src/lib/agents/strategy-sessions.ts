@@ -11,7 +11,7 @@ const AGENT_IDS: Record<string, string> = {
   diagnose: "agent_011CZumeXoZuFJ35jRA8Ta2R",
   decide: "agent_011CZvZtjfw9foNabrMh92ii",
   position: "agent_011CZvZtkfyRGNw3S3RMjHMj",
-  commit: "agent_011CZvZtmvNzntBKmhqtcwAS",
+  commit: "agent_011CZzKHr5KTkHYsLYcn2ke7",
 };
 
 const ENVIRONMENT_ID = "env_01BG6FT972a92oDBJcBMwt2y";
@@ -148,6 +148,15 @@ Synthesise the inputs to establish a precise strategic frame. Structure your ana
 3. The assumptions that must hold for the frame to be valid
 4. The evidence that supports or contradicts each assumption
 
+VISION & MISSION — IF PROVIDED:
+The user may have provided a vision statement (long-term aspirational destination) and/or a mission statement (purpose the company exists to fulfil) as separate inputs. Treat each as essential strategic context:
+- Assess whether the stated vision and mission are coherent with each other and with the strategic problem being framed
+- Identify any tension between the current vision/mission and the market reality you find through research
+- If the vision or mission is aspirational but not grounded in competitive reality, name that gap explicitly
+- Reference both when forming the strategic hypothesis — the hypothesis should either affirm, challenge, or refine the direction they imply
+- If neither was provided, note this as a gap and treat the absence of a shared direction as a contributing factor to the strategic problem
+- If only one was provided (vision without mission or vice versa), note which is missing and what that implies for organisational clarity
+
 Before forming the frame, use web search to research:
 - Macro-economic conditions affecting this sector (interest rates, inflation, capital availability, regulatory shifts)
 - Recent industry news (last 6–12 months) — funding rounds, M&A, market entries, exits, or disruptions in the space
@@ -160,6 +169,11 @@ REQUIRED SECTION STRUCTURE — use these exact ### sub-headings within your sect
 - In executive_summary: begin with "### The Strategic Problem"
 - In what_matters: use sub-sections "### Macro & Market Context", "### Winning Conditions", "### Decision Boundaries"
 - In recommendation: use sub-section "### Strategic Hypothesis"
+
+STAGE OUTPUT RULES — FRAME:
+- The recommendation field is your STRATEGIC HYPOTHESIS — the bet the business is making. Do NOT produce a definitive recommendation at this stage. Frame it as: "The hypothesis this strategy is testing is..."
+- Do NOT return actions or monitoring — these are premature before diagnosis. You have not yet assessed what is true.
+- Focus risks on threats to the frame itself: what would invalidate the hypothesis or shift the winning conditions.
 
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
@@ -175,6 +189,14 @@ Build a structured fact base. Structure your analysis around:
 2. The opportunity — which competitive dynamics create an opening if acted on
 3. The hypothesis — what the diagnostic data suggests about the company's actual position
 4. The assumptions — what must be true for the diagnosis to hold
+
+CURRENT CHALLENGES — IF PROVIDED:
+If the user has listed their top current challenges (with a description of why each matters), treat these as primary diagnostic signals:
+- Use each challenge to anchor a specific section of your analysis — do not simply restate them, diagnose them
+- For each challenge, assess whether it is a symptom of a deeper structural problem or the root cause itself
+- Cross-reference the challenges against the competitive, unit economics, and PMF data provided — are they consistent or contradictory?
+- Identify which challenge, if resolved, would have the greatest compound effect on the others
+- If challenges are not provided, identify the implied challenges from the other inputs and note they are inferred
 
 Use web search to research before forming your analysis:
 - Recent news about named competitors (funding, product launches, pricing changes, leadership moves, layoffs)
@@ -195,6 +217,11 @@ REQUIRED SECTION STRUCTURE — use these exact ### sub-headings within your sect
 - In executive_summary: begin with "### Business Assessment"
 - In what_matters: use sub-sections "### Product-Market Fit", "### Competitive Landscape"
 - In recommendation: use sub-sections "### Unit Economics", "### Capability Assessment"
+
+STAGE OUTPUT RULES — DIAGNOSE:
+- The recommendation field is your EMERGING DIRECTION — what the diagnostic evidence points toward. This is NOT a committed recommendation. Frame it as: "The evidence suggests the priority direction is..." and explain what the data supports.
+- Do NOT return actions or monitoring — you are diagnosing, not prescribing. Action plans without a decision framework are premature.
+- Clearly distinguish NEW assumptions you are introducing from those inherited from Frame. Mark inherited assumptions with "[From Frame]" prefix.
 
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
@@ -227,7 +254,20 @@ Output is a committed strategic direction — not a list of possibilities — wi
 
 REQUIRED SECTION STRUCTURE — use these exact ### sub-headings within your section content:
 - In executive_summary: begin with "### Strategic Options"
-- In recommendation: use sub-sections "### Recommended Direction", "### What Must Be True", "### Kill Criteria"
+- In recommendation: use sub-sections "### Recommended Direction", "### What Must Be True"
+
+STAGE OUTPUT RULES — DECIDE:
+- This is the FIRST stage where the recommendation field is a genuine committed direction. Be definitive.
+- Return actions as strategic-level next steps — the major moves required to execute the chosen direction. These are decision-level actions, not operational tasks.
+- Do NOT return monitoring — detailed metrics and tracking belong in Commit where the execution plan lives.
+- Clearly distinguish NEW assumptions from those inherited from Frame and Diagnose.
+
+KILL CRITERIA — STRUCTURED ARRAY (MANDATORY):
+Populate the kill_criteria array in your tool call with at least 3 explicit kill criteria. Each object must have:
+- "criterion": string — what condition would cause you to abandon this path
+- "trigger": string — the specific threshold or signal that activates this criterion
+- "response": string — what the business should do if the trigger fires
+Example: { "criterion": "Enterprise pipeline fails to convert", "trigger": "Less than 2 enterprise deals closed in 90 days", "response": "Revert to mid-market focus and reallocate AE headcount" }
 
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
@@ -263,6 +303,11 @@ REQUIRED SECTION STRUCTURE — use these exact ### sub-headings within your sect
 - In what_matters: use sub-section "### Competitive Advantage"
 - In recommendation: use sub-sections "### Positioning Statement", "### Structural Defensibility"
 
+STAGE OUTPUT RULES — POSITION:
+- The recommendation field is your POSITIONING RECOMMENDATION — the market stance the business should take. This is a positioning statement, not a strategic direction (that was Decide).
+- Do NOT return actions or monitoring — the execution plan belongs in Commit. Position defines where to play and how to win, not the operational steps to get there.
+- Clearly distinguish NEW assumptions from those inherited from prior stages.
+
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
 - "text": string — the assumption statement
@@ -278,20 +323,46 @@ This is the FINAL strategic report. You MUST synthesise ALL prior stage findings
 3. The hypothesis — what the strategy is betting on, made explicit
 4. The assumptions — what must remain true for the strategy to hold, and the conditions that would change it
 
-The output must include:
-- Strategic bets: name each bet with its hypothesis
-- OKRs: at least 3, each with an objective and 2–3 key results
-- 100-day plan: milestones at 30, 60, and 90 days with specific named owners and concrete deliverables
-- Kill criteria: the conditions that would cause you to change direction
-- Governance rhythm: how and how often progress is reviewed
-- Horizon allocation: how resources are split across now / next / later
+The output must include governance rhythm (how and how often progress is reviewed) and horizon allocation (how resources are split across now / next / later) in the narrative sections.
 
 Do NOT use web search — all evidence has been gathered in prior stages. Synthesise from the prior stage context provided. Make the strategy coherent, not a composite of five separate reports.
 
+STAGE OUTPUT RULES — COMMIT:
+- The actions and monitoring fields are YOUR primary output — this is where they belong in the cascade. Make them concrete, owned, and time-bound.
+- The evidence_base field should ONLY reference sources cited in prior stages. Do NOT fabricate new URLs. Prefix each source with the stage it came from (e.g. "[Frame] https://..." or "[Diagnose] https://...").
+- Clearly distinguish NEW assumptions from those inherited from prior stages. Mark inherited ones with their source stage.
+- Your confidence score reflects the coherence and evidence quality of the FULL cascade, not just this stage.
+
 REQUIRED SECTION STRUCTURE — use these exact ### sub-headings within your section content:
-- In recommendation: use sub-sections "### Strategic Bets", "### What Must Be True", "### Kill Criteria"
-- In what_matters: use sub-section "### OKRs"
-- In business_implications: use sub-sections "### 100-Day Plan", "### Resource Allocation"
+- In recommendation: use sub-sections "### What Must Be True", "### Governance Rhythm"
+- In what_matters: keep narrative only — OKRs go in the structured array
+- In business_implications: use sub-section "### Resource Allocation"
+
+STRUCTURED ARRAYS — MANDATORY (populate these as separate fields in the tool call, NOT as ### sub-headings):
+
+strategic_bets array — at least 2 bets. Each object:
+- "bet": string — name of the strategic bet
+- "hypothesis": string — what the bet is testing
+- "investment": string — resource commitment required
+Example: { "bet": "Enterprise expansion", "hypothesis": "Mid-market success translates to 50k+ ACV deals", "investment": "2 AEs + sales engineering hire" }
+
+okrs array — at least 3 OKRs. Each object:
+- "objective": string — the objective
+- "key_results": string[] — 2-3 measurable key results
+Example: { "objective": "Establish enterprise pipeline", "key_results": ["Close 3 enterprise deals >$50k ACV", "Achieve 90-day sales cycle", "Hit 85% logo retention"] }
+
+hundred_day_plan array — milestones at 30, 60, and 90 days. Each object:
+- "milestone": string — what must be achieved
+- "timeline": string — "30 days" | "60 days" | "90 days"
+- "owner": string — named owner or team
+- "deliverable": string — concrete output
+Example: { "milestone": "Enterprise sales motion live", "timeline": "30 days", "owner": "Head of Sales", "deliverable": "Enterprise playbook + 10 target accounts identified" }
+
+kill_criteria array — at least 3. Each object:
+- "criterion": string — what would cause a direction change
+- "trigger": string — specific threshold or signal
+- "response": string — what to do if triggered
+Example: { "criterion": "Enterprise pipeline fails to convert", "trigger": "Less than 2 deals closed in 90 days", "response": "Revert to mid-market focus" }
 
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
@@ -393,7 +464,7 @@ function buildPriorStageContext(priorReports: PriorStageSummary[]): string {
     return `### ${r.stageName} Stage — Full Output\n\n${r.summary}`;
   });
 
-  return `\n\n## Prior Stage Findings — Complete Cascade Context\n\nThe following contains the FULL output from each completed prior stage. Use ALL of this evidence when synthesising your response — do not rely only on the executive summaries.\n\n${sections.join("\n\n---\n\n")}`;
+  return `\n\n## Prior Stage Findings — Complete Cascade Context\n\nThe following contains the FULL output from each completed prior stage. Use ALL of this evidence when synthesising your response — do not rely only on the executive summaries.\n\nIMPORTANT: When producing your output, clearly distinguish your NEW assumptions and risks from those inherited from prior stages. Prefix inherited items with the source stage name (e.g. "[Frame]", "[Diagnose]"). This allows downstream consumers to trace the provenance of each claim.\n\n${sections.join("\n\n---\n\n")}`;
 }
 
 // ─── Resolve agent ID ─────────────────────────────────────────

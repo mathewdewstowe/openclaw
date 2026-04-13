@@ -84,7 +84,7 @@ export default function ChatClient({
   }
 
   return (
-    <div style={{ maxWidth: isMobile ? "100%" : 800, margin: "0 auto", padding: isMobile ? "16px 0 120px" : "32px 24px 80px" }}>
+    <div style={{ maxWidth: isMobile ? "100%" : 1100, margin: "0 auto", padding: isMobile ? "16px 0 120px" : "32px 24px 80px" }}>
       <style>{`
         @keyframes blink {
           0%, 100% { opacity: 1; }
@@ -101,7 +101,7 @@ export default function ChatClient({
         <h1 style={{ fontSize: 28, fontWeight: 800, color: "#111827", margin: 0, marginBottom: 8 }}>
           Ask Inflexion
         </h1>
-        <p style={{ fontSize: 14, color: "#6b7280", margin: 0 }}>
+        <p style={{ fontSize: 16, color: "#6b7280", margin: 0 }}>
           Ask questions across all {completedStages} completed strategy report{completedStages !== 1 ? "s" : ""} for {companyName}
         </p>
       </div>
@@ -225,7 +225,7 @@ export default function ChatClient({
                           borderRadius: "12px 12px 12px 0",
                           padding: "12px 16px",
                           fontSize: 14,
-                          maxWidth: "85%",
+                          maxWidth: "92%",
                           alignSelf: "flex-start",
                           color: "#374151",
                           lineHeight: 1.7,
@@ -310,20 +310,24 @@ export default function ChatClient({
               onClick={() => handleSend()}
               disabled={loading || !input.trim()}
               style={{
-                background: loading || !input.trim() ? "#d1d5db" : "#111827",
+                background: loading || !input.trim() ? "#9ca3af" : "#111827",
                 color: "#fff",
-                borderRadius: 8,
-                padding: "8px 14px",
-                fontSize: 13,
+                borderRadius: 10,
+                padding: "0 18px",
+                fontSize: 14,
                 fontWeight: 600,
                 border: "none",
                 cursor: loading || !input.trim() ? "not-allowed" : "pointer",
                 height: 52,
                 whiteSpace: "nowrap" as const,
                 transition: "background 0.15s",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
               }}
             >
               {loading ? "Thinking..." : "Send"}
+              {!loading && <span style={{ color: "#a3e635", fontSize: 16, lineHeight: 1 }}>→</span>}
             </button>
           </div>
 
