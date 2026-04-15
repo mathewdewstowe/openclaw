@@ -78,6 +78,7 @@ export default async function OverviewPage() {
   // Determine which strategy stages have completed outputs + fetch sections for deck
   const completedStages = new Set<string>();
   let deckOutputs: Record<string, unknown> = {};
+  let knowledgeCounts = { actions: 0, risks: 0, assumptions: 0, metrics: 0 };
   if (activeCompany) {
     const completedOutputs = await db.output.findMany({
       where: {
@@ -94,6 +95,12 @@ export default async function OverviewPage() {
       if (!seen.has(o.workflowType)) {
         seen.add(o.workflowType);
         deckOutputs[o.workflowType] = o.sections;
+        // Tally knowledge items
+        const s = o.sections as Record<string, unknown>;
+        if (Array.isArray(s?.actions)) knowledgeCounts.actions += (s.actions as unknown[]).length;
+        if (Array.isArray(s?.risks)) knowledgeCounts.risks += (s.risks as unknown[]).length;
+        if (Array.isArray(s?.assumptions)) knowledgeCounts.assumptions += (s.assumptions as unknown[]).length;
+        if (Array.isArray(s?.monitoring)) knowledgeCounts.metrics += (s.monitoring as unknown[]).length;
       }
     }
   }
@@ -166,14 +173,49 @@ export default async function OverviewPage() {
       )}
 
 
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: "#111827", marginBottom: 8 }}>Dashboard</h1>
-        <p style={{ fontSize: 15, color: "#374151", lineHeight: 1.8, margin: 0 }}>
+      <div data-tour="dashboard-overview" style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 36, fontWeight: 800, color: "#111827", marginBottom: 10 }}>Dashboard</h1>
+        <p style={{ fontSize: 22, color: "#374151", lineHeight: 1.7, margin: 0 }}>
           {activeCompany
-            ? <>Inflexion runs your strategy end-to-end — from framing the problem to committing to a plan. Complete each stage in order, review the reports, then use the Strategy Deck to align your board.</>
+            ? <>Inflexion builds your strategy from structured intelligence — AI-driven analysis across five stages that turns your market position, competitive landscape, and growth options into a board-ready plan with clear bets and accountability. Your judgement drives every decision; Inflexion sharpens it with evidence, surfaces the trade-offs, and gives you the conviction to commit.</>
             : "Set up a company to get started."}
         </p>
       </div>
+
+      {/* Knowledge cards — Actions / Risks / Assumptions / Metrics — top of page */}
+      {activeCompany && (
+        <div data-tour="knowledge-cards" className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+          {[
+            { href: "/inflexion/actions", label: "Actions", count: knowledgeCounts.actions, detail: "Prioritised tasks generated from your strategy reports — each tied to an owner, deadline, and priority." },
+            { href: "/inflexion/risks", label: "Risks", count: knowledgeCounts.risks, detail: "Strategic and operational risks surfaced across stages — with severity ratings and mitigation options." },
+            { href: "/inflexion/assumptions", label: "Assumptions", count: knowledgeCounts.assumptions, detail: "Key assumptions underlying your strategy — accept the ones that hold, reject the ones that don't." },
+            { href: "/inflexion/monitoring", label: "Metrics", count: knowledgeCounts.metrics, detail: "Signals and KPIs to track — with targets and review cadences aligned to your strategic commitments." },
+          ].map((card) => (
+            <a
+              key={card.href}
+              href={card.href}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                padding: "24px",
+                border: "1px solid #e5e7eb",
+                borderRadius: 12,
+                textDecoration: "none",
+                background: card.count > 0 ? "#fff" : "#f3f4f6",
+                transition: "border-color 150ms, box-shadow 150ms",
+              }}
+            >
+              {card.count > 0 ? (
+                <p style={{ fontSize: 40, fontWeight: 800, color: "#3f6212", margin: "0 0 8px", lineHeight: 1 }}>{card.count}</p>
+              ) : (
+                <p style={{ fontSize: 40, fontWeight: 800, color: "#d1d5db", margin: "0 0 8px", lineHeight: 1 }}>—</p>
+              )}
+              <p style={{ fontSize: 20, fontWeight: 700, color: "#111827", marginBottom: 8 }}>{card.label}</p>
+              <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.6, flex: 1 }}>{card.detail}</p>
+            </a>
+          ))}
+        </div>
+      )}
 
       {!activeCompany && (
         <div style={{
@@ -206,11 +248,13 @@ export default async function OverviewPage() {
 
       {/* Strategy Deck CTA */}
       {activeCompany && (
-        <div style={{ marginBottom: 32 }}>
+        <div data-tour="strategy-deck" style={{ marginBottom: 32 }}>
           <DeckCTA
-            completedStages={completedStages.size}
+            completedStages={["frame", "diagnose", "decide", "position", "commit"].filter(s => completedStages.has(s)).length}
             companyName={activeCompany.name}
+            companyId={activeCompany.id}
             outputs={deckOutputs}
+            canExport={entitlements.access_export}
           />
         </div>
       )}
@@ -225,10 +269,18 @@ export default async function OverviewPage() {
         {WORKFLOW_CARDS.map((wf, cardIdx) => {
           const done = completedStages.has(wf.stageId);
           const dotCount = cardIdx + 1;
+          // Sequential locking: card is locked if prior stage is not complete (except Frame)
+          // Bet runs automatically — commit's visible prerequisite is position
+          const stageOrder = ["frame", "diagnose", "decide", "position", "commit"];
+          const stageIdx = stageOrder.indexOf(wf.stageId);
+          const isLocked = stageIdx > 0 && !completedStages.has(stageOrder[stageIdx - 1]);
+          const CardTag = isLocked ? "div" as const : "a" as const;
           return (
-            <a
+            <CardTag
               key={wf.num}
-              href={wf.href}
+              data-tour={`stage-${wf.stageId}`}
+              {...(!isLocked ? { href: wf.href } : {})}
+              title={isLocked ? `Complete ${WORKFLOW_CARDS[cardIdx - 1]?.label ?? "previous stage"} first` : undefined}
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -237,12 +289,20 @@ export default async function OverviewPage() {
                 borderRadius: 12,
                 textDecoration: "none",
                 background: done ? "#f0fdf4" : "#f3f4f6",
-                cursor: "pointer",
+                cursor: isLocked ? "not-allowed" : "pointer",
                 transition: "border-color 150ms, box-shadow 150ms",
                 position: "relative",
+                opacity: isLocked ? 0.5 : 1,
               }}
             >
-              {done ? (
+              {isLocked ? (
+                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+              ) : done ? (
                 <div style={{ width: 44, height: 44, borderRadius: "50%", background: "#111827", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a3e635" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -251,8 +311,8 @@ export default async function OverviewPage() {
               ) : (
                 <p style={{ fontSize: 28, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", marginBottom: 8 }}>{wf.num}</p>
               )}
-              <p style={{ fontSize: 22, fontWeight: 700, color: "#111827", marginBottom: 8 }}>{wf.label}</p>
-              <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, flex: 1 }}>{wf.detail}</p>
+              <p style={{ fontSize: 22, fontWeight: 700, color: isLocked ? "#9ca3af" : "#111827", marginBottom: 8 }}>{wf.label}</p>
+              <p style={{ fontSize: 12, color: isLocked ? "#9ca3af" : "#374151", lineHeight: 1.6, flex: 1 }}>{wf.detail}</p>
               {done && (
                 <div style={{ marginTop: 16 }}>
                   <span style={{
@@ -284,64 +344,16 @@ export default async function OverviewPage() {
                       width: 6,
                       height: 6,
                       borderRadius: "50%",
-                      background: done ? "#a3e635" : di < completedStages.size ? "#111827" : "#d1d5db",
+                      background: "#a3e635",
                     }}
                   />
                 ))}
               </div>
-            </a>
+            </CardTag>
           );
         })}
       </div>
 
-      {/* Divider */}
-      <div style={{ borderTop: "1px solid #e5e7eb", marginBottom: 32 }} />
-
-      {/* Intelligence & Platform cards */}
-      <div style={{ marginBottom: 8 }}>
-        <h2 style={{ fontSize: 28, fontWeight: 700, color: "#111827", marginBottom: 12 }}>Intelligence</h2>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
-        {INTEL_CARDS.map((card) => (
-          <a
-            key={card.href}
-            href={card.href}
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              padding: "24px",
-              border: "1px solid #e5e7eb",
-              borderRadius: 12,
-              textDecoration: "none",
-              background: "#f3f4f6",
-              opacity: card.access ? 1 : 0.5,
-              cursor: "pointer",
-              transition: "border-color 150ms, box-shadow 150ms",
-            }}
-          >
-            <p style={{ fontSize: 28, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", marginBottom: 8 }}>{card.num}</p>
-            <p style={{ fontSize: 17, fontWeight: 700, color: "#111827", marginBottom: 8 }}>{card.label}</p>
-            <p style={{ fontSize: 12, color: "#374151", lineHeight: 1.6, flex: 1 }}>{card.detail}</p>
-            <div style={{ marginTop: 16, minHeight: 22 }}>
-              {!card.access && (
-                <span style={{
-                  display: "inline-block",
-                  fontSize: 10,
-                  fontWeight: 600,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  color: "#6b7280",
-                  background: "rgba(255,255,255,0.6)",
-                  padding: "2px 8px",
-                  borderRadius: 999,
-                }}>
-                  Coming Soon
-                </span>
-              )}
-            </div>
-          </a>
-        ))}
-      </div>
 
 
     </div>

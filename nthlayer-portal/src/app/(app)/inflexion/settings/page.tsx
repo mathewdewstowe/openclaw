@@ -49,6 +49,17 @@ export default async function SettingsPage() {
           }}>
             {planName}
           </span>
+          <a
+            href="/inflexion/settings/plan"
+            style={{
+              fontSize: 13,
+              fontWeight: 500,
+              color: "#2563eb",
+              textDecoration: "none",
+            }}
+          >
+            {planName === "Free" ? "Upgrade" : "Change Plan"}
+          </a>
         </div>
       </div>
 

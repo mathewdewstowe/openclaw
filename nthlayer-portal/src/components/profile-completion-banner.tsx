@@ -9,7 +9,7 @@ export function ProfileCompletionBanner({ score, missing }: Props) {
   const color = score >= 80 ? "#059669" : score >= 50 ? "#d97706" : "#2563eb";
 
   return (
-    <div style={{
+    <div data-tour="profile-completion" style={{
       display: "flex",
       alignItems: "center",
       gap: 16,

@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-const STAGES = ["frame", "diagnose", "decide", "position", "commit"];
+const STAGES = ["frame", "diagnose", "decide", "position", "bet", "commit"];
 
 export default async function AdminPage() {
   const user = await getCurrentUser();

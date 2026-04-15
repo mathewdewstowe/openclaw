@@ -116,16 +116,24 @@ export default function LoginPage() {
         style={{ backgroundImage: "url(/images/hero-tree.jpg)" }}
       >
         <div className="absolute inset-0 bg-black/10" />
-        <div className="relative flex items-center gap-3 px-6 py-5">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-900 shadow-lg">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-              <rect x="1" y="1" width="22" height="22" stroke="white" strokeWidth="1.8" />
-              <rect x="4.5" y="4.5" width="15" height="15" stroke="white" strokeWidth="1.5" />
-              <rect x="7.5" y="7.5" width="9" height="9" stroke="white" strokeWidth="1.3" />
-              <rect x="10" y="10" width="4" height="4" stroke="white" strokeWidth="1.1" />
-            </svg>
+        <div className="relative flex items-center justify-between px-6 py-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-900 shadow-lg">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                <rect x="1" y="1" width="22" height="22" stroke="white" strokeWidth="1.8" />
+                <rect x="4.5" y="4.5" width="15" height="15" stroke="white" strokeWidth="1.5" />
+                <rect x="7.5" y="7.5" width="9" height="9" stroke="white" strokeWidth="1.3" />
+                <rect x="10" y="10" width="4" height="4" stroke="white" strokeWidth="1.1" />
+              </svg>
+            </div>
+            <span className="text-xl font-bold tracking-tight text-white drop-shadow">Nth Layer</span>
           </div>
-          <span className="text-xl font-bold tracking-tight text-white drop-shadow">Nth Layer</span>
+          <a
+            href="https://inflexion.nthlayer.co.uk/inflexion"
+            className="rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 px-5 py-2 text-sm font-semibold text-white hover:bg-white/30 transition-colors"
+          >
+            Inflexion
+          </a>
         </div>
       </div>
 
@@ -133,39 +141,39 @@ export default function LoginPage() {
       <div className="flex flex-1 flex-col lg:flex-row">
         {/* Left: marketing panel */}
         <div className="flex flex-1 items-center justify-center px-6 py-12 lg:px-12 lg:py-16 border-b lg:border-b-0 lg:border-r border-[var(--border)] bg-[var(--muted)]/30">
-          <div className="w-full max-w-lg space-y-6">
+          <div className="w-full max-w-2xl space-y-6">
             <div className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--background)] px-3 py-1 text-xs font-medium tracking-wide uppercase text-[var(--muted-foreground)]">
-              Introducing Inflexion
+              Inflexion
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
-              The Product Strategy Engine for Investors and Operators.
+              Every product hits an inflection point. The signal is there — if you can cut through the noise.
             </h2>
             <p className="text-lg font-medium text-[var(--foreground)]">
-              Stop second-guessing your next move. Inflexion does the strategic heavy lifting — so you arrive at better decisions, faster, with the evidence to back them up.
+              Inflexion cuts through market noise to surface the signals that matter — so when your product hits an inflection point, you know exactly what to do.
             </p>
             <p className="text-base text-[var(--muted-foreground)]">
-              Built for the moments that define what a business becomes: when growth stalls, a deal closes, a competitor moves, or the board needs an answer.
+              Growth plateaus. A competitor launches. Unit economics shift. The board wants a plan. The data is everywhere, but the signal is buried. Inflexion finds it — turning product inflection points into clear, evidenced strategy.
             </p>
             <ul className="space-y-3 text-base text-[var(--muted-foreground)] leading-relaxed">
               <li className="flex gap-3">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
-                <span>Turn a product inflection point into a clear, evidenced strategic direction.</span>
+                <span>Cut through noise to detect inflection points before they become crises or missed opportunities.</span>
               </li>
               <li className="flex gap-3">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
-                <span>Decisions grounded in proven frameworks — not gut feel or generic advice.</span>
+                <span>Extract signal from market data, competitor moves, and customer behaviour.</span>
               </li>
               <li className="flex gap-3">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
-                <span>Multi-stage agents that work through complexity so you don&apos;t have to.</span>
+                <span>Turn each inflection point into a clear strategic direction — backed by evidence, not gut feel.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
+                <span>Multi-stage agents that do the analytical heavy lifting so you can focus on the decision.</span>
               </li>
               <li className="flex gap-3">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
                 <span>Board-ready briefs that surface assumptions, not just conclusions.</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--primary)]" />
-                <span>Built for PE investors, VCs, and portfolio companies who move fast and need to be right.</span>
               </li>
             </ul>
           </div>

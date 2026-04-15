@@ -151,7 +151,7 @@ export default function RisksClient({ allRisks, companyName, companyId, initialS
               <div key={i} style={{ background: currentFeedback === "declined" ? "#fffbfb" : currentFeedback === "accepted" ? "#f0fdf4" : "#fff", border: "1px solid", borderColor: currentFeedback === "declined" ? "#fecaca" : currentFeedback === "accepted" ? "#bbf7d0" : severity ? severity.bg : "#e5e7eb", borderLeft: `4px solid ${currentFeedback === "declined" ? "#ef4444" : currentFeedback === "accepted" ? "#10b981" : severity?.dot ?? "#e5e7eb"}`, borderRadius: 10, padding: "16px 20px", transition: "all 0.15s" }}>
                 {/* Title row */}
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: "#111827", margin: 0, lineHeight: 1.5, flex: 1 }}>{r.risk}</p>
+                  <p style={{ fontSize: 20, fontWeight: 600, color: "#111827", margin: 0, lineHeight: 1.5, flex: 1 }}>{r.risk}</p>
                   <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
                     {/* Feedback buttons */}
                     <button

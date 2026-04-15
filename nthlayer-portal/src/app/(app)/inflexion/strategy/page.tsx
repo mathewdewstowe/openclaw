@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getUserCompanies } from "@/lib/entitlements";
-import { StrategyFlow } from "@/components/strategy-flow-v2";
+import { StrategyFlowLoader as StrategyFlow } from "./strategy-flow-loader";
 
 export const dynamic = "force-dynamic";
 
@@ -26,14 +26,12 @@ export default async function StrategyPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
+  try {
   // Gate: profile must be complete before Frame can run
-  const [companyAccess, legacyProfile] = await Promise.all([
-    getUserCompanies(user.id),
-    db.companyProfile.findUnique({ where: { userId: user.id } }),
-  ]);
+  const companyAccess = await getUserCompanies(user.id);
   const activeCompany = companyAccess[0]?.company;
 
-  if (!activeCompany || !legacyProfile) {
+  if (!activeCompany) {
     return (
       <div style={{ maxWidth: 560, margin: "80px auto", padding: "0 24px", textAlign: "center" }}>
         <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
@@ -87,96 +85,67 @@ export default async function StrategyPage() {
     );
   }
 
-  // Fetch in-progress and completed jobs in parallel
-  const [runningJobs, completedJobs] = await Promise.all([
-    db.job.findMany({
-      where: { userId: user.id, status: "running" },
-      select: { id: true, workflowType: true, metadata: true, createdAt: true },
-      orderBy: { createdAt: "desc" },
-    }),
-    db.job.findMany({
-      where: { userId: user.id, status: "completed", outputId: { not: null } },
-      select: { id: true, workflowType: true, outputId: true, completedAt: true, metadata: true },
-      orderBy: { completedAt: "desc" },
-    }),
-  ]);
+  // Fetch running jobs + most-recent completed job per stage
+  // We deliberately avoid fetching all historical outputs to keep the page payload small
+  const runningJobsRaw = await db.job.findMany({
+    where: { userId: user.id, status: "running" },
+    select: { workflowType: true, metadata: true },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
 
-  const initialRunningJobs = runningJobs
+  const initialRunningJobs = runningJobsRaw
     .map((j) => ({
       stageId: j.workflowType,
       sessionId: (j.metadata as Record<string, unknown> | null)?.sessionId as string | undefined,
     }))
     .filter((j): j is { stageId: string; sessionId: string } => !!j.sessionId);
 
-  // Collect all output IDs per stage (for version history) and most-recent per stage
-  const outputIdsByStage: Record<string, string[]> = {};
-  for (const j of completedJobs) {
-    if (j.outputId) {
-      if (!outputIdsByStage[j.workflowType]) outputIdsByStage[j.workflowType] = [];
-      outputIdsByStage[j.workflowType].push(j.outputId);
+  // Get the single most-recent completed job per stage (answers + outputId only)
+  const completedJobsRaw = await db.job.findMany({
+    where: { userId: user.id, status: "completed", outputId: { not: null } },
+    select: { workflowType: true, metadata: true, outputId: true },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+
+  // Most-recent completed job per stage
+  const mostRecentByStage: Record<string, { outputId: string; metadata: Record<string, unknown> | null }> = {};
+  for (const j of completedJobsRaw) {
+    if (j.outputId && !mostRecentByStage[j.workflowType]) {
+      mostRecentByStage[j.workflowType] = {
+        outputId: j.outputId,
+        metadata: j.metadata as Record<string, unknown> | null,
+      };
     }
   }
 
-  // Most-recent outputId per stage
-  const mostRecentOutputIdByStage: Record<string, string> = {};
-  const seenStages = new Set<string>();
-  for (const j of completedJobs) {
-    if (j.outputId && !seenStages.has(j.workflowType)) {
-      mostRecentOutputIdByStage[j.workflowType] = j.outputId;
-      seenStages.add(j.workflowType);
-    }
-  }
+  const latestOutputIds = Object.values(mostRecentByStage).map((v) => v.outputId);
 
-  const allOutputIds = Object.values(outputIdsByStage).flat();
-
-  const outputs = allOutputIds.length > 0
+  // Only fetch the single most-recent output per stage (not all versions)
+  const outputs = latestOutputIds.length > 0
     ? await db.output.findMany({
-        where: { id: { in: allOutputIds } },
-        select: { id: true, sections: true, createdAt: true, version: true, confidence: true, tags: true },
-        orderBy: { version: "desc" },
+        where: { id: { in: latestOutputIds } },
+        select: { id: true, sections: true },
       })
     : [];
 
-  // Build map: stageId → sections for most recent output
-  const completedOutputsByStage: Record<string, Record<string, unknown>> = {};
-  // Build map: stageId → outputId for most recent output
-  const completedOutputIds: Record<string, string> = {};
-  // Build map: stageId → all versions array
-  const allOutputsByStage: Record<string, Array<{ id: string; sections: Record<string, unknown>; createdAt: string; version: number; confidence: number | null; tags: string[] }>> = {};
-
-  for (const output of outputs) {
-    // Find which stage this output belongs to
-    for (const [stageId, ids] of Object.entries(outputIdsByStage)) {
-      if (ids.includes(output.id)) {
-        if (!allOutputsByStage[stageId]) allOutputsByStage[stageId] = [];
-        allOutputsByStage[stageId].push({
-          id: output.id,
-          sections: JSON.parse(JSON.stringify(output.sections)) as Record<string, unknown>,
-          createdAt: output.createdAt.toISOString(),
-          version: output.version,
-          confidence: output.confidence,
-          tags: output.tags,
-        });
-
-        if (mostRecentOutputIdByStage[stageId] === output.id) {
-          completedOutputsByStage[stageId] = JSON.parse(JSON.stringify(output.sections)) as Record<string, unknown>;
-          completedOutputIds[stageId] = output.id;
-        }
-        break;
-      }
-    }
+  const outputById: Record<string, Record<string, unknown>> = {};
+  for (const o of outputs) {
+    outputById[o.id] = o.sections as Record<string, unknown>;
   }
 
-  // Build map: stageId → saved answers from most recent completed job per stage
+  const completedOutputsByStage: Record<string, Record<string, unknown>> = {};
+  const completedOutputIds: Record<string, string> = {};
   const savedAnswersByStage: Record<string, Record<string, unknown>> = {};
-  const seenAnswerStages = new Set<string>();
-  for (const j of completedJobs) {
-    if (!seenAnswerStages.has(j.workflowType)) {
-      const meta = j.metadata as Record<string, unknown> | null;
-      if (meta?.answers && typeof meta.answers === "object") {
-        savedAnswersByStage[j.workflowType] = meta.answers as Record<string, unknown>;
-      }
-      seenAnswerStages.add(j.workflowType);
+
+  for (const [stageId, { outputId, metadata }] of Object.entries(mostRecentByStage)) {
+    if (outputById[outputId]) {
+      completedOutputsByStage[stageId] = outputById[outputId];
+      completedOutputIds[stageId] = outputId;
+    }
+    if (metadata?.answers && typeof metadata.answers === "object") {
+      savedAnswersByStage[stageId] = metadata.answers as Record<string, unknown>;
     }
   }
 
@@ -186,7 +155,24 @@ export default async function StrategyPage() {
       initialCompletedOutputs={completedOutputsByStage}
       initialSavedAnswers={savedAnswersByStage}
       initialCompletedOutputIds={completedOutputIds}
-      allOutputsByStage={allOutputsByStage}
+      companyId={activeCompany.id}
     />
   );
+  } catch (err) {
+    console.error("[StrategyPage] Server error:", err);
+    return (
+      <div style={{ maxWidth: 560, margin: "80px auto", padding: "0 24px", textAlign: "center" }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#111827", marginBottom: 8 }}>Something went wrong</h2>
+        <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 8 }}>
+          We hit an error loading your strategy session. Please try again.
+        </p>
+        <p style={{ fontSize: 11, color: "#9ca3af", fontFamily: "monospace", marginBottom: 24, wordBreak: "break-all" }}>
+          {err instanceof Error ? err.message : String(err)}
+        </p>
+        <a href="/inflexion/strategy" style={{ display: "inline-block", padding: "12px 24px", background: "#111827", color: "#fff", borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
+          Reload
+        </a>
+      </div>
+    );
+  }
 }

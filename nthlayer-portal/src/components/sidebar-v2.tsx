@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEntitlements } from "@/lib/contexts/entitlements";
 import { useCompany } from "@/lib/contexts/company";
 import { useIsMobile } from "@/lib/hooks/use-is-mobile";
+import { useWalkthrough } from "./walkthrough/use-walkthrough";
 
 // ─── Nav structure ───────────────────────────────────────────
 
@@ -16,25 +17,22 @@ type NavItem = {
   section?: string;
   entitlement?: string; // key in PlanEntitlements
   comingSoon?: boolean;
+  superAdminOnly?: boolean; // if true, unlocked for super_admin only — still shows Soon for others
 };
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/inflexion/overview", label: "Dashboard", icon: "grid" },
-  { href: "/inflexion/actions", label: "Actions", icon: "check-square" },
-  { href: "/inflexion/risks", label: "Risks", icon: "alert-triangle" },
-  { href: "/inflexion/assumptions", label: "Assumptions", icon: "lightbulb" },
-  { href: "/inflexion/monitoring", label: "Metrics", icon: "bar-chart" },
+  { href: "#", label: "Knowledge Base", icon: "book", comingSoon: true },
   { href: "/inflexion/strategy", label: "Frame", icon: "frame", section: "Strategy" },
   { href: "/inflexion/strategy", label: "Diagnose", icon: "search" },
   { href: "/inflexion/strategy", label: "Decide", icon: "scale" },
   { href: "/inflexion/strategy", label: "Position", icon: "target" },
   { href: "/inflexion/strategy", label: "Commit", icon: "zap" },
-  { href: "#", label: "Knowledge Base", icon: "book", section: "Knowledge", comingSoon: true },
-  { href: "/inflexion/competitors", label: "Competitors", icon: "crosshair", section: "Intelligence", entitlement: "access_competitor" },
-  { href: "/inflexion/signals", label: "Signals", icon: "activity", entitlement: "access_decide" },
-  { href: "/inflexion/monitor", label: "Monitor", icon: "eye", entitlement: "access_decide" },
-  { href: "/inflexion/recommendations", label: "Recommendations", icon: "list", entitlement: "access_decide" },
-  { href: "/inflexion/decisions", label: "Decisions", icon: "bookmark", entitlement: "access_decide" },
+  { href: "/inflexion/competitors", label: "Competitors", icon: "crosshair", section: "Intelligence", entitlement: "access_competitor", comingSoon: true, superAdminOnly: true },
+  { href: "/inflexion/signals", label: "Signals", icon: "activity", entitlement: "access_decide", comingSoon: true },
+  { href: "/inflexion/monitor", label: "Monitor", icon: "eye", entitlement: "access_decide", comingSoon: true },
+  { href: "/inflexion/recommendations", label: "Recommendations", icon: "list", entitlement: "access_decide", comingSoon: true },
+  { href: "/inflexion/decisions", label: "Decisions", icon: "bookmark", entitlement: "access_decide", comingSoon: true },
 ];
 
 // ─── Icons ───────────────────────────────────────────────────
@@ -160,10 +158,11 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
   const pathname = usePathname();
   const router = useRouter();
   const { entitlements, planName, systemRole } = useEntitlements();
-  const { activeCompany, companies, setActiveCompany } = useCompany();
+  const { activeCompany } = useCompany();
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [navCounts, setNavCounts] = useState<{ actions: number; risks: number; assumptions: number; metrics: number } | null>(null);
   const isMobile = useIsMobile();
+  const { start: startTour } = useWalkthrough();
 
   const isAdmin = systemRole === "super_admin" || systemRole === "admin";
 
@@ -208,6 +207,7 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
       {/* Mobile bottom tab bar */}
       {isMobile && (
         <nav
+          data-tour="mobile-tabs"
           style={{
             position: "fixed",
             bottom: 0,
@@ -274,34 +274,39 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
           </button>
         </div>
 
-        {/* ── Company switcher ── */}
-        {companies.length > 0 && (
-          <div style={{ padding: "12px 16px 8px" }}>
-            <select
-              value={activeCompany?.id ?? ""}
-              onChange={(e) => {
-                const c = companies.find((c) => c.id === e.target.value);
-                if (c) setActiveCompany(c);
-              }}
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                fontSize: 15,
-                fontWeight: 700,
-                color: "#111827",
-                background: "#f9fafb",
-                border: "1px solid #e5e7eb",
-                borderRadius: 8,
-                cursor: "pointer",
-                appearance: "auto",
-              }}
-            >
-              {companies.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-        )}
+        {/* ── Ask Me ── */}
+        <div data-tour="ask-me" style={{ padding: "12px 12px 4px" }}>
+          <Link
+            href="/inflexion/chat"
+            onClick={onClose}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "10px 14px",
+              borderRadius: 10,
+              background: isActive("/inflexion/chat") ? "#f0fdf4" : "transparent",
+              textDecoration: "none",
+              border: `1.5px solid ${isActive("/inflexion/chat") ? "#a3e635" : "#e5e7eb"}`,
+              cursor: "pointer",
+              transition: "all 150ms",
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#f0fdf4"; (e.currentTarget as HTMLElement).style.borderColor = "#a3e635"; }}
+            onMouseLeave={(e) => { if (!isActive("/inflexion/chat")) { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.borderColor = "#e5e7eb"; } }}
+          >
+            <span style={{ color: "#a3e635", flexShrink: 0 }}>
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+              </svg>
+            </span>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 18, fontWeight: 700, color: "#111827", margin: 0, lineHeight: 1.2 }}>Ask Me</p>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M3 7h8M8 4l3 3-3 3" stroke="#a3e635" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Link>
+        </div>
 
         {/* ── Nav ── */}
         <nav className="flex-1 overflow-y-auto" style={{ padding: "4px 0" }}>
@@ -309,57 +314,23 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
             const showSection = !!item.section && (idx === 0 || NAV_ITEMS[idx - 1].section !== item.section);
             const active = isActive(item.href);
             const locked = isLocked(item);
-            const comingSoon = !!item.comingSoon;
+            const comingSoon = !!item.comingSoon && !(item.superAdminOnly && systemRole === "super_admin");
             const isBeforeStrategy = item.section === "Strategy" && NAV_ITEMS[idx - 1]?.section !== "Strategy";
 
             return (
-              <div key={`${item.href}-${item.label}`}>
-                {/* Ask Me — injected before Strategy section */}
-                {isBeforeStrategy && (
-                  <div style={{ padding: "16px 12px 4px" }}>
-                    <Link
-                      href="/inflexion/chat"
-                      onClick={onClose}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "12px 16px",
-                        borderRadius: 10,
-                        background: isActive("/inflexion/chat") ? "#111827" : "#111827",
-                        textDecoration: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        transition: "opacity 150ms",
-                      }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.88"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
-                    >
-                      <span style={{ color: "#a3e635", flexShrink: 0 }}>
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                        </svg>
-                      </span>
-                      <div style={{ flex: 1 }}>
-                        <p style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: 0, lineHeight: 1.2 }}>Ask Me</p>
-                        <p style={{ fontSize: 11, color: "#6b7280", margin: 0, marginTop: 1 }}>Ask your strategy anything</p>
-                      </div>
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M3 7h8M8 4l3 3-3 3" stroke="#a3e635" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </Link>
-                  </div>
-                )}
+              <div key={`${item.href}-${item.label}`} {...(idx === 1 ? { "data-tour": "core-insights" } : {})}>
 
                 {showSection && (
-                  <p style={{
-                    padding: "20px 20px 6px",
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "#9ca3af",
-                  }}>
+                  <p
+                    style={{
+                      padding: "20px 20px 6px",
+                      fontSize: 10,
+                      fontWeight: 600,
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      color: "#9ca3af",
+                    }}
+                  >
                     {item.section}
                   </p>
                 )}
@@ -426,16 +397,16 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
                     <span style={{ color: active ? "#334155" : "#9ca3af", flexShrink: 0 }}>{ICONS[item.icon]}</span>
                     <span style={{ flex: 1 }}>{item.label}</span>
                     {navCounts && item.href === "/inflexion/actions" && navCounts.actions > 0 && (
-                      <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.actions}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#3f6212", background: "#d9f99d", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.actions}</span>
                     )}
                     {navCounts && item.href === "/inflexion/risks" && navCounts.risks > 0 && (
-                      <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.risks}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#3f6212", background: "#d9f99d", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.risks}</span>
                     )}
                     {navCounts && item.href === "/inflexion/assumptions" && navCounts.assumptions > 0 && (
-                      <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.assumptions}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#3f6212", background: "#d9f99d", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.assumptions}</span>
                     )}
                     {navCounts && item.href === "/inflexion/monitoring" && navCounts.metrics > 0 && (
-                      <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.metrics}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#3f6212", background: "#d9f99d", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.metrics}</span>
                     )}
                   </Link>
                 )}
@@ -553,6 +524,17 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
                     {ICONS.cog}
                     Settings
                   </Link>
+                  <button
+                    onClick={() => { setAvatarOpen(false); onClose(); startTour(); }}
+                    style={{ display: "flex", width: "100%", alignItems: "center", gap: 10, padding: "9px 12px", borderRadius: 8, fontSize: 13, color: "#374151", background: "none", border: "none", cursor: "pointer" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#f9fafb"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                  >
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
+                    </svg>
+                    Take a Tour
+                  </button>
                   <div style={{ borderTop: "1px solid #f3f4f6", margin: "4px 0" }} />
                   <button
                     onClick={handleLogout}
@@ -572,6 +554,7 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
 
           {/* Avatar trigger button */}
           <button
+            data-tour="settings-avatar"
             onClick={() => setAvatarOpen((v) => !v)}
             style={{
               display: "flex",
@@ -612,6 +595,32 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
             </svg>
           </button>
+
+          {/* Mobile-only: always-visible sign out */}
+          {isMobile && (
+            <button
+              onClick={handleLogout}
+              style={{
+                display: "flex",
+                width: "100%",
+                alignItems: "center",
+                gap: 8,
+                padding: "8px 8px",
+                marginTop: 4,
+                borderRadius: 8,
+                fontSize: 13,
+                color: "#6b7280",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+              </svg>
+              Sign out
+            </button>
+          )}
         </div>
       </aside>
     </>

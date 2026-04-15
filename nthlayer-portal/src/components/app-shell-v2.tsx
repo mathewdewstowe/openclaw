@@ -4,6 +4,9 @@ import { useState } from "react";
 import { SidebarV2 } from "./sidebar-v2";
 import { EntitlementProvider } from "@/lib/contexts/entitlements";
 import { CompanyProvider } from "@/lib/contexts/company";
+import { WalkthroughProvider } from "./walkthrough/walkthrough-provider";
+import { WalkthroughOverlay } from "./walkthrough/walkthrough-overlay";
+import { TourButton } from "./walkthrough/tour-button";
 import type { PlanEntitlements } from "@/lib/types/entitlements";
 
 interface CompanyInfo {
@@ -34,6 +37,7 @@ export function AppShellV2({
   return (
     <EntitlementProvider entitlements={entitlements} planName={planName} systemRole={systemRole}>
       <CompanyProvider initialCompanies={companies}>
+        <WalkthroughProvider>
         <div className="flex min-h-screen">
           <SidebarV2 open={sidebarOpen} onClose={() => setSidebarOpen(false)} email={email} />
 
@@ -52,6 +56,7 @@ export function AppShellV2({
               <div className="hidden lg:block" />
 
               <div className="flex items-center gap-3">
+                <TourButton />
                 <span className="text-xs text-[var(--muted-foreground)] hidden sm:inline">{email}</span>
                 {(systemRole === "super_admin" || systemRole === "admin") && (
                   <span style={{
@@ -73,6 +78,8 @@ export function AppShellV2({
             <div className="p-4 sm:p-8">{children}</div>
           </main>
         </div>
+        <WalkthroughOverlay />
+        </WalkthroughProvider>
       </CompanyProvider>
     </EntitlementProvider>
   );

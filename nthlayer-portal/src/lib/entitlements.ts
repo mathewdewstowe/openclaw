@@ -11,19 +11,16 @@ const WORKFLOW_ACCESS_MAP: Record<WorkflowType, keyof PlanEntitlements> = {
   competitor_intel: "access_competitor",
 };
 
-// ─── Default free entitlements (no plan assigned) ────────────
+// ─── All features unlocked (payment gateway disabled) ────────
+// Payments are off — every user gets full operator-level access.
 
-const FREE_ENTITLEMENTS = PLAN_ENTITLEMENTS.free;
+const ALL_ACCESS_ENTITLEMENTS = PLAN_ENTITLEMENTS.operator;
 
 // ─── Core functions ──────────────────────────────────────────
 
-export async function getUserEntitlements(userId: string): Promise<PlanEntitlements> {
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: { plan: { select: { entitlements: true } } },
-  });
-  if (!user?.plan?.entitlements) return FREE_ENTITLEMENTS;
-  return user.plan.entitlements as unknown as PlanEntitlements;
+export async function getUserEntitlements(_userId: string): Promise<PlanEntitlements> {
+  // Payment gateway is disabled — return full access for all users.
+  return ALL_ACCESS_ENTITLEMENTS;
 }
 
 export async function getUserPlanName(userId: string): Promise<string> {

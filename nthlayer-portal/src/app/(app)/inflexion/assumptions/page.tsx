@@ -56,7 +56,7 @@ export default async function AssumptionsPage() {
 
   if (allAssumptions.length === 0) {
     return (
-      <div style={{ maxWidth: 900 }}>
+      <div style={{ maxWidth: 1200 }}>
         <div style={{ marginBottom: 32 }}>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "#111827", letterSpacing: "-0.02em", margin: "0 0 6px" }}>Assumptions</h1>
           <p style={{ fontSize: 14, color: "#6b7280", margin: 0 }}>Key assumptions underlying the strategy for {companyName}</p>
@@ -76,7 +76,7 @@ export default async function AssumptionsPage() {
   }
 
   return (
-    <div style={{ maxWidth: 900 }}>
+    <div style={{ maxWidth: 1200 }}>
       <AssumptionsClient allAssumptions={allAssumptions} companyName={companyName} companyId={companyId} initialStatuses={initialStatuses} />
     </div>
   );

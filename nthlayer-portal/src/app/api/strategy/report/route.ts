@@ -30,25 +30,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unknown stage" }, { status: 400 });
     }
 
-    // Fetch legacy profile + new Company in parallel
-    const [profile, companyAccess] = await Promise.all([
-      db.companyProfile.findUnique({ where: { userId: user.id } }),
-      getUserCompanies(user.id),
-    ]);
-
-    if (!profile || !profile.name) {
-      return NextResponse.json({ error: "Company profile not found" }, { status: 404 });
-    }
-
+    // Fetch company from new Company model
+    const companyAccess = await getUserCompanies(user.id);
     const newCompany = companyAccess[0]?.company ?? null;
 
-    const competitors = [
-      profile.competitor1,
-      profile.competitor2,
-      profile.competitor3,
-      profile.competitor4,
-      profile.competitor5,
-    ].filter((c): c is string => typeof c === "string" && c.trim().length > 0);
+    if (!newCompany) {
+      return NextResponse.json({ error: "Company not found" }, { status: 404 });
+    }
+
+    const companyProfile = (newCompany as unknown as { profile?: Record<string, unknown> | null }).profile ?? {};
+
+    const competitors = (Array.isArray(companyProfile.competitors)
+      ? (companyProfile.competitors as string[])
+      : []
+    ).filter((c) => typeof c === "string" && c.trim().length > 0);
 
     const sessionId = await createStrategySession({
       stageId,
@@ -57,16 +52,14 @@ export async function POST(req: NextRequest) {
       answers,
       persona,
       company: {
-        name: profile.name,
-        url: profile.url,
-        sector: newCompany?.sector ?? null,
-        location: profile.location,
-        territory: Array.isArray(profile.territories) && profile.territories.length > 0
-          ? profile.territories.join(", ")
-          : null,
-        icp1: profile.icp1,
-        icp2: profile.icp2,
-        icp3: profile.icp3,
+        name: newCompany.name,
+        url: newCompany.url ?? null,
+        sector: newCompany.sector ?? null,
+        location: (newCompany as unknown as { location?: string | null }).location ?? null,
+        territory: typeof companyProfile.territory === "string" ? companyProfile.territory : null,
+        icp1: typeof companyProfile.icp1 === "string" ? companyProfile.icp1 : null,
+        icp2: typeof companyProfile.icp2 === "string" ? companyProfile.icp2 : null,
+        icp3: typeof companyProfile.icp3 === "string" ? companyProfile.icp3 : null,
         competitors,
       },
       priorReports: priorReports ?? [],

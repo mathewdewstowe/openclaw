@@ -62,7 +62,7 @@ export default async function ActionsPage() {
 
   if (allActions.length === 0) {
     return (
-      <div style={{ maxWidth: 900 }}>
+      <div style={{ maxWidth: 1200 }}>
         <div style={{ marginBottom: 32 }}>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "#111827", letterSpacing: "-0.02em", margin: "0 0 6px" }}>Actions</h1>
           <p style={{ fontSize: 14, color: "#6b7280", margin: 0 }}>All priority actions across every strategy stage for {companyName}</p>
@@ -82,7 +82,7 @@ export default async function ActionsPage() {
   }
 
   return (
-    <div style={{ maxWidth: 900 }}>
+    <div style={{ maxWidth: 1200 }}>
       <ActionsClient allActions={allActions} companyName={companyName} companyId={companyId} initialStatuses={initialStatuses} />
     </div>
   );

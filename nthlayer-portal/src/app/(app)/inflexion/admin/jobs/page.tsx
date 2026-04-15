@@ -39,7 +39,7 @@ export default async function AdminJobsPage() {
       },
     }),
     Promise.all(
-      ["frame", "diagnose", "decide", "position", "commit"].map((stage) =>
+      ["frame", "diagnose", "decide", "position", "bet", "commit"].map((stage) =>
         db.job.count({ where: { workflowType: stage } }).then((count) => ({ stage, count }))
       )
     ),

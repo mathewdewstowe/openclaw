@@ -5,6 +5,7 @@ const STAGE_CITATION_COLORS: Record<string, { bg: string; color: string }> = {
   diagnose: { bg: "#dbeafe", color: "#1e40af" },
   decide:   { bg: "#ede9fe", color: "#6d28d9" },
   position: { bg: "#d1fae5", color: "#065f46" },
+  bet:      { bg: "#fef3c7", color: "#b45309" },
   commit:   { bg: "#fef3c7", color: "#92400e" },
 };
 

@@ -59,7 +59,7 @@ export default async function MonitoringPage() {
 
   if (allItems.length === 0) {
     return (
-      <div style={{ maxWidth: 900 }}>
+      <div style={{ maxWidth: 1200 }}>
         <div style={{ marginBottom: 32 }}>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: "#111827", letterSpacing: "-0.02em", margin: "0 0 6px" }}>Metrics</h1>
           <p style={{ fontSize: 14, color: "#6b7280", margin: 0 }}>Metrics and signals to track for {companyName}</p>
@@ -79,7 +79,7 @@ export default async function MonitoringPage() {
   }
 
   return (
-    <div style={{ maxWidth: 900 }}>
+    <div style={{ maxWidth: 1200 }}>
       <MonitoringClient allItems={allItems} companyName={companyName} companyId={companyId} initialStatuses={initialStatuses} />
     </div>
   );

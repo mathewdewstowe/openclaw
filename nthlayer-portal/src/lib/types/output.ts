@@ -85,7 +85,7 @@ export const SECTION_LABELS: Record<string, string> = {
 // Override default labels per stage where the section means something different.
 
 export const STAGE_SECTION_LABELS: Record<string, Partial<Record<string, string>>> = {
-  frame:    { recommendation: "Strategic Hypothesis" },
+  frame:    { recommendation: "Core Strategic Question" },
   diagnose: { recommendation: "Emerging Direction" },
   decide:   {}, // uses defaults — Recommendation is genuinely earned here
   position: { recommendation: "Positioning Recommendation" },

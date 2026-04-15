@@ -146,7 +146,7 @@ export default function MonitoringClient({ allItems, companyName, companyId, ini
               <div key={i} style={{ background: currentFeedback === "declined" ? "#fffbfb" : currentFeedback === "accepted" ? "#f0fdf4" : "#fff", border: "1px solid", borderColor: currentFeedback === "declined" ? "#fecaca" : currentFeedback === "accepted" ? "#bbf7d0" : "#e5e7eb", borderLeft: `4px solid ${currentFeedback === "declined" ? "#ef4444" : currentFeedback === "accepted" ? "#10b981" : stage.dot}`, borderRadius: 10, padding: "16px 20px", transition: "all 0.15s" }}>
                 {/* Metric + stage badge + feedback */}
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: (m.target || m.frequency) ? 10 : 12 }}>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: "#111827", margin: 0, lineHeight: 1.5, flex: 1 }}>{m.metric}</p>
+                  <p style={{ fontSize: 20, fontWeight: 600, color: "#111827", margin: 0, lineHeight: 1.5, flex: 1 }}>{m.metric}</p>
                   <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
                     <button
                       onClick={() => handleFeedback(m, idx, "accepted")}

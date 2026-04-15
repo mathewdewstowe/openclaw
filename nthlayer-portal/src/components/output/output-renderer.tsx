@@ -30,6 +30,7 @@ const STAGE_COLORS: Record<string, { border: string; bg: string; text: string }>
   diagnose: { border: "#bfdbfe", bg: "#eff6ff",  text: "#1e40af" },
   decide:   { border: "#ddd6fe", bg: "#f5f3ff",  text: "#6d28d9" },
   position: { border: "#bbf7d0", bg: "#f0fdf4",  text: "#065f46" },
+  bet:      { border: "#fde68a", bg: "#fffbeb",  text: "#b45309" },
   commit:   { border: "#fde68a", bg: "#fffbeb",  text: "#92400e" },
 };
 
@@ -187,7 +188,7 @@ function SectionCard({
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#9ca3af" style={{ marginBottom: 6 }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
           </svg>
-          <p style={{ fontSize: 12, fontWeight: 600, color: "#6b7280" }}>Upgrade to view</p>
+          <a href="/inflexion/settings/plan" style={{ fontSize: 12, fontWeight: 600, color: "#2563eb", textDecoration: "none" }}>Upgrade to view</a>
         </div>
       </div>
     );

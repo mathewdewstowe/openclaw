@@ -19,6 +19,18 @@ interface ContextField {
 }
 
 const WORKFLOW_CONTEXT_FIELDS: Partial<Record<WorkflowType, ContextField[]>> = {
+  competitor_intel: [
+    { key: "competitor_url", label: "Competitor website", type: "text", placeholder: "https://unily.com" },
+    { key: "competitor_name", label: "Competitor name", type: "text", placeholder: "Unily" },
+    { key: "relationship", label: "Strategic relationship", type: "select", options: [
+      "Direct competitor — same ICP, same category",
+      "Adjacent player — overlapping in some accounts",
+      "Category leader we're chasing",
+      "Potential acquisition target",
+      "Market reference — sets buyer expectations",
+    ]},
+    { key: "portfolio_context", label: "What's the strategic question?", type: "textarea", placeholder: "Are they moving into our mid-market segment? Is their PE exit creating a window for us? Should we be worried about their new AI features?" },
+  ],
   diagnose: [
     { key: "inflection_point", label: "What's forcing a strategic decision right now?", type: "textarea", placeholder: "Moving from PLG to enterprise sales after Series B\nAI-native competitors entering our category\nScaling from founder-led to process-led GTM" },
     { key: "revenue_range", label: "Revenue range", type: "select", options: ["Pre-revenue", "Under £500k", "£500k–£2m", "£2m–£10m", "£10m+"] },

@@ -149,7 +149,7 @@ export default function ActionsClient({ allActions, companyName, companyId, init
               <div key={i} style={{ background: currentFeedback === "declined" ? "#fffbfb" : currentFeedback === "accepted" ? "#f0fdf4" : "#fff", border: "1px solid", borderColor: currentFeedback === "declined" ? "#fecaca" : currentFeedback === "accepted" ? "#bbf7d0" : priority ? priority.bg : "#e5e7eb", borderLeft: `4px solid ${currentFeedback === "declined" ? "#ef4444" : currentFeedback === "accepted" ? "#10b981" : priority?.dot ?? "#e5e7eb"}`, borderRadius: 10, padding: "16px 20px", transition: "all 0.15s" }}>
                 {/* Title + badges */}
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: (a.owner || a.deadline) ? 10 : 12 }}>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: "#111827", margin: 0, lineHeight: 1.5, flex: 1 }}>{a.action}</p>
+                  <p style={{ fontSize: 20, fontWeight: 600, color: "#111827", margin: 0, lineHeight: 1.5, flex: 1 }}>{a.action}</p>
                   <div style={{ display: "flex", gap: 6, flexShrink: 0, alignItems: "center" }}>
                     {/* Feedback buttons */}
                     <button

@@ -3,6 +3,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { getUserEntitlements, getUserPlanName, getUserCompanies } from "@/lib/entitlements";
 import { AppShellV2 } from "@/components/app-shell-v2";
 import { CompanyProfileModal } from "@/components/company-profile-modal";
+import { ClarityIdentify } from "@/components/clarity-identify";
+import { StrategyGenerationProvider } from "@/lib/strategy-generation-context";
 import type { PlanEntitlements } from "@/lib/types/entitlements";
 
 export default async function AppLayout({
@@ -46,17 +48,20 @@ export default async function AppLayout({
   } : null;
 
   return (
-    <AppShellV2
-      email={user.email}
-      planName={planName}
-      systemRole={user.systemRole ?? "member"}
-      entitlements={entitlements as unknown as PlanEntitlements}
-      companies={companies}
-    >
-      {activeCompanyForModal && (
-        <CompanyProfileModal company={activeCompanyForModal as Parameters<typeof CompanyProfileModal>[0]["company"]} />
-      )}
-      {children}
-    </AppShellV2>
+    <StrategyGenerationProvider>
+      <AppShellV2
+        email={user.email}
+        planName={planName}
+        systemRole={user.systemRole ?? "member"}
+        entitlements={entitlements as unknown as PlanEntitlements}
+        companies={companies}
+      >
+        <ClarityIdentify userId={user.id} email={user.email} name={user.name} />
+        {activeCompanyForModal && (
+          <CompanyProfileModal company={activeCompanyForModal as Parameters<typeof CompanyProfileModal>[0]["company"]} />
+        )}
+        {children}
+      </AppShellV2>
+    </StrategyGenerationProvider>
   );
 }

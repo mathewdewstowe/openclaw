@@ -12,7 +12,11 @@ const publicPaths = [
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
   "/onboarding",
+  "/one-pager",
 ];
+
+// Exact public paths (startsWith would incorrectly open all sub-routes)
+const publicExact = ["/", "/inflexion"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -29,6 +33,16 @@ export async function middleware(req: NextRequest) {
 
   // Public paths
   if (publicPaths.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
+
+  // Exact-match public paths
+  if (publicExact.includes(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Stripe webhook (no auth — verified by signature)
+  if (pathname === "/api/stripe/webhook") {
     return NextResponse.next();
   }
 

@@ -31,7 +31,7 @@ const COUNTRIES = [
   "Global","Europe","EMEA","APAC","LATAM","North America",
 ];
 
-function TagInput({ value, onChange, list, placeholder }: { value: string; onChange: (v: string) => void; list: string[]; placeholder?: string }) {
+function TagInput({ value, onChange, list, placeholder, dropUp }: { value: string; onChange: (v: string) => void; list: string[]; placeholder?: string; dropUp?: boolean }) {
   const tags = value ? value.split(",").map((s) => s.trim()).filter(Boolean) : [];
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -117,9 +117,13 @@ function TagInput({ value, onChange, list, placeholder }: { value: string; onCha
       </div>
       {open && filtered.length > 0 && (
         <div style={{
-          position: "absolute", top: "100%", left: 0, right: 0, zIndex: 50,
-          marginTop: 4, background: "#fff", border: "1px solid #e5e7eb",
-          borderRadius: 8, boxShadow: "0 4px 16px rgba(0,0,0,0.08)", overflow: "hidden",
+          position: "absolute",
+          ...(dropUp
+            ? { bottom: "calc(100% + 4px)", top: "auto" }
+            : { top: "calc(100% + 4px)", bottom: "auto" }),
+          left: 0, right: 0, zIndex: 200,
+          background: "#fff", border: "1px solid #e5e7eb",
+          borderRadius: 8, boxShadow: "0 4px 16px rgba(0,0,0,0.12)", overflow: "hidden",
         }}>
           {filtered.map((s) => (
             <button key={s} type="button" onMouseDown={() => addTag(s)}
@@ -146,7 +150,7 @@ function SectorTagInput({ value, onChange }: { value: string; onChange: (v: stri
 }
 
 function TerritoryTagInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return <TagInput value={value} onChange={onChange} list={COUNTRIES} placeholder="Search or add a country..." />;
+  return <TagInput value={value} onChange={onChange} list={COUNTRIES} placeholder="Search or add a country..." dropUp />;
 }
 
 const LOCATIONS = [
@@ -257,6 +261,7 @@ interface CompanyProfile {
   inflectionPoint?: string;
   risks?: string | string[];
   bigBet?: string;
+  territory?: string;
   competitors?: string[];
 }
 
@@ -270,25 +275,28 @@ interface CompanyData {
   profile: CompanyProfile | null;
 }
 
-function completionScore(company: CompanyData): { score: number; missing: string[] } {
+function completionScore(
+  company: CompanyData,
+  liveTerritory: string,
+  liveIcp1: string,
+  liveCompetitors: string[],
+): { score: number; missing: string[] } {
   const missing: string[] = [];
-  const profile = company.profile ?? {};
 
   if (!company.name) missing.push("company name");
   if (!company.url) missing.push("website");
   if (!company.sector) missing.push("sector");
   if (!company.location) missing.push("location");
-  if (!(profile as { territory?: string }).territory) missing.push("territory");
-  if (!profile.icp1) missing.push("ideal customer 1");
-  const hasCompetitors = (profile.competitors ?? []).filter(Boolean).length > 0;
-  if (!hasCompetitors) missing.push("competitor 1");
+  if (!liveTerritory.trim()) missing.push("territory");
+  if (!liveIcp1.trim()) missing.push("ideal customer 1");
+  if (liveCompetitors.filter(Boolean).length === 0) missing.push("competitor 1");
 
-  const total = 8;
+  const total = 7;
   const done = total - missing.length;
   return { score: Math.round((done / total) * 100), missing };
 }
 
-export function CompanyProfileForm({ company, onSaved, hideHeader }: { company: CompanyData; onSaved?: () => void; hideHeader?: boolean }) {
+export function CompanyProfileForm({ company, onSaved, hideHeader, mandatoryOnly, saveRef, onScoreChange }: { company: CompanyData; onSaved?: () => void; hideHeader?: boolean; mandatoryOnly?: boolean; saveRef?: React.MutableRefObject<(() => Promise<void>) | null>; onScoreChange?: (score: number) => void }) {
   const isMobile = useIsMobile();
   const profile = company.profile ?? {};
 
@@ -308,7 +316,7 @@ export function CompanyProfileForm({ company, onSaved, hideHeader }: { company: 
       return [...arr, ...Array(Math.max(0, 5 - arr.length)).fill("")].slice(0, 5) as string[];
     })(),
     bigBet: profile.bigBet ?? "",
-    territory: (profile as { territory?: string }).territory ?? "",
+    territory: profile.territory ?? "",
     competitors: [
       ...(profile.competitors ?? []),
       ...Array(Math.max(0, 5 - (profile.competitors ?? []).length)).fill(""),
@@ -319,18 +327,15 @@ export function CompanyProfileForm({ company, onSaved, hideHeader }: { company: 
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { score, missing } = completionScore({
-    ...company,
-    url: form.url || null,
-    sector: form.sector || null,
-    profile: {
-      ...profile,
-      icp1: form.icp1 || undefined,
-      inflectionPoint: form.inflectionPoint || undefined,
-      bigBet: form.bigBet || undefined,
-      competitors: form.competitors.filter(Boolean),
-    },
-  });
+  const { score, missing } = completionScore(
+    { ...company, url: form.url || null, sector: form.sector || null, location: form.location || null },
+    form.territory,
+    form.icp1,
+    form.competitors,
+  );
+
+  // Notify parent (e.g. modal) of live score changes
+  useEffect(() => { onScoreChange?.(score); }, [score, onScoreChange]);
 
   async function handleSave() {
     setSaving(true);
@@ -376,6 +381,11 @@ export function CompanyProfileForm({ company, onSaved, hideHeader }: { company: 
       setSaving(false);
     }
   }
+
+  // Expose save function to parent via ref
+  useEffect(() => {
+    if (saveRef) saveRef.current = handleSave;
+  });
 
   function setRisk(index: number, value: string) {
     const next = [...form.risks];
@@ -473,31 +483,6 @@ export function CompanyProfileForm({ company, onSaved, hideHeader }: { company: 
             Missing: {missing.join(" · ")}
           </p>
         )}
-        {score === 100 && (
-          <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: "#059669" }}>Profile complete</p>
-            <a
-              href="/inflexion/strategy"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "8px 16px",
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#fff",
-                background: "#111827",
-                borderRadius: 8,
-                textDecoration: "none",
-              }}
-            >
-              Start Strategy
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </a>
-          </div>
-        )}
       </div>
 
       {error && (
@@ -526,12 +511,12 @@ export function CompanyProfileForm({ company, onSaved, hideHeader }: { company: 
               <SectorTagInput value={form.sector} onChange={(v) => setForm({ ...form, sector: v })} />
             </div>
             <div>
-              <label style={labelStyle}>Location <span style={{ color: "#dc2626" }}>*</span></label>
-              <LocationLookup value={form.location} onChange={(v) => setForm({ ...form, location: v })} />
-            </div>
-            <div>
               <label style={labelStyle}>Territory <span style={{ color: "#dc2626" }}>*</span></label>
               <TerritoryTagInput value={form.territory} onChange={(v) => setForm({ ...form, territory: v })} />
+            </div>
+            <div>
+              <label style={labelStyle}>Location <span style={{ color: "#dc2626" }}>*</span></label>
+              <LocationLookup value={form.location} onChange={(v) => setForm({ ...form, location: v })} />
             </div>
           </div>
         </div>
@@ -545,16 +530,20 @@ export function CompanyProfileForm({ company, onSaved, hideHeader }: { company: 
           <div style={{ display: "flex", flexDirection: "column", gap: 14, flex: 1 }}>
             <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
               <label style={labelStyle}>Ideal customer 1 <span style={{ color: "#dc2626" }}>*</span></label>
-              <textarea style={{ ...inputStyle, flex: 1, resize: "none", minHeight: 80 }} value={form.icp1} onChange={(e) => setForm({ ...form, icp1: e.target.value })} placeholder="Series B SaaS founders scaling GTM" />
+              <textarea style={{ ...inputStyle, flex: 1, resize: "none", minHeight: mandatoryOnly ? 120 : 80 }} value={form.icp1} onChange={(e) => setForm({ ...form, icp1: e.target.value })} placeholder="Series B SaaS founders scaling GTM" />
             </div>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <label style={labelStyle}>Ideal customer 2</label>
-              <textarea style={{ ...inputStyle, flex: 1, resize: "none", minHeight: 80 }} value={form.icp2} onChange={(e) => setForm({ ...form, icp2: e.target.value })} placeholder="PE-backed software operators pre-exit" />
-            </div>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <label style={labelStyle}>Ideal customer 3 <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>optional</span></label>
-              <textarea style={{ ...inputStyle, flex: 1, resize: "none", minHeight: 80 }} value={form.icp3} onChange={(e) => setForm({ ...form, icp3: e.target.value })} placeholder="Optional third ICP..." />
-            </div>
+            {!mandatoryOnly && (
+              <>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                  <label style={labelStyle}>Ideal customer 2</label>
+                  <textarea style={{ ...inputStyle, flex: 1, resize: "none", minHeight: 80 }} value={form.icp2} onChange={(e) => setForm({ ...form, icp2: e.target.value })} placeholder="PE-backed software operators pre-exit" />
+                </div>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                  <label style={labelStyle}>Ideal customer 3 <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>optional</span></label>
+                  <textarea style={{ ...inputStyle, flex: 1, resize: "none", minHeight: 80 }} value={form.icp3} onChange={(e) => setForm({ ...form, icp3: e.target.value })} placeholder="Optional third ICP..." />
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -562,10 +551,10 @@ export function CompanyProfileForm({ company, onSaved, hideHeader }: { company: 
         <div style={{ background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 12, padding: "24px" }}>
           <p style={{ fontSize: 16, fontWeight: 700, color: "#111827", letterSpacing: 0, marginBottom: 4 }}>Competitors</p>
           <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 18, lineHeight: 1.5 }}>
-            Domain or name, up to 5. Used in analysis and teardowns.
+            Domain or name{mandatoryOnly ? "" : ", up to 5"}. Used in analysis and teardowns.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingTop: 23 }}>
-            {form.competitors.map((c, i) => (
+            {(mandatoryOnly ? form.competitors.slice(0, 1) : form.competitors).map((c, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: 11, fontWeight: 600, color: i === 0 ? "#dc2626" : "#d1d5db", width: 16, textAlign: "right", flexShrink: 0 }}>{i + 1}{i === 0 ? " *" : ""}</span>
                 <input style={{ ...inputStyle, flex: 1 }} type="text" value={c} onChange={(e) => setCompetitor(i, e.target.value)} placeholder={i === 0 ? "competitor.com" : ""} />

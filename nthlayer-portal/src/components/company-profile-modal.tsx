@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { CompanyProfileForm } from "@/components/company-profile-form";
 
 interface CompanyProfile {
@@ -51,6 +51,9 @@ export function CompanyProfileModal({
   const [open, setOpen] = useState(initialScore < 100);
   const [currentCompany, setCurrentCompany] = useState(company);
   const canDismiss = initialScore > 0;
+  const [saving, setSaving] = useState(false);
+  const [liveScore, setLiveScore] = useState(initialScore);
+  const saveRef = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
     function handleOpen() {
@@ -72,7 +75,7 @@ export function CompanyProfileModal({
 
   if (!open) return null;
 
-  const score = calcScore(currentCompany);
+  const score = liveScore;
   const isComplete = score === 100;
 
   function handleSaved() {
@@ -105,8 +108,8 @@ export function CompanyProfileModal({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: "min(92vw, 780px)",
-          maxHeight: "90vh",
+          width: "min(98vw, 1600px)",
+          maxHeight: "95vh",
           background: "#fff",
           borderRadius: 16,
           boxShadow: "0 24px 80px rgba(0,0,0,0.28)",
@@ -148,7 +151,7 @@ export function CompanyProfileModal({
             </div>
             <div>
               <h2 style={{ fontSize: 18, fontWeight: 800, color: "#111827", margin: 0, marginBottom: 2 }}>
-                {initialScore === 0 ? "Set up your company profile" : "Edit company profile"}
+                {initialScore === 0 ? "Set Up Your Company Profile" : "Edit Company Profile"}
               </h2>
               <p style={{ fontSize: 13, color: "#6b7280", margin: 0 }}>
                 {initialScore === 0
@@ -221,13 +224,16 @@ export function CompanyProfileModal({
             company={currentCompany}
             onSaved={handleSaved}
             hideHeader={true}
+            mandatoryOnly={false}
+            saveRef={saveRef}
+            onScoreChange={setLiveScore}
           />
         </div>
 
         {/* Footer */}
         <div
           style={{
-            padding: "16px 32px",
+            padding: "20px 32px",
             borderTop: "1px solid #e5e7eb",
             flexShrink: 0,
             display: "flex",
@@ -236,30 +242,84 @@ export function CompanyProfileModal({
             background: "#f9fafb",
           }}
         >
-          <span style={{ fontSize: 12, color: "#9ca3af" }}>
-            {score < 100 ? `${score}% complete` : "Profile complete ✓"}
+          <span style={{ fontSize: 13, color: isComplete ? "#059669" : "#9ca3af", fontWeight: isComplete ? 600 : 400 }}>
+            {isComplete ? "✓ Profile complete" : `${score}% complete — fill in all fields to continue`}
           </span>
-          {!canDismiss && (
-            <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>
-              You can always update this from Settings.
-            </p>
-          )}
-          {canDismiss && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {canDismiss && !isComplete && (
+              <button
+                onClick={() => setOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 13,
+                  color: "#6b7280",
+                  cursor: "pointer",
+                  padding: "4px 8px",
+                  textDecoration: "underline",
+                  fontFamily: "inherit",
+                }}
+              >
+                Complete later
+              </button>
+            )}
             <button
-              onClick={() => setOpen(false)}
+              onClick={async () => {
+                setSaving(true);
+                await saveRef.current?.();
+                setSaving(false);
+              }}
+              disabled={saving}
               style={{
-                background: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: saving ? "#9ca3af" : "#374151",
+                color: "#fff",
                 border: "none",
-                fontSize: 13,
-                color: "#6b7280",
-                cursor: "pointer",
-                padding: "4px 8px",
-                textDecoration: "underline",
+                borderRadius: 10,
+                padding: "12px 24px",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: saving ? "default" : "pointer",
+                fontFamily: "inherit",
               }}
             >
-              Complete later
+              {saving ? "Saving..." : "Save"}
             </button>
-          )}
+            {isComplete && (
+              <button
+                onClick={async () => {
+                  setSaving(true);
+                  await saveRef.current?.();
+                  setSaving(false);
+                  window.location.href = "/inflexion/strategy";
+                }}
+                disabled={saving}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "#111827",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "14px 32px",
+                  fontSize: 16,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#1f2937"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "#111827"; }}
+              >
+                Continue
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </>

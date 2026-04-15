@@ -17,6 +17,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "companyId and workflowType required" }, { status: 400 });
   }
 
+  // competitor_intel is superadmin-only during beta
+  if (workflowType === "competitor_intel" && user.systemRole !== "super_admin") {
+    return NextResponse.json({ error: "upgrade_required", feature: "access_competitor" }, { status: 403 });
+  }
+
   // Check company access
   const hasAccess = await canAccessCompany(user.id, companyId);
   if (!hasAccess) return NextResponse.json({ error: "No access to company" }, { status: 403 });
@@ -59,6 +64,25 @@ export async function POST(req: NextRequest) {
     ? Object.keys(contextFields).map((key) => ({ id: key, question: key.replace(/_/g, " "), type: "text" }))
     : [];
   const answers = contextFields ?? {};
+
+  // For competitor_intel: upsert CompetitorProfile so it can be scheduled for refresh
+  if (workflowType === "competitor_intel" && contextFields?.competitor_name) {
+    await db.competitorProfile.upsert({
+      where: { companyId_name: { companyId, name: contextFields.competitor_name } },
+      create: {
+        companyId,
+        name: contextFields.competitor_name,
+        url: contextFields.competitor_url ?? null,
+        lastRefreshedAt: new Date(),
+        jobContext: contextFields as Record<string, string>,
+      },
+      update: {
+        url: contextFields.competitor_url ?? undefined,
+        lastRefreshedAt: new Date(),
+        jobContext: contextFields as Record<string, string>,
+      },
+    });
+  }
 
   const STAGE_NAMES: Record<string, string> = {
     frame: "Frame",
@@ -123,6 +147,10 @@ export async function POST(req: NextRequest) {
       icp2: profile.icp2 as string | null ?? null,
       icp3: profile.icp3 as string | null ?? null,
       competitors,
+      // For competitor_intel: surface the target competitor so the agent context block is clear
+      ...(workflowType === "competitor_intel" && contextFields?.competitor_name
+        ? { competitorTarget: { name: contextFields.competitor_name, url: contextFields.competitor_url ?? "" } }
+        : {}),
     },
     priorReports,
   });

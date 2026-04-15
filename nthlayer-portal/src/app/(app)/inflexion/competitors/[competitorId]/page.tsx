@@ -7,6 +7,7 @@ import { OutputRenderer } from "@/components/output/output-renderer";
 export default async function CompetitorDetailPage({ params }: { params: Promise<{ competitorId: string }> }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  if (user.systemRole !== "super_admin") notFound();
   const { competitorId } = await params;
 
   // competitorId could be an output ID or a competitor profile ID
