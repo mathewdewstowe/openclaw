@@ -532,8 +532,9 @@ const res = await fetch("/api/strategy/suggest-bets", {
     }
   })
 });
-// Returns 8 structured bets: { "Bet name", "Action", "Outcome", "Hypothesis" }
-// User selects/edits up to 3 as their strategic_bets answers`}</CodeBlock>
+// Returns 8 structured bets: { "Bet name", "Type", "Hypothesis", "Minimum viable test" }
+// Types: Strategic | Capability | Sequencing
+// User selects/edits up to 5 as their strategic_bets answers`}</CodeBlock>
         </Section>
 
         {/* ── 12. Question Input Types ── */}

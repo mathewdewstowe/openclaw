@@ -64,11 +64,11 @@ export async function GET(req: NextRequest) {
 
       // Stage-specific tags reflecting what each agent actually generates
       const STAGE_TAGS: Record<string, string[]> = {
-        frame:    ["Strategic Problem", "Market Context", "Winning Conditions", "Decision Boundaries", "Strategic Hypothesis"],
-        diagnose: ["Business Assessment", "Product-Market Fit", "Competitive Landscape", "Unit Economics", "Capability Assessment"],
+        frame:    ["Strategic Problem", "Market Context", "Winning Conditions", "Decision Boundaries", "Core Strategic Question"],
+        diagnose: ["Business Assessment", "Product-Market Fit", "Competitive Landscape", "Emerging Direction", "Benchmark Gaps"],
         decide:   ["Strategic Options", "Recommended Direction", "What Must Be True", "Kill Criteria"],
-        position: ["Target Customer", "Competitive Advantage", "Positioning Statement", "Structural Defensibility"],
-        commit:   ["Strategic Bets", "OKRs", "100-Day Plan", "Kill Criteria", "Resource Allocation"],
+        position: ["Target Customer", "Positioning Statement", "Competitive Advantage", "Structural Defensibility"],
+        commit:   ["Strategic Bets", "OKRs", "100-Day Plan", "Governance Rhythm", "Resource Allocation"],
       };
       const tags = STAGE_TAGS[workflowType] ?? [];
 
@@ -86,6 +86,41 @@ export async function GET(req: NextRequest) {
         },
       });
 
+      // Persist strategic bets to DB when Commit stage completes
+      if (workflowType === "commit" && Array.isArray(sections.strategic_bets)) {
+        const bets = sections.strategic_bets as Array<{
+          // New Inflexion format
+          "Bet name"?: string; "Type"?: string; "Hypothesis"?: string; "Minimum viable test"?: string;
+          // Legacy format
+          bet?: string; action?: string; outcome?: string; hypothesis?: string; type?: string; investment?: string;
+        }>;
+        try {
+          await db.strategicBet.createMany({
+            data: bets.map((b, idx) => ({
+              companyId,
+              outputId: output.id,
+              betIndex: idx,
+              name: b["Bet name"] ?? b.bet ?? `Bet ${idx + 1}`,
+              action: b["Minimum viable test"] ?? b.action ?? b.investment ?? "",
+              outcome: b.outcome ?? "",
+              hypothesis: b["Hypothesis"] ?? b.hypothesis ?? "",
+              betType: b["Type"] ?? b.type ?? "Strategic",
+            })),
+            skipDuplicates: true,
+          });
+        } catch (betErr) {
+          console.error("[status] Failed to persist strategic bets:", betErr);
+        }
+      }
+
+      // Extract item counts for the email
+      const itemCounts = {
+        actions: Array.isArray(sections.actions) ? (sections.actions as unknown[]).length : 0,
+        risks: Array.isArray(sections.risks) ? (sections.risks as unknown[]).length : 0,
+        assumptions: Array.isArray(sections.assumptions) ? (sections.assumptions as unknown[]).length : 0,
+        metrics: Array.isArray(sections.monitoring) ? (sections.monitoring as unknown[]).length : 0,
+      };
+
       // Send report-complete notification to user (BCC admin)
       const company = await db.company.findUnique({
         where: { id: companyId },
@@ -96,6 +131,7 @@ export async function GET(req: NextRequest) {
         userEmail: user.email,
         companyName: company?.name ?? "your company",
         workflowType,
+        counts: itemCounts,
       });
 
       if (job) {

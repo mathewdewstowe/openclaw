@@ -12,6 +12,9 @@ const AGENT_IDS: Record<string, string> = {
   decide: "agent_011CZvZtjfw9foNabrMh92ii",
   position: "agent_011CZvZtkfyRGNw3S3RMjHMj",
   commit: "agent_011CZzKHr5KTkHYsLYcn2ke7",
+  // competitor_intel: uses the diagnose agent as base (web research + produce_strategic_diagnosis tool)
+  // TODO: create a dedicated competitor intel agent in Anthropic console and replace this ID
+  competitor_intel: "agent_011CZumeXoZuFJ35jRA8Ta2R",
 };
 
 const ENVIRONMENT_ID = "env_01BG6FT972a92oDBJcBMwt2y";
@@ -28,6 +31,8 @@ export interface CompanyContext {
   icp2?: string | null;
   icp3?: string | null;
   competitors?: string[];
+  // competitor_intel only — the target competitor to analyse
+  competitorTarget?: { name: string; url: string };
 }
 
 export interface PriorStageSummary {
@@ -132,7 +137,42 @@ const EVIDENCE_DISCIPLINE = `## Evidence Discipline — MANDATORY
   - Do NOT return confidence.score above 0.60 for any claim about competitor internal operations, private company financials, or future market conditions
   - If the user's inputs contradict external evidence you've found, lower the confidence score accordingly and note the contradiction in your rationale
 - Quote specific phrases directly from the user inputs rather than paraphrasing them
-- Do not invent competitor behaviours, market sizes, or growth rates`;
+- Do not invent competitor behaviours, market sizes, or growth rates
+
+## Cost & Revenue Rules — MANDATORY (applies to ALL output fields)
+- NEVER include cost estimates, budget figures, dollar amounts, headcount numbers, or salary ranges in any field
+- NEVER include revenue projections, ARR targets, or expected financial outcomes — these are unknowable without financial modelling
+- Focus on direction, position, and strategic logic — not financial specifics
+- If the user has provided financial data as context, you may reference it analytically (e.g. "current ARR suggests mid-market pricing pressure") but do not project forward or estimate costs`;
+
+// ─── Field conciseness rules (injected into all stages) ──────
+
+const FIELD_CONCISENESS_RULES = `## Structured Field Conciseness — MANDATORY
+
+Every headline field in the structured arrays must be SHORT and SCANNABLE. These are displayed as card titles in the UI — the detail belongs in the report sections, not here.
+
+ACTIONS — actions[].action:
+- ONE sentence. Maximum 12 words. Start with a strong active verb. No sub-clauses, no context, no rationale.
+- BAD: "Redirect MC2 engagement to produce analyst-ready positioning and briefing pack as first deliverable. The narrative must articulate the advocacy-intranet-listening integration as a unique platform proposition — not a feature list."
+- GOOD: "Commission an analyst-ready positioning and briefing pack from MC2."
+
+RISKS — risks[].risk:
+- ONE sentence. Maximum 12 words. Name the risk sharply — not the full explanation.
+- BAD: "[PORTFOLIO-LEVEL] Advocacy concentration risk — the portfolio is anchored on advocacy as the primary differentiator. Bets 1, 2, 5 and 7 all depend on advocacy resonating with enterprise buyers."
+- GOOD: "Portfolio bets cluster on advocacy as a single unvalidated differentiator."
+- Do NOT use [PORTFOLIO-LEVEL] or [From Stage] prefixes in the risk headline. Those belong in the mitigation.
+
+ASSUMPTIONS — assumptions[].text:
+- ONE sentence. Maximum 15 words. State the assumption cleanly.
+- NEVER append metadata in the text field. No pipes (|), no "Fragility:", no "Testable:", no "Status:" — those are separate fields.
+- BAD: "Enterprise buyers will value the integrated proposition enough to shortlist Haiilo over Gartner Leaders. | Fragility: high | Testable: yes (first 15 enterprise conversations) | Status: unvalidated"
+- GOOD: "Enterprise buyers will shortlist Haiilo over intranet-only vendors based on platform integration."
+
+MONITORING — monitoring[].metric:
+- ONE phrase or short sentence. Maximum 10 words. Name the metric only.
+- Put targets in the target field. Put cadence in the frequency field. Do not append them to the metric name.
+- BAD: "Advocacy qualification rate — percentage of new enterprise conversations under advocacy-integrated positioning that produce qualified pipeline"
+- GOOD: "Advocacy qualification rate from enterprise conversations"`;
 
 // ─── Stage-specific instructions ─────────────────────────────
 
@@ -142,235 +182,461 @@ const EVIDENCE_DISCIPLINE = `## Evidence Discipline — MANDATORY
 
 const STAGE_INSTRUCTIONS: Record<string, string> = {
   frame: `## Stage Instructions: FRAME
-Synthesise the inputs to establish a precise strategic frame. Structure your analysis around:
-1. The problem or opportunity — what is actually at stake and why now
-2. The hypothesis — what the business is betting is true about its market or position
-3. The assumptions that must hold for the frame to be valid
-4. The evidence that supports or contradicts each assumption
+Define the decision. Do not answer it.
 
-VISION & MISSION — IF PROVIDED:
-The user may have provided a vision statement (long-term aspirational destination) and/or a mission statement (purpose the company exists to fulfil) as separate inputs. Treat each as essential strategic context:
-- Assess whether the stated vision and mission are coherent with each other and with the strategic problem being framed
-- Identify any tension between the current vision/mission and the market reality you find through research
-- If the vision or mission is aspirational but not grounded in competitive reality, name that gap explicitly
-- Reference both when forming the strategic hypothesis — the hypothesis should either affirm, challenge, or refine the direction they imply
-- If neither was provided, note this as a gap and treat the absence of a shared direction as a contributing factor to the strategic problem
-- If only one was provided (vision without mission or vice versa), note which is missing and what that implies for organisational clarity
+Your role is to: DEFINE the strategic problem, FRAME what changed and why it matters now, SURFACE key tensions and constraints, BOUND the decision space, PRESENT the competitive landscape overview, POPULATE a hypothesis register from user inputs and research, and ARTICULATE winning conditions without pre-committing to a path.
 
-Before forming the frame, use web search to research:
-- Macro-economic conditions affecting this sector (interest rates, inflation, capital availability, regulatory shifts)
-- Recent industry news (last 6–12 months) — funding rounds, M&A, market entries, exits, or disruptions in the space
-- Market trends shaping the competitive landscape (technology shifts, buyer behaviour changes, platform risks)
-- Any financial or analyst coverage of the sector or named competitors
+FRAME MUST NOT:
+- Recommend a chosen direction or imply the answer is already known
+- Produce business implications, operational metrics, or action plans
+- Hard-code geographic sequencing or market entry sequence as if already decided
+- Embed winning conditions that pre-solve the decision rather than frame it
+- Use verbs from later stages: commit, choose, assign, govern, target, position
 
-Ground the frame in current external reality, not just what the user has described. Output must be the foundation all subsequent stages build on. Be precise: vague frames produce vague strategies.
+EPISTEMIC DISCIPLINE — MANDATORY:
+Preserve the difference between user input and established fact:
+- "Leadership hypothesis: ..." — a belief the team holds but has not validated
+- "Stated preference: ..." — a direction leadership is inclined toward
+- "Candidate direction: ..." — something to pressure-test in Diagnose
+Do NOT rewrite user-stated beliefs as conclusions, facts, or recommendations.
 
-REQUIRED SECTION STRUCTURE — use these exact ### sub-headings within your section content:
-- In executive_summary: begin with "### The Strategic Problem"
-- In what_matters: use sub-sections "### Macro & Market Context", "### Winning Conditions", "### Decision Boundaries"
-- In recommendation: use sub-section "### Strategic Hypothesis"
+INVESTOR CONTEXT — IF PROVIDED:
+When investor_owner is provided, frame governance expectations accordingly. PE-backed companies face different return timelines and board accountability than VC-backed or bootstrapped companies. Note the implications for the investment_horizon.
+
+ARR BAND + HEADCOUNT + GROWTH RATE — IF PROVIDED:
+Use these to contextualise the strategic moment. Flag if growth rate appears above or below what web research suggests is median for this ARR band and sector.
+
+TOP CONCERNS — IF PROVIDED:
+Each concern stated by the user becomes a hypothesis in the Hypothesis Register. Label them: "User-stated concern: [concern] → Hypothesis: [testable statement]".
+
+ASSUMPTIONS TO TEST — IF PROVIDED:
+Each assumption becomes an explicit, labelled hypothesis. Tag: Source: user-stated. Tested in: Diagnose.
+
+RESEARCH — use web search before forming the frame:
+- Company website, About page, LinkedIn company page — how the company describes itself today
+- Recent news (last 12 months): funding rounds, M&A, leadership changes, product launches
+- Funding history and investor profile: Crunchbase, Tracxn, PitchBook public data
+- Analyst inclusion signals: Gartner MQ, Forrester Wave, G2 category placement
+- Competitor identification (top 5–7): G2 alternatives, Gartner MQ peers
+- Category definition and market sizing: CAGR, TAM/SAM from analyst sources
+- Major platform shifts: relevant migrations, shutdowns, category disruptions
+Ground the frame in current external reality, not only what the user has described.
+
+REQUIRED SECTION STRUCTURE:
+- In executive_summary: begin with "### The Strategic Moment", then "### Winning Conditions"
+- In what_matters: use "### Competitive Landscape Overview", "### Decision Boundaries"
+- In recommendation: use "### Core Strategic Question"
+- In business_implications: use "### Hypothesis Register" — list 8–15 testable hypotheses, each with: Hypothesis, Source (user input / web research / inferred), Tested in (Diagnose / Decide / Position / Commit), Status: Untested
 
 STAGE OUTPUT RULES — FRAME:
-- The recommendation field is your STRATEGIC HYPOTHESIS — the bet the business is making. Do NOT produce a definitive recommendation at this stage. Frame it as: "The hypothesis this strategy is testing is..."
-- Do NOT return actions or monitoring — these are premature before diagnosis. You have not yet assessed what is true.
-- Focus risks on threats to the frame itself: what would invalidate the hypothesis or shift the winning conditions.
+- The recommendation field is the CORE STRATEGIC QUESTION — the decision this workflow must answer, carried into Diagnose. Frame as: "The core strategic question this workflow must answer is..." Capture any user-stated beliefs here with explicit labels (leadership hypothesis, stated preference) so they are visible but not concluded.
+- Do NOT return actions — execution steps are premature before diagnosis.
+- DO populate monitoring with 2–3 watch signals: market or competitor moves that would shift the frame.
+- Focus risks on threats to the frame itself: what would invalidate the question or change the winning conditions.
 
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
-- "text": string — the assumption statement
-- "fragility": "low" | "medium" | "high" — how catastrophic it would be if this assumption is wrong
-- "testable": boolean — whether this assumption can be validated with data or experiment in the next 90 days
-- "status": "unvalidated" — always use this value (user will update later)
+- "text": string — the assumption statement (max 15 words, no pipes or metadata in this field)
+- "fragility": "low" | "medium" | "high" — how catastrophic it would be if wrong
+- "testable": boolean — whether this can be validated with data or experiment in 90 days
+- "status": "unvalidated" — always use this value
 Example: { "text": "Enterprise buyers will pay $50k+ ACV", "fragility": "high", "testable": true, "status": "unvalidated" }`,
 
   diagnose: `## Stage Instructions: DIAGNOSE
-Build a structured fact base. Structure your analysis around:
-1. The problem — where product-market fit is real versus forced, and why it matters
-2. The opportunity — which competitive dynamics create an opening if acted on
-3. The hypothesis — what the diagnostic data suggests about the company's actual position
-4. The assumptions — what must be true for the diagnosis to hold
+Assess, test, identify, explain, compare, isolate, and infer. Do not choose a direction.
 
-CURRENT CHALLENGES — IF PROVIDED:
-If the user has listed their top current challenges (with a description of why each matters), treat these as primary diagnostic signals:
-- Use each challenge to anchor a specific section of your analysis — do not simply restate them, diagnose them
-- For each challenge, assess whether it is a symptom of a deeper structural problem or the root cause itself
-- Cross-reference the challenges against the competitive, unit economics, and PMF data provided — are they consistent or contradictory?
-- Identify which challenge, if resolved, would have the greatest compound effect on the others
-- If challenges are not provided, identify the implied challenges from the other inputs and note they are inferred
+Your role is to establish what is true: across product, market, commercial performance, and operating constraints. Identify root causes. Surface contradictions. Pressure-test the candidate theses from Frame.
 
-Use web search to research before forming your analysis:
-- Recent news about named competitors (funding, product launches, pricing changes, leadership moves, layoffs)
-- Macro and sector-level trends that constrain or accelerate the strategic options (AI adoption, regulation, consolidation, interest rate environment)
-- Financial health signals for the sector (VC sentiment, public market multiples, fundraising conditions)
-- Any recent analyst reports, news articles, or industry commentary relevant to this company's market
+DIAGNOSE MUST NOT:
+- Make the final strategic choice or sound as though the direction has already been selected
+- Introduce named strategic bets, portfolio language, or a bet stack
+- Assign ownership, deadlines, or action plans
+- Define market entry sequencing or geographic commitment — that is Decide's role
+- Use verbs from later stages: commit, choose, assign, position, govern
 
-Cite URLs for all externally sourced claims. Separate the constraining gaps from operational noise. Output must include an honest assessment of where the business genuinely stands — do not soften difficult findings.
+WHERE WINNING / ICP SIGNAL — MANDATORY:
+This is the single most important diagnostic data point. For the where_winning and winning_outside_target inputs:
+- Compare stated ICP against evidence from web research (G2, case studies, comparison articles)
+- Analyse out-of-ICP wins: are they noise (sales indiscipline) or signal (market pulling toward a broader/different use case)?
+- If signal: identify what the out-of-ICP wins have in common (industry, size, buying trigger, use case)
+- Label the section clearly: "### The ICP Signal"
 
-BENCHMARK VALIDATION — DIAGNOSE SPECIFIC:
-When the user provides financial or operational metrics (revenue, ARR, growth rate, churn, NRR, CAC, LTV, team size), validate these against current market benchmarks:
-- Search for sector-specific SaaS benchmarks or relevant industry data (e.g. Bessemer State of the Cloud, OpenView SaaS benchmarks, public company comparables)
-- Explicitly note in your analysis where the company's stated metrics are above, at, or below benchmark
-- If you cannot find a benchmark, say so — do not fabricate comparisons
-- Include a "### Benchmark Gaps" sub-section in your recommendation section listing metrics that are below benchmark and by how much
+BINDING CONSTRAINT — RANKED:
+The user has ranked constraints most-binding-first. Use this ordering throughout the report. The top constraint shapes every other finding. Name it explicitly in Section: "The binding constraint is [X]. This shapes what the strategy can realistically do."
 
-REQUIRED SECTION STRUCTURE — use these exact ### sub-headings within your section content:
+RETENTION SIGNAL + WIN RATE + NRR:
+If provided, validate against current SaaS benchmarks (search for these). State explicitly whether metrics are above, at, or below benchmark. Quantify the gap.
+
+BUYING TRIGGER — CRITICAL:
+If "Don't know" is selected, flag this as the #1 evidence gap in the report. State: "The buying trigger is unknown. This is the most critical data gap in the diagnosis — it makes it impossible to optimise the sales motion or position the product accurately."
+
+MOAT ASSESSMENT:
+Test each claimed moat against evidence. Do not validate what the evidence doesn't support. Be explicit about claimed advantages that don't survive scrutiny.
+
+RESEARCH — use web search before forming your analysis:
+- Gartner MQ positioning: confirm exact quadrant placement, Leader count, Niche Player confirmation
+- Forrester Wave positioning: inclusion, tier, publication date
+- Competitor product launches (last 12 months): AI capabilities, product velocity comparison
+- Competitor funding and scale: resource asymmetry — who can outspend
+- Market sizing (sub-segment): multiple analyst sources triangulated
+- SaaS growth benchmarks: SaaS Capital, OpenView, Benchmarkit — is the company at/above/below median for its ARR band?
+- NRR benchmarks: Benchmarkit, SaaS Capital
+- Third-party reviews: G2, TrustRadius, Capterra — how the market describes the company vs. self-description
+- Glassdoor / employee sentiment: culture signal, leadership stability
+- Customer case studies: what use cases are being marketed and to whom
+Cite URLs for all externally sourced claims. Do not soften difficult findings.
+
+REQUIRED SECTION STRUCTURE:
 - In executive_summary: begin with "### Business Assessment"
-- In what_matters: use sub-sections "### Product-Market Fit", "### Competitive Landscape"
-- In recommendation: use sub-sections "### Unit Economics", "### Capability Assessment"
+- In what_matters: use "### Product-Market Fit", "### Competitive Landscape", "### Growth Rate & Benchmark Position"
+- In recommendation: use "### Emerging Direction", "### Benchmark Gaps"
+- In business_implications: use "### The ICP Signal", "### Resource-Capability-Ambition Gap"
+
+WHAT MUST BE PRESSURE-TESTED:
+End the Emerging Direction section with an explicit list: "Before Decide can commit, these must be pressure-tested:" followed by 3–5 specific questions or hypotheses the Decide stage must resolve.
 
 STAGE OUTPUT RULES — DIAGNOSE:
-- The recommendation field is your EMERGING DIRECTION — what the diagnostic evidence points toward. This is NOT a committed recommendation. Frame it as: "The evidence suggests the priority direction is..." and explain what the data supports.
-- Do NOT return actions or monitoring — you are diagnosing, not prescribing. Action plans without a decision framework are premature.
-- Clearly distinguish NEW assumptions you are introducing from those inherited from Frame. Mark inherited assumptions with "[From Frame]" prefix.
+- The recommendation field is EMERGING DIRECTION — what the diagnostic evidence points toward. This is NOT a committed direction. Frame as: "The evidence suggests the priority direction is..." and explain what the data supports.
+- Do NOT return actions — you are diagnosing, not prescribing.
+- DO populate monitoring with 3–4 diagnostic metrics: signals that would confirm the diagnosis or reveal it needs revision.
+- Distinguish NEW assumptions from those inherited from Frame. Mark inherited assumptions with "[From Frame]".
 
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
-- "text": string — the assumption statement
-- "fragility": "low" | "medium" | "high" — how catastrophic it would be if this assumption is wrong
-- "testable": boolean — whether this assumption can be validated with data or experiment in the next 90 days
-- "status": "unvalidated" — always use this value (user will update later)
+- "text": string — the assumption statement (max 15 words, no pipes or metadata in this field)
+- "fragility": "low" | "medium" | "high"
+- "testable": boolean
+- "status": "unvalidated"
 Example: { "text": "Enterprise buyers will pay $50k+ ACV", "fragility": "high", "testable": true, "status": "unvalidated" }`,
 
   decide: `## Stage Instructions: DECIDE
-Surface genuine strategic options, including the option of inaction. Structure your analysis around:
-1. The problem — what happens if the strategy stays unchanged (cost of inaction)
-2. The opportunity — which option best addresses the frame and diagnostic findings
-3. The hypothesis — what the chosen direction is betting on
-4. The assumptions — what must be true for each option (WWHTBT framework)
+Compare, reject, choose, prioritise, state, gate. This is the first stage where a committed strategic direction is produced.
 
-For each option:
-- Apply the "What Would Have to Be True" (WWHTBT) framework: what assumptions must hold for this to be the right choice?
-- Work backwards from the winning conditions identified in the Frame stage
-- Set explicit kill criteria: at what point would you abandon this path?
-- Structure staged investment logic: what is the smallest bet that validates the hypothesis?
+Your role is to surface genuine strategic options (including inaction), pressure-test each against the investor success criteria and priority outcome the user has stated, then CHOOSE ONE DIRECTION. Explain why this path beats the alternatives. Define what must be true, the trade-offs accepted, and the conditions under which this decision reverses.
 
-Use web search to validate the external environment before evaluating options:
-- Are the market conditions that make each option viable actually present right now?
-- Has anything changed recently (competitor moves, macro shifts, regulatory changes) that affects the risk profile of each option?
-- What are comparable companies doing — is there a playbook or counter-example for each strategic path?
-- What does current financial market sentiment say about businesses taking each approach?
+DECIDE MUST NOT:
+- Assign owners, titles, or named individuals to workstreams
+- Include day-30, day-60, or day-90 action plans, milestones, or execution workstreams
+- Include OKRs, governance cadence, or resource allocation
+- Define GTM motions, buyer personas in detail, or messaging
+- Name a formal strategic bet portfolio
+- Include operational governance or team structure
+These belong in Commit. Including them here contaminates the cascade.
 
-Output is a committed strategic direction — not a list of possibilities — with assumptions and trade-offs visible.
+LEADERSHIP INSTINCT — USE AS INPUT, NOT CONCLUSION:
+The user's instinct is a directional signal, not the answer. Evaluate it honestly against the evidence. If the evidence contradicts their instinct, say so directly.
 
-REQUIRED SECTION STRUCTURE — use these exact ### sub-headings within your section content:
-- In executive_summary: begin with "### Strategic Options"
-- In recommendation: use sub-sections "### Recommended Direction", "### What Must Be True"
+WILLING TO GIVE UP — FLAG "NOTHING":
+If the user selected "Nothing — unwilling to give anything up", flag this explicitly: "The stated willingness to give up nothing creates strategic tension. Real strategic choice requires accepting trade-offs. The report will note this constraint and its implications."
+
+MANDATED DIRECTION — IF PROVIDED:
+Treat it as a constraint. Evaluate it against the evidence. If the evidence contradicts it, say so directly: "The mandated direction is [X]. The evidence [supports / partially supports / contradicts] this. Specifically: [evidence]."
+
+INVESTOR SUCCESS CRITERIA:
+Use the investor's evaluation criteria to weight the decision matrix. The recommended option must score well against these criteria — or the report must explain why qualitative factors override the scoring.
+
+DECISION MATRIX — MANDATORY:
+Produce a weighted decision matrix scoring all options (3–5 options including status quo). Criteria and weights:
+- Resource fit: HIGH
+- Competitive defensibility: HIGH
+- Investor/board alignment: HIGH
+- Time-to-validation: MEDIUM
+- Risk profile: MEDIUM
+- Market size: MEDIUM
+Score each option 1–5 on each criterion. Show the matrix. If the recommended option doesn't score highest, explain why.
+
+COST OF INACTION — MANDATORY SECTION:
+Quantify where possible: growth gap vs. competitors over 12–18 months, analyst position erosion timeline, window closure risk.
+
+RESEARCH — validate the external environment:
+- Are market conditions that make each option viable actually present right now?
+- Comparable repositioning case studies: 2–3 analogies of companies that made a similar move
+- Category adjacency mapping: does an evaluation category exist for the recommended direction?
+- Competitor pricing and packaging: how competitors bundle the capability
+- What happens to Niche Players in consolidating categories?
+
+REQUIRED SECTION STRUCTURE:
+- In executive_summary: begin with "### Strategic Options Considered"
+- In what_matters: use "### Decision Matrix", "### Cost of Inaction"
+- In recommendation: use "### Recommended Direction", "### What Must Be True", "### Kill Criteria"
+- In business_implications: use "### Strategic Trade-offs", "### Analogies"
 
 STAGE OUTPUT RULES — DECIDE:
-- This is the FIRST stage where the recommendation field is a genuine committed direction. Be definitive.
-- Return actions as strategic-level next steps — the major moves required to execute the chosen direction. These are decision-level actions, not operational tasks.
-- Do NOT return monitoring — detailed metrics and tracking belong in Commit where the execution plan lives.
-- Clearly distinguish NEW assumptions from those inherited from Frame and Diagnose.
+- This is the FIRST stage where the recommendation is a genuine committed direction. Be definitive.
+- Return actions ONLY as strategic-level decision actions — the 3–5 major moves that activate the chosen direction. NO owners, NO deadlines, NO operational sub-tasks.
+- DO populate monitoring with 3–4 decision-validation metrics: signals that confirm the chosen direction or trigger a course-correction.
+- Distinguish NEW assumptions from those inherited from Frame and Diagnose.
 
 KILL CRITERIA — STRUCTURED ARRAY (MANDATORY):
-Populate the kill_criteria array in your tool call with at least 3 explicit kill criteria. Each object must have:
-- "criterion": string — what condition would cause you to abandon this path
+Populate the kill_criteria array with at least 3 explicit kill criteria. Each object must have:
+- "criterion": string — what condition would cause abandonment of this path
 - "trigger": string — the specific threshold or signal that activates this criterion
 - "response": string — what the business should do if the trigger fires
-Example: { "criterion": "Enterprise pipeline fails to convert", "trigger": "Less than 2 enterprise deals closed in 90 days", "response": "Revert to mid-market focus and reallocate AE headcount" }
 
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
-- "text": string — the assumption statement
-- "fragility": "low" | "medium" | "high" — how catastrophic it would be if this assumption is wrong
-- "testable": boolean — whether this assumption can be validated with data or experiment in the next 90 days
-- "status": "unvalidated" — always use this value (user will update later)
-Example: { "text": "Enterprise buyers will pay $50k+ ACV", "fragility": "high", "testable": true, "status": "unvalidated" }`,
+- "text": string — the assumption statement (max 15 words, no pipes or metadata in this field)
+- "fragility": "low" | "medium" | "high"
+- "testable": boolean
+- "status": "unvalidated"`,
 
   position: `## Stage Instructions: POSITION
-Translate the strategic direction into a precise market stance. Structure your analysis around:
-1. The problem — the gap between where the business currently sits in the market and where it needs to be
-2. The opportunity — the specific ICP and job-to-be-done where the position is genuinely winnable
-3. The hypothesis — the positioning bet: who we serve, what we do better, how we defend it
-4. The assumptions — what must be true about customer behaviour and competitor response
+Define, target, frame, differentiate, position, defend.
 
-Define:
-- Who the business serves (be specific — a position that serves everyone serves no one)
-- What it does materially better than the alternatives available to that customer
-- What structural advantages are being built (reference Helmer's 7 Powers: scale economies, network effects, counter-positioning, switching costs, branding, cornered resource, process power)
-- How the position will hold as competitors respond
+Your role is to translate the chosen strategic direction into a precise market stance. Define who you serve, what you do materially better, and what structural advantages you are building. This stage sharpens how to win — it does not create an execution plan, a funding allocation, or a strategic bet portfolio.
 
-Use web search to ground the positioning in current market reality:
-- What are the named and emerging competitors doing right now — any recent positioning shifts, new products, or pricing changes?
-- What do customers in this category actually care about — are there recent reviews, analyst reports, or public sentiment signals?
-- Are there macro or technology trends (AI, regulation, platform consolidation) that create or close positioning windows?
-- What financing or M&A activity in the sector signals where the category is heading?
+POSITION MUST NOT:
+- Produce a formal bet portfolio, funding allocation, milestones, OKRs, or governance cadence
+- Assign owners or deliverables
+- Override the geographic sequencing chosen in Decide
+- Overstate product capabilities that have not been validated
+- Treat multiple buyer personas as equal primaries if the strategy requires focus
+- Use verbs from Commit: commit, assign, govern, sequence
 
-Output gives product, GTM, and commercial teams a single coherent position to build from.
+PRIMARY ECONOMIC BUYER — MANDATORY:
+Use the primary_buyer_role input as the anchor. The positioning must specify:
+- PRIMARY ECONOMIC BUYER: the person who signs off on purchase and owns the budget
+- MOBILISER / INFLUENCER: the person who drives the internal case for change
+- SECONDARY STAKEHOLDERS: other roles who must be satisfied but do not decide
 
-REQUIRED SECTION STRUCTURE — use these exact ### sub-headings within your section content:
-- In executive_summary: begin with "### Target Customer"
-- In what_matters: use sub-section "### Competitive Advantage"
-- In recommendation: use sub-sections "### Positioning Statement", "### Structural Defensibility"
+WIN/LOSS LANGUAGE — IF PROVIDED:
+This is gold. Use exact verbatim phrases in the positioning analysis. Win language reveals the real differentiator. Loss language reveals the real objection. Quote both directly and build the positioning statement to amplify the win language and directly address the loss language.
+
+ACTIVE POSITIONING ENGAGEMENT — IF IN PROGRESS:
+Flag the report as TIME-SENSITIVE: "An active positioning engagement is underway. This report provides strategic framing inputs — not a finished messaging document. The agency/consultant should receive this as context."
+
+NARRATIVE GAP ANALYSIS — MANDATORY:
+Compare:
+1. Current self-description (from web research — website hero copy, tagline, meta description)
+2. Market description (G2 reviews, comparison articles, analyst descriptions)
+3. Recommended positioning (from this stage)
+State the gap explicitly: "The company says [X]. The market says [Y]. The positioning must become [Z]."
+
+KEY OBJECTIONS — IF PROVIDED:
+Address each objection directly in the positioning framework. The positioning statement must neutralise the most critical objection.
+
+BUYER DISCOVERY — IF PROVIDED:
+Use this to shape GTM implications. If buyers find the company primarily through G2 but the sales motion is outbound-led, flag the misalignment.
+
+HELMER'S 7 POWERS:
+Where relevant, reference the structural advantages being built. Be honest — only cite a power if there is genuine structural evidence for it. Be explicit about claimed advantages that don't survive scrutiny.
+
+RESEARCH — ground positioning in current market reality:
+- Buyer search behaviour: Google autocomplete, "People also ask" for category terms
+- G2 category definitions: where the company sits in buyer discovery flows
+- Target buyer job descriptions: what tools they're expected to procure (LinkedIn job postings)
+- Competitor positioning language: homepage hero copy, meta descriptions, positioning statements
+- Review site perception: G2, TrustRadius — how customers position the company in their own words
+- SEO / category demand signals: Google Trends for category terms
+- Analyst category definitions: what Gartner and Forrester evaluate
+
+REQUIRED SECTION STRUCTURE:
+- In executive_summary: begin with "### Target Customer", then "### Positioning Statement"
+- In what_matters: use "### Competitive Advantage", "### Narrative Gap Analysis"
+- In recommendation: use "### Positioning Statement (Full)", "### Structural Defensibility"
+- In business_implications: use "### Buyer Persona & Buying Motion", "### GTM Motion Implications", "### Packaging Implications"
 
 STAGE OUTPUT RULES — POSITION:
-- The recommendation field is your POSITIONING RECOMMENDATION — the market stance the business should take. This is a positioning statement, not a strategic direction (that was Decide).
-- Do NOT return actions or monitoring — the execution plan belongs in Commit. Position defines where to play and how to win, not the operational steps to get there.
-- Clearly distinguish NEW assumptions from those inherited from prior stages.
+- The recommendation field is the POSITIONING RECOMMENDATION — the precise market stance. Include the full positioning statement: "For [target], who [need], [company] is the only [category frame] that [key differentiator] — unlike [alternatives] which [limitation]."
+- Do NOT return actions — the execution plan belongs in Commit.
+- DO populate monitoring with 2–3 positioning validation metrics: signals that confirm the position is landing with buyers.
+- Distinguish NEW assumptions from those inherited from prior stages.
 
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
-- "text": string — the assumption statement
-- "fragility": "low" | "medium" | "high" — how catastrophic it would be if this assumption is wrong
-- "testable": boolean — whether this assumption can be validated with data or experiment in the next 90 days
-- "status": "unvalidated" — always use this value (user will update later)
-Example: { "text": "Enterprise buyers will pay $50k+ ACV", "fragility": "high", "testable": true, "status": "unvalidated" }`,
+- "text": string — the assumption statement (max 15 words, no pipes or metadata in this field)
+- "fragility": "low" | "medium" | "high"
+- "testable": boolean
+- "status": "unvalidated"`,
 
-  commit: `## Stage Instructions: COMMIT (FINAL SYNTHESIS)
-This is the FINAL strategic report. You MUST synthesise ALL prior stage findings into a single cohesive, board-ready strategic document. Do NOT simply repeat or summarise what was said in prior stages — synthesise it into a unified direction. Structure your synthesis around:
-1. The problem — the inflection the business is navigating, distilled from all five stages
-2. The opportunity — the specific strategic bet that addresses the problem
-3. The hypothesis — what the strategy is betting on, made explicit
-4. The assumptions — what must remain true for the strategy to hold, and the conditions that would change it
+  competitor_intel: `## Stage Instructions: COMPETITOR INTELLIGENCE
 
-The output must include governance rhythm (how and how often progress is reviewed) and horizon allocation (how resources are split across now / next / later) in the narrative sections.
+You are producing a deep competitive intelligence briefing for a PE-backed portfolio company or growth-stage business. This is not a generic competitor analysis. It is strategic intelligence through an investor and operator lens — the kind of briefing an Inflexion deal partner or portfolio CEO would actually use to make a decision.
 
-Do NOT use web search — all evidence has been gathered in prior stages. Synthesise from the prior stage context provided. Make the strategy coherent, not a composite of five separate reports.
+The company context provided is the PORTFOLIO COMPANY or INFLEXION CLIENT — the strategic perspective holder. The competitor to analyse is provided in the Q&A inputs below (competitor URL, name, and relationship context).
 
-STAGE OUTPUT RULES — COMMIT:
-- The actions and monitoring fields are YOUR primary output — this is where they belong in the cascade. Make them concrete, owned, and time-bound.
-- The evidence_base field should ONLY reference sources cited in prior stages. Do NOT fabricate new URLs. Prefix each source with the stage it came from (e.g. "[Frame] https://..." or "[Diagnose] https://...").
-- Clearly distinguish NEW assumptions from those inherited from prior stages. Mark inherited ones with their source stage.
-- Your confidence score reflects the coherence and evidence quality of the FULL cascade, not just this stage.
+RESEARCH FIRST — MANDATORY. Do not produce output until you have retrieved real data:
+1. Fetch the competitor's homepage, /about, /product, /pricing pages. Read what the site actually says — do not infer from the domain name.
+2. Search for recent news (last 6–12 months): funding rounds, leadership changes, product launches, partnerships, customer wins/losses, headcount signals.
+3. Search Glassdoor and G2 for review volume, average rating, and recurring themes from employees and customers.
+4. Search Crunchbase, Pitchbook, or press releases for financial data: total funding, last round type/amount/date, investors.
+5. Search LinkedIn or similar for rough headcount and recent hiring patterns — which departments are growing or quiet.
 
-REQUIRED SECTION STRUCTURE — use these exact ### sub-headings within your section content:
-- In recommendation: use sub-sections "### What Must Be True", "### Governance Rhythm"
-- In what_matters: keep narrative only — OKRs go in the structured array
-- In business_implications: use sub-section "### Resource Allocation"
+EVIDENCE DISCIPLINE: if you cannot verify a fact, mark it "Unknown" or "Not publicly disclosed". Do not fill gaps with speculation. Every claim must trace to something you actually retrieved.
 
-STRUCTURED ARRAYS — MANDATORY (populate these as separate fields in the tool call, NOT as ### sub-headings):
+OUTPUT STRUCTURE — populate all 8 active sections precisely as follows:
 
-strategic_bets array — at least 2 bets. Each object:
-- "bet": string — name of the strategic bet
-- "hypothesis": string — what the bet is testing
-- "investment": string — resource commitment required
-Example: { "bet": "Enterprise expansion", "hypothesis": "Mid-market success translates to 50k+ ACV deals", "investment": "2 AEs + sales engineering hire" }
+executive_summary — COMPANY SNAPSHOT
+  Begin with "### Company Snapshot"
+  What they do in 2–3 sentences (from their actual website copy, not paraphrase).
+  Key facts in a tight block: founded year | HQ | estimated headcount | funding status | PE/VC ownership if applicable.
+  Their market category and where they sit in it (market leader / challenger / niche player).
+  End with one-line verdict: "Strategic threat — act now" | "Strong watch — monitor quarterly" | "Tactical extract — learn and move" | "Low priority — revisit in 12 months".
 
-okrs array — at least 3 OKRs. Each object:
-- "objective": string — the objective
-- "key_results": string[] — 2-3 measurable key results
+what_matters — MARKET SIGNAL
+  Use these exact sub-headings:
+
+  ### Industry Growth Signal
+  One of: Growing | Stable | Declining. One substantive paragraph on the structural forces shaping this market right now — not just "the market is growing" but WHY and for whom. Cite specific signals (funding trends, M&A activity, analyst commentary, macro forces).
+
+  ### AI Disruption Exposure
+  One of: High | Medium | Low. Who is the platform threat? Is AI eroding the standalone value proposition or accelerating it? How asymmetric is the risk — can incumbents absorb the cost or must challengers prove new ROI?
+
+  ### People Signal
+  From Glassdoor/reviews: Positive | Mixed | Negative. Three specific themes from actual reviews (e.g. "PE efficiency pressure surfacing in headcount reviews", "Strong product pride despite commercial instability"). If no review data available, state this explicitly.
+
+  ### Funding & Ownership Context
+  If PE-backed: estimated hold period position (early / mid / late based on acquisition date + typical 4–7 year hold), exit pathway likelihood, acquirer landscape. If VC-backed: runway signals, next round positioning. If bootstrapped or public: note this. This is the commercial context that shapes every strategic decision they make.
+
+recommendation — STRATEGIC VERDICT
+  Begin with "### Our Recommendation"
+  Lead with the verdict label: one of [Strategic threat — act now | Strong watch — monitor quarterly | Tactical extract — learn and move | Low priority].
+  Then 2–3 paragraphs making the honest PE-grade case:
+  - What this company genuinely does well (cite evidence — not flattery)
+  - What the category ceiling is and whether it is falling, rising, or stable
+  - The honest risk/opportunity this represents for the portfolio company given their specific strategic position
+  End with: "### Timeframe" — the window in which this assessment remains valid and why it changes.
+
+business_implications — PORTFOLIO IMPLICATIONS
+  Begin with "### What This Means for [portfolio company name]"
+  Be commercially specific — not "they compete in the same space" but:
+  - Where do they directly overlap with the portfolio company's ICP or active pipeline?
+  - Where does their weakness or market exit open a gap the portfolio company can take?
+  - Which customer conversations does this competitor make harder or easier?
+  - What does their product roadmap or GTM signal about where the market is going?
+  2–4 concrete implications. No generic observations.
+
+risks — COMPETITIVE THREATS
+  3–5 risks this competitor poses to the portfolio company. Each risk:
+  - risk field: one sharp sentence naming the specific threat (max 12 words)
+  - severity: high | medium | low — based on evidence, not instinct
+  - mitigation: one sentence on what the portfolio company should do to counter it
+
+actions — WHAT TO DO ABOUT IT
+  3–5 concrete strategic actions. Not "monitor this space" — actual moves:
+  - Attack their documented weakness
+  - Defend against their documented strength or next move
+  - Exploit the market signal gap
+  - One action must address the portfolio company's positioning against this competitor specifically
+  Each action: max 12 words. Active verb. No hedging.
+
+monitoring — SIGNALS TO WATCH
+  4–5 specific signals that would change this assessment materially. Each:
+  - metric field: the specific thing to watch (e.g. "Series B announcement", "Headcount drops below 300", "Viva launches native search feature")
+  - target: the threshold that triggers a reassessment
+  - frequency: how often to check
+
+INFLEXION FRAMING — MANDATORY:
+- Every finding must answer the commercial question: what does this mean for a company competing with them or trying to outposition them?
+- Reference PE dynamics wherever relevant. A PE-backed competitor in year 5 of a typical hold is not making the same decisions as one in year 1. This matters.
+- Be direct. PE-grade intelligence has no room for hedge language. "It depends" with no directional call is worthless output.
+- Do NOT produce a feature comparison matrix. Do NOT write "they are strong in X" without evidence. Do NOT produce generic advice that could apply to any competitor in any market.
+- The portfolio company context matters: frame every implication in terms of that specific company's stage, sector, and strategic position.
+
+ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
+The assumptions array MUST be objects (not strings). Each:
+- "text": string — the analytical assumption (max 15 words, no metadata in this field)
+- "fragility": "low" | "medium" | "high"
+- "testable": boolean
+- "status": "unvalidated"
+Example: { "text": "Microsoft Viva will absorb intranet market share within 24 months", "fragility": "high", "testable": true, "status": "unvalidated" }`,
+
+  commit: `## Stage Instructions: COMMIT — FINAL SYNTHESIS
+Commit, sequence, assign, track, govern, review, gate.
+
+This is the final stage. Synthesise all five prior stages into a single cohesive, board-ready strategic document. Do NOT simply repeat or summarise what prior stages said — synthesise into a unified direction.
+
+COMMIT IS THE FIRST AND ONLY STAGE WHERE:
+- Strategic bets are named as formal commitments (using the Strategic / Capability / Sequencing taxonomy)
+- The word "portfolio" is used for the set of bets
+- Ownership is assigned to specific bets or workstreams (use the execution_owner role provided)
+- Resourcing logic is articulated
+- Milestones and OKRs are set
+- Governance cadence is defined
+
+EXECUTION OWNER — MANDATORY:
+Use the execution_owner role provided in inputs. This role appears in the 100-day plan and governance rhythm.
+
+VALIDATION SEGMENT — MANDATORY:
+The validation_segment provided is the beachhead. All first-phase commitments target this segment. Do not diffuse the 100-day plan across multiple segments.
+
+HORIZON ALLOCATION:
+Use the horizon_allocation percentages provided. Label workstreams clearly as Now / Next / Later. The allocation shapes what gets funded, paused, protected, or reallocated.
+
+REVENUE TARGET — IF PROVIDED:
+Connect OKRs explicitly to the revenue_target. State: "The strategy must deliver [target]. The OKRs are set to measure whether this trajectory is on track."
+
+BET CAPACITY:
+Respect the bet_capacity constraint. If 3–5 bets are resourceable, produce 3–5. Do not list more bets than the company can resource.
+
+PLANNED HIRES — IF PROVIDED:
+Include planned hires in the Team & Capability section and connect them to specific strategic bets.
+
+REVIEW CADENCE — IF PROVIDED:
+Use the stated cadence in the Governance Rhythm. Default if not stated: Weekly operational + Monthly strategic + Quarterly portfolio.
+
+BOARD REPORTING FREQUENCY — IF PROVIDED:
+Include in governance rhythm.
+
+ANTI-PORTFOLIO — MANDATORY:
+Explicitly name what is NOT being pursued and why. State: "We are not pursuing [X] because [evidence]. This would change if [condition]."
+
+STALE CONTENT PROHIBITION — MANDATORY:
+You are synthesising from the CURRENT CASCADE OUTPUTS provided in context. Do NOT carry forward strategic directions, geographic assumptions, or buyer logic from earlier prompt versions or prior runs. The documents in context are the sole source of truth for this synthesis.
+
+GEOGRAPHY INHERITANCE RULE — MANDATORY:
+Inherit the geographic sequencing chosen in Decide EXACTLY. Do NOT introduce geographic logic that contradicts what Decide chose.
+
+BUYER MOTION ALIGNMENT — MANDATORY:
+GTM actions and 100-day milestones must align to the PRIMARY ECONOMIC BUYER defined in Position.
+
+BET STACK CONSISTENCY — MANDATORY:
+Label each strategic bet at one of three levels:
+- Strategic bet: a market or category-level commitment
+- Capability bet: a build/buy/partner commitment that enables a strategic bet
+- Sequencing rule: an explicit "X before Y" dependency
+Do not mix levels without clear labels. Aim for 3–5 bets maximum.
+
+Do NOT use web search — all evidence has been gathered in prior stages. Synthesise from the prior stage context provided.
+
+REQUIRED SECTION STRUCTURE:
+- In executive_summary: begin with "### Strategic Commitment"
+- In what_matters: use "### Strategic Bet Portfolio", "### Anti-Portfolio"
+- In recommendation: use "### What Must Be True (Consolidated)", "### Governance Rhythm"
+- In business_implications: use "### Resource & Investment Implications", "### Team & Capability Implications"
+
+STRUCTURED ARRAYS — MANDATORY (populate as separate fields in the tool call, NOT as ### sub-headings):
+
+strategic_bets array — 3 to 5 bets. Synthesise from the user's selected bets in the Commit answers. Each object MUST use exactly these field names:
+- "Bet name": string — name of the strategic bet (3–6 words, punchy, directional)
+- "Type": string — exactly one of: "Strategic" | "Capability" | "Sequencing"
+- "Hypothesis": string — EXACTLY ONE sentence: "We believe [action] will result in [outcome] because [the non-obvious insight]"
+- "Minimum viable test": string — EXACTLY ONE sentence: the fastest, cheapest way to validate this bet before full commitment. No costs, no budgets.
+Example: { "Bet name": "Own the Enterprise Mid-Market", "Type": "Strategic", "Hypothesis": "We believe targeting mid-market enterprise will result in 3× ACV expansion because buyers in that band self-select for compliance features we already own", "Minimum viable test": "Run a 60-day pilot with 5 mid-market prospects and measure time-to-close against current ICP" }
+
+okrs array — exactly 3 OKRs. Each object:
+- "objective": string — the objective (qualitative direction)
+- "key_results": string[] — 2–3 measurable key results
 Example: { "objective": "Establish enterprise pipeline", "key_results": ["Close 3 enterprise deals >$50k ACV", "Achieve 90-day sales cycle", "Hit 85% logo retention"] }
 
 hundred_day_plan array — milestones at 30, 60, and 90 days. Each object:
 - "milestone": string — what must be achieved
 - "timeline": string — "30 days" | "60 days" | "90 days"
-- "owner": string — named owner or team
+- "owner": string — named owner role (use execution_owner + relevant function leads)
 - "deliverable": string — concrete output
-Example: { "milestone": "Enterprise sales motion live", "timeline": "30 days", "owner": "Head of Sales", "deliverable": "Enterprise playbook + 10 target accounts identified" }
+- "gate": string — what must be true to proceed past this milestone
 
 kill_criteria array — at least 3. Each object:
 - "criterion": string — what would cause a direction change
 - "trigger": string — specific threshold or signal
 - "response": string — what to do if triggered
-Example: { "criterion": "Enterprise pipeline fails to convert", "trigger": "Less than 2 deals closed in 90 days", "response": "Revert to mid-market focus" }
 
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
-- "text": string — the assumption statement
-- "fragility": "low" | "medium" | "high" — how catastrophic it would be if this assumption is wrong
-- "testable": boolean — whether this assumption can be validated with data or experiment in the next 90 days
-- "status": "unvalidated" — always use this value (user will update later)
-Example: { "text": "Enterprise buyers will pay $50k+ ACV", "fragility": "high", "testable": true, "status": "unvalidated" }`,
+- "text": string — the assumption statement (max 15 words, no pipes or metadata in this field)
+- "fragility": "low" | "medium" | "high"
+- "testable": boolean
+- "status": "unvalidated"`,
 };
 
 // ─── Format Q&A ──────────────────────────────────────────────
@@ -434,6 +700,25 @@ function formatAnswers(
 // ─── Build company context block ──────────────────────────────
 
 function buildCompanyBlock(company: CompanyContext): string {
+  // competitor_intel: lead with the TARGET competitor, portfolio company is secondary context
+  if (company.competitorTarget) {
+    const lines: string[] = [
+      `## Competitor to Analyse: ${company.competitorTarget.name}`,
+      `Website: ${company.competitorTarget.url}`,
+      ``,
+      `## Portfolio Company (Strategic Perspective): ${company.name}`,
+    ];
+    if (company.url) lines.push(`Website: ${company.url}`);
+    if (company.sector) lines.push(`Sector: ${company.sector}`);
+    if (company.location) lines.push(`Location: ${company.location}`);
+    const icps = [company.icp1, company.icp2, company.icp3].filter(Boolean);
+    if (icps.length > 0) {
+      lines.push(`\n### Portfolio Company ICPs`);
+      icps.forEach((icp, i) => lines.push(`${i + 1}. ${icp}`));
+    }
+    return lines.join("\n");
+  }
+
   const lines: string[] = [`## Company: ${company.name}`];
   if (company.url) lines.push(`Website: ${company.url}`);
   if (company.sector) lines.push(`Sector: ${company.sector}`);
@@ -464,7 +749,7 @@ function buildPriorStageContext(priorReports: PriorStageSummary[]): string {
     return `### ${r.stageName} Stage — Full Output\n\n${r.summary}`;
   });
 
-  return `\n\n## Prior Stage Findings — Complete Cascade Context\n\nThe following contains the FULL output from each completed prior stage. Use ALL of this evidence when synthesising your response — do not rely only on the executive summaries.\n\nIMPORTANT: When producing your output, clearly distinguish your NEW assumptions and risks from those inherited from prior stages. Prefix inherited items with the source stage name (e.g. "[Frame]", "[Diagnose]"). This allows downstream consumers to trace the provenance of each claim.\n\n${sections.join("\n\n---\n\n")}`;
+  return `\n\n## Prior Stage Findings — Complete Cascade Context\n\nThe following contains the FULL output from each completed prior stage in the CURRENT RUN. These documents are the sole authoritative source for this synthesis.\n\nSTALE CONTENT WARNING — MANDATORY: Use ONLY the strategic directions, geographic assumptions, and buyer logic present in the documents below. Do NOT introduce logic from earlier prompt versions, cached prior runs, or strategies that conflict with what is written here. If you recall a prior strategic direction that is not reflected in these outputs, discard it — these documents override it.\n\nWhen producing your output, clearly distinguish NEW assumptions and risks from those inherited from prior stages. Prefix inherited items with the source stage name (e.g. "[Frame]", "[Diagnose]"). This allows downstream consumers to trace the provenance of each claim.\n\n${sections.join("\n\n---\n\n")}`;
 }
 
 // ─── Resolve agent ID ─────────────────────────────────────────
@@ -492,6 +777,8 @@ export async function createStrategySession(input: StrategySessionInput): Promis
     personaFraming,
     "",
     EVIDENCE_DISCIPLINE,
+    "",
+    FIELD_CONCISENESS_RULES,
     "",
     stageInstruction,
     "",
@@ -577,11 +864,22 @@ export async function checkStrategySession(sessionId: string): Promise<{
             })),
           }).catch(() => {});
         }
+      } else if (stopReason?.type === "end_turn" || (!stopReason && events.length > 0)) {
+        // Agent finished its turn without calling the custom tool — it returned text instead.
+        // This is a failure condition: the agent must always call produce_strategic_diagnosis.
+        console.error("[checkStrategySession] Session idle with end_turn but no tool event — agent did not call tool");
+        return { status: "failed" };
       }
     }
 
     return { status: "pending" };
   } catch (err) {
+    const errMsg = String(err);
+    // If session not found (archived/expired), treat as failed not pending
+    if (errMsg.includes("404") || errMsg.includes("not found") || errMsg.includes("not_found")) {
+      console.error("[checkStrategySession] Session not found (archived/expired):", sessionId);
+      return { status: "failed" };
+    }
     // Non-fatal — next poll will retry
     console.error("[checkStrategySession] Error:", err);
     return { status: "pending" };
