@@ -94,8 +94,8 @@ const STANDARD_REPORT_PILLS: Array<{ label: string; anchor: string }> = [
 
 // Stage-aware label overrides for section pills
 const STAGE_PILL_LABELS: Record<string, Record<string, string>> = {
-  frame:    { "What Matters Most": "Market Context", Recommendation: "Core Strategic Question", "Business Implications": "Hypothesis Register" },
-  diagnose: { Recommendation: "Emerging Direction", "Business Implications": "ICP Signal" },
+  frame:    { "What Matters Most": "Market Context", Recommendation: "Core Strategic Question", "Business Implications": "Strategic Tensions" },
+  diagnose: { Recommendation: "Emerging Direction" },
   decide:   { Recommendation: "Recommended Direction", "Business Implications": "Cost of Inaction" },
   position: { Recommendation: "Positioning Statement", "Business Implications": "GTM Implications" },
   commit:   { Sources: "Evidence Inherited", "Business Implications": "Resource Allocation" },
@@ -1385,29 +1385,54 @@ function renderOKRsCards(items: { objective: string; key_results: string[] }[]):
   );
 }
 
-function renderStrategicBetsCards(items: { bet: string; hypothesis: string; investment: string }[]): React.ReactNode {
+type BetEntry = Record<string, string>;
+
+function renderStrategicBetsCards(items: BetEntry[]): React.ReactNode {
+  const BET_TYPE_STYLES: Record<string, { color: string; bg: string }> = {
+    Strategic:   { color: "#1e40af", bg: "#dbeafe" },
+    Capability:  { color: "#065f46", bg: "#d1fae5" },
+    Sequencing:  { color: "#92400e", bg: "#fef3c7" },
+  };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      {items.map((b, i) => (
-        <div key={i} style={{ background: "#fff", border: "1px solid #fde68a", borderLeft: "4px solid #f59e0b", borderRadius: 10, padding: "16px 20px" }}>
-          <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: "0 0 10px", lineHeight: 1.5 }}>{b.bet}</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={{ fontSize: 12, color: "#6b7280", display: "flex", gap: 6, alignItems: "flex-start" }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#92400e", background: "#fef3c7", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Hypothesis</span>
-              <span style={{ lineHeight: 1.5 }}>{b.hypothesis}</span>
-            </span>
-            <span style={{ fontSize: 12, color: "#6b7280", display: "flex", gap: 6, alignItems: "flex-start" }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#1e40af", background: "#dbeafe", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Investment</span>
-              <span style={{ lineHeight: 1.5 }}>{b.investment}</span>
-            </span>
+      {items.map((b, i) => {
+        // Support both new format ("Bet name", "Hypothesis", "Minimum viable test")
+        // and old format (bet, hypothesis, investment) for backwards compat
+        const name = b["Bet name"] ?? b.bet ?? "";
+        const hypothesis = b["Hypothesis"] ?? b.hypothesis ?? "";
+        const mvt = b["Minimum viable test"] ?? b.investment ?? "";
+        const betType = b["Type"] ?? b.type ?? "";
+        const typeStyle = BET_TYPE_STYLES[betType] ?? null;
+        return (
+          <div key={i} style={{ background: "#fff", border: "1px solid #fde68a", borderLeft: "4px solid #f59e0b", borderRadius: 10, padding: "16px 20px" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: 0, lineHeight: 1.5 }}>{name}</p>
+              {typeStyle && betType && (
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: typeStyle.color, background: typeStyle.bg, borderRadius: 4, padding: "2px 8px", flexShrink: 0 }}>{betType}</span>
+              )}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {hypothesis && (
+                <span style={{ fontSize: 12, color: "#6b7280", display: "flex", gap: 6, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#92400e", background: "#fef3c7", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Hypothesis</span>
+                  <span style={{ lineHeight: 1.5 }}>{hypothesis}</span>
+                </span>
+              )}
+              {mvt && (
+                <span style={{ fontSize: 12, color: "#6b7280", display: "flex", gap: 6, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#1e40af", background: "#dbeafe", padding: "2px 6px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>Min. viable test</span>
+                  <span style={{ lineHeight: 1.5 }}>{mvt}</span>
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-function renderHundredDayPlanCards(items: { milestone: string; timeline: string; owner: string; deliverable: string }[]): React.ReactNode {
+function renderHundredDayPlanCards(items: { milestone: string; timeline: string; owner: string; deliverable: string; gate?: string }[]): React.ReactNode {
   const timelineColor: Record<string, string> = { "30 days": "#059669", "60 days": "#d97706", "90 days": "#7c3aed" };
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1419,9 +1444,17 @@ function renderHundredDayPlanCards(items: { milestone: string; timeline: string;
               <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: color, padding: "2px 8px", borderRadius: 4 }}>{m.timeline}</span>
               <p style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: 0, lineHeight: 1.5 }}>{m.milestone}</p>
             </div>
-            <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-              {m.owner && <span style={{ fontSize: 12, color: "#6b7280" }}><span style={{ fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginRight: 4 }}>Owner</span>{m.owner}</span>}
-              {m.deliverable && <span style={{ fontSize: 12, color: "#6b7280" }}><span style={{ fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginRight: 4 }}>Deliverable</span>{m.deliverable}</span>}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                {m.owner && <span style={{ fontSize: 12, color: "#6b7280" }}><span style={{ fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginRight: 4 }}>Owner</span>{m.owner}</span>}
+                {m.deliverable && <span style={{ fontSize: 12, color: "#6b7280" }}><span style={{ fontWeight: 700, fontSize: 10, textTransform: "uppercase", letterSpacing: "0.05em", color: "#9ca3af", marginRight: 4 }}>Deliverable</span>{m.deliverable}</span>}
+              </div>
+              {m.gate && (
+                <div style={{ display: "flex", gap: 6, alignItems: "flex-start", marginTop: 2 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#7c3aed", background: "#f5f3ff", border: "1px solid #ddd6fe", borderRadius: 4, padding: "1px 6px", flexShrink: 0, marginTop: 1 }}>Gate</span>
+                  <span style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5 }}>{m.gate}</span>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -1583,9 +1616,9 @@ function renderReport(text: string, sections?: Record<string, unknown>): React.R
       } else if (h === "okrs" && Array.isArray(sections.okrs) && sections.okrs.length > 0) {
         structuredContent = renderOKRsCards(sections.okrs as { objective: string; key_results: string[] }[]);
       } else if (h === "strategic bets" && Array.isArray(sections.strategic_bets) && sections.strategic_bets.length > 0) {
-        structuredContent = renderStrategicBetsCards(sections.strategic_bets as { bet: string; hypothesis: string; investment: string }[]);
+        structuredContent = renderStrategicBetsCards(sections.strategic_bets as BetEntry[]);
       } else if (h === "100-day plan" && Array.isArray(sections.hundred_day_plan) && sections.hundred_day_plan.length > 0) {
-        structuredContent = renderHundredDayPlanCards(sections.hundred_day_plan as { milestone: string; timeline: string; owner: string; deliverable: string }[]);
+        structuredContent = renderHundredDayPlanCards(sections.hundred_day_plan as { milestone: string; timeline: string; owner: string; deliverable: string; gate?: string }[]);
       } else if (h === "hypothesis register" && Array.isArray(sections.hypothesis_register) && sections.hypothesis_register.length > 0) {
         structuredContent = renderHypothesisRegisterCards(sections.hypothesis_register as HypothesisEntry[]);
       } else if ((h === "icp signal" || h === "the icp signal") && sections.icp_signal && typeof sections.icp_signal === "object") {
@@ -3230,14 +3263,18 @@ export function StrategyFlow({
       lines.push(`## OKRs\n\n${okrLines.join("\n\n")}`);
     }
     if (Array.isArray(sections.strategic_bets) && sections.strategic_bets.length > 0) {
-      const betLines = (sections.strategic_bets as { bet: string; hypothesis: string; investment: string }[]).map(
-        (b) => `**${b.bet}**\n_Hypothesis:_ ${b.hypothesis}\n_Investment:_ ${b.investment}`
-      );
+      const betLines = (sections.strategic_bets as BetEntry[]).map((b) => {
+        const name = b["Bet name"] ?? b.bet ?? "";
+        const hyp = b["Hypothesis"] ?? b.hypothesis ?? "";
+        const mvt = b["Minimum viable test"] ?? b.investment ?? "";
+        const type = b["Type"] ?? b.type ?? "";
+        return `**${name}**${type ? ` [${type}]` : ""}\n_Hypothesis:_ ${hyp}\n_Minimum viable test:_ ${mvt}`;
+      });
       lines.push(`## Strategic Bets\n\n${betLines.join("\n\n")}`);
     }
     if (Array.isArray(sections.hundred_day_plan) && sections.hundred_day_plan.length > 0) {
-      const planLines = (sections.hundred_day_plan as { milestone: string; timeline: string; owner: string; deliverable: string }[]).map(
-        (p) => `**${p.milestone}** _(${p.timeline})_\nOwner: ${p.owner}\nDeliverable: ${p.deliverable}`
+      const planLines = (sections.hundred_day_plan as { milestone: string; timeline: string; owner: string; deliverable: string; gate?: string }[]).map(
+        (p) => `**${p.milestone}** _(${p.timeline})_\nOwner: ${p.owner}\nDeliverable: ${p.deliverable}${p.gate ? `\nGate: ${p.gate}` : ""}`
       );
       lines.push(`## 100-Day Plan\n\n${planLines.join("\n\n")}`);
     }
@@ -3250,6 +3287,11 @@ export function StrategyFlow({
         return `- **[${statusLabel}]** ${h.hypothesis} _(${sourceLabel} → test in ${testedLabel})_${evidenceLine}`;
       });
       lines.push(`## Hypothesis Register\n\n${hypoLines.join("\n")}`);
+    }
+    if (sections.icp_signal && typeof sections.icp_signal === "object") {
+      const icp = sections.icp_signal as { stated_icp: string; actual_icp: string; alignment: string; divergence_note: string; signal_strength: string };
+      // The renderer picks this section up and renders a structured card (see h === "icp signal" check)
+      lines.push(`## ICP Signal\n\nAlignment: ${icp.alignment} (${icp.signal_strength} evidence)\n\nStated ICP: ${icp.stated_icp}\n\nActual ICP: ${icp.actual_icp}${icp.divergence_note ? `\n\nGap: ${icp.divergence_note}` : ""}`);
     }
     const eb = sections.evidence_base as { sources?: string[]; quotes?: string[] } | undefined;
     if (eb?.sources && eb.sources.length > 0) {
@@ -3633,17 +3675,32 @@ export function StrategyFlow({
         }
 
         if (Array.isArray(s.strategic_bets) && (s.strategic_bets as unknown[]).length > 0) {
-          const betLines = (s.strategic_bets as { bet: string; hypothesis: string; investment: string }[]).map(
-            (b) => `- ${b.bet} (Hypothesis: ${b.hypothesis}, Investment: ${b.investment})`
-          );
+          const betLines = (s.strategic_bets as BetEntry[]).map((b) => {
+            const name = b["Bet name"] ?? b.bet ?? "";
+            const hyp = b["Hypothesis"] ?? b.hypothesis ?? "";
+            const mvt = b["Minimum viable test"] ?? b.investment ?? "";
+            const type = b["Type"] ?? b.type ?? "";
+            return `- ${name}${type ? ` [${type}]` : ""} — Hypothesis: ${hyp} — MVT: ${mvt}`;
+          });
           parts.push(`**Strategic Bets**\n${betLines.join("\n")}`);
         }
 
         if (Array.isArray(s.hundred_day_plan) && (s.hundred_day_plan as unknown[]).length > 0) {
-          const planLines = (s.hundred_day_plan as { milestone: string; timeline: string; owner: string; deliverable: string }[]).map(
-            (p) => `- [${p.timeline}] ${p.milestone} (Owner: ${p.owner}, Deliverable: ${p.deliverable})`
+          const planLines = (s.hundred_day_plan as { milestone: string; timeline: string; owner: string; deliverable: string; gate?: string }[]).map(
+            (p) => `- [${p.timeline}] ${p.milestone} (Owner: ${p.owner}, Deliverable: ${p.deliverable}${p.gate ? `, Gate: ${p.gate}` : ""})`
           );
           parts.push(`**100-Day Plan**\n${planLines.join("\n")}`);
+        }
+
+        // hypothesis_register — include as JSON so downstream agents can read and update it
+        if (Array.isArray(s.hypothesis_register) && (s.hypothesis_register as unknown[]).length > 0) {
+          parts.push(`**Hypothesis Register (JSON — carry forward and update statuses)**\n\`\`\`json\n${JSON.stringify(s.hypothesis_register, null, 2)}\n\`\`\``);
+        }
+
+        // icp_signal — include as structured text for downstream reference
+        if (s.icp_signal && typeof s.icp_signal === "object") {
+          const icp = s.icp_signal as { stated_icp: string; actual_icp: string; alignment: string; divergence_note: string; signal_strength: string };
+          parts.push(`**ICP Signal**\nAlignment: ${icp.alignment} (${icp.signal_strength} evidence)\nStated ICP: ${icp.stated_icp}\nActual ICP: ${icp.actual_icp}${icp.divergence_note ? `\nGap: ${icp.divergence_note}` : ""}`);
         }
 
         const eb = s.evidence_base as { sources?: string[] } | undefined;

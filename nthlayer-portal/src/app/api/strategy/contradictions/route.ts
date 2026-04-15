@@ -26,7 +26,10 @@ export async function POST(req: NextRequest) {
 
     const priorText = Object.entries(priorSections).map(([stageId, s]) => {
       const sec = s as Record<string, unknown>;
-      return `${stageId.toUpperCase()}: ${String(sec.executive_summary ?? "").slice(0, 300)} | Assumptions: ${Array.isArray(sec.assumptions) ? (sec.assumptions as string[]).slice(0, 3).join("; ") : ""}`;
+      const assumptionTexts = Array.isArray(sec.assumptions)
+        ? (sec.assumptions as (string | Record<string, unknown>)[]).slice(0, 3).map((a) => typeof a === "string" ? a : (a.text as string) ?? "").join("; ")
+        : "";
+      return `${stageId.toUpperCase()}: ${String(sec.executive_summary ?? "").slice(0, 300)} | Assumptions: ${assumptionTexts}`;
     }).join("\n");
 
     const response = await client.messages.create({

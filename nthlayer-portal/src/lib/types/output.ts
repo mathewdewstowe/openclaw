@@ -42,7 +42,7 @@ export interface OutputSections {
   kill_criteria?: { criterion: string; trigger: string; response: string }[];
   okrs?: { objective: string; key_results: string[] }[];
   strategic_bets?: { bet: string; hypothesis: string; investment: string }[];
-  hundred_day_plan?: { milestone: string; timeline: string; owner: string; deliverable: string }[];
+  hundred_day_plan?: { milestone: string; timeline: string; owner: string; deliverable: string; gate?: string }[];
   // ICP signal — Diagnose compares stated ICP vs. evidence from review sites and case studies
   icp_signal?: {
     stated_icp: string;           // what the company profile says

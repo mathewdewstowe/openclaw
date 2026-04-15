@@ -200,7 +200,7 @@ export async function GET(req: NextRequest) {
           const newSummary = [
             capturedSections.executive_summary ? `Executive Summary: ${String(capturedSections.executive_summary).slice(0, 400)}` : "",
             Array.isArray(capturedSections.assumptions)
-              ? `Assumptions: ${(capturedSections.assumptions as string[]).slice(0, 5).join("; ")}`
+              ? `Assumptions: ${(capturedSections.assumptions as (string | Record<string, unknown>)[]).slice(0, 5).map((a) => typeof a === "string" ? a : (a.text as string) ?? "").join("; ")}`
               : "",
             capturedSections.recommendation ? `Recommendation: ${String(capturedSections.recommendation).slice(0, 400)}` : "",
           ].filter(Boolean).join("\n");
@@ -215,7 +215,7 @@ export async function GET(req: NextRequest) {
             const priorSummary = [
               s.executive_summary ? `${stageId} summary: ${String(s.executive_summary).slice(0, 400)}` : "",
               Array.isArray(s.assumptions)
-                ? `${stageId} assumptions: ${(s.assumptions as string[]).slice(0, 3).join("; ")}`
+                ? `${stageId} assumptions: ${(s.assumptions as (string | Record<string, unknown>)[]).slice(0, 3).map((a) => typeof a === "string" ? a : (a.text as string) ?? "").join("; ")}`
                 : "",
               s.recommendation ? `${stageId} recommendation: ${String(s.recommendation).slice(0, 300)}` : "",
             ].filter(Boolean).join("\n");

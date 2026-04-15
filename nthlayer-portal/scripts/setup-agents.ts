@@ -196,7 +196,10 @@ const CORE_REQUIRED = [
 
 const STAGE_REQUIRED: Record<string, string[]> = {
   frame:    [...CORE_REQUIRED, "hypothesis_register"],
-  diagnose: [...CORE_REQUIRED, "hypothesis_register", "icp_signal"],
+  // hypothesis_register and icp_signal are NOT listed here because the Diagnose agent is also
+  // reused for competitor_intel — making them required would break competitor_intel tool calls.
+  // The Diagnose STAGE_INSTRUCTIONS already mandate them as MANDATORY, so Diagnose will still produce them.
+  diagnose: [...CORE_REQUIRED],
   decide:   [...CORE_REQUIRED, "actions", "kill_criteria", "hypothesis_register"],
   position: [...CORE_REQUIRED, "hypothesis_register"],
   commit:   [...CORE_REQUIRED, "actions", "monitoring", "strategic_bets", "okrs", "hundred_day_plan", "kill_criteria"],

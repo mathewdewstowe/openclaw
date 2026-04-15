@@ -20,7 +20,7 @@ type Bet = {
   resource_implication?: string;
 };
 type OKR = { objective: string; key_results: string[] };
-type DayPlan = { milestone: string; timeline: string; owner: string; deliverable: string };
+type DayPlan = { milestone: string; timeline: string; owner: string; deliverable: string; gate?: string };
 type KillCriterion = { criterion: string; trigger: string; response: string };
 type Monitoring = { metric: string; target: string; frequency: string };
 
@@ -269,8 +269,8 @@ export function downloadStrategyDocument(companyName: string, outputs: StageOutp
       if (plan?.length) {
         parts.push(subheading("100-Day Plan"));
         parts.push(tableHtml(
-          ["Timeline", "Milestone", "Owner", "Deliverable"],
-          plan.map(p => [p.timeline || "—", p.milestone || "—", p.owner || "—", p.deliverable || "—"])
+          ["Timeline", "Milestone", "Owner", "Deliverable", "Gate"],
+          plan.map(p => [p.timeline || "—", p.milestone || "—", p.owner || "—", p.deliverable || "—", p.gate || "—"])
         ));
       }
     }
