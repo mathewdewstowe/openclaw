@@ -3,13 +3,16 @@
  * Cloudflare Worker exposing two tools for Claude Managed Agents:
  *
  *   1. brave_web_search  — search the web, get result titles/URLs/snippets
- *   2. fetch_url         — fetch a URL and return its readable text content
+ *   2. fetch_url         — fetch a URL and return full readable text content
+ *                          Uses Firecrawl (handles JS rendering + bot protection)
+ *                          Falls back to direct fetch for simple static pages
  *
  * MCP protocol: https://modelcontextprotocol.io/docs/concepts/transports#http-with-sse
  */
 
 interface Env {
   BRAVE_API_KEY: string;
+  FIRECRAWL_API_KEY: string;
 }
 
 // ─── Brave Search ─────────────────────────────────────────────
@@ -22,9 +25,7 @@ interface BraveResult {
 }
 
 interface BraveResponse {
-  web?: {
-    results?: BraveResult[];
-  };
+  web?: { results?: BraveResult[] };
 }
 
 async function braveSearch(query: string, apiKey: string, count = 10): Promise<BraveResult[]> {
@@ -32,7 +33,7 @@ async function braveSearch(query: string, apiKey: string, count = 10): Promise<B
   url.searchParams.set("q", query);
   url.searchParams.set("count", String(count));
   url.searchParams.set("safesearch", "moderate");
-  url.searchParams.set("freshness", "py"); // past year
+  url.searchParams.set("freshness", "py");
 
   const res = await fetch(url.toString(), {
     headers: {
@@ -42,10 +43,7 @@ async function braveSearch(query: string, apiKey: string, count = 10): Promise<B
     },
   });
 
-  if (!res.ok) {
-    throw new Error(`Brave API error: ${res.status} ${await res.text()}`);
-  }
-
+  if (!res.ok) throw new Error(`Brave API error: ${res.status} ${await res.text()}`);
   const data = await res.json() as BraveResponse;
   return data.web?.results ?? [];
 }
@@ -57,15 +55,58 @@ function formatResults(results: BraveResult[]): string {
   ).join("\n\n");
 }
 
-// ─── URL Fetch ────────────────────────────────────────────────
+// ─── Firecrawl Fetch ──────────────────────────────────────────
 
-/**
- * Strip HTML tags and boilerplate, returning readable page text.
- * Removes: scripts, styles, nav, footer, header, aside, forms, SVG.
- * Collapses whitespace. Truncates to maxChars.
- */
+interface FirecrawlResponse {
+  success: boolean;
+  data?: {
+    markdown?: string;
+    content?: string;
+    metadata?: { title?: string; description?: string };
+  };
+  error?: string;
+}
+
+async function firecrawlFetch(url: string, apiKey: string): Promise<string> {
+  const res = await fetch("https://api.firecrawl.dev/v1/scrape", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      url,
+      formats: ["markdown"],
+      onlyMainContent: true,   // strips nav, footer, cookie banners
+      waitFor: 2000,           // wait 2s for JS to render
+      timeout: 20000,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Firecrawl error ${res.status}: ${body.slice(0, 200)}`);
+  }
+
+  const data = await res.json() as FirecrawlResponse;
+
+  if (!data.success) {
+    throw new Error(`Firecrawl failed: ${data.error ?? "unknown error"}`);
+  }
+
+  const text = data.data?.markdown ?? data.data?.content ?? "";
+  if (!text.trim()) throw new Error("Firecrawl returned empty content");
+
+  // Truncate to 12k chars — enough for most pages, keeps context manageable
+  if (text.length <= 12000) return text;
+  const truncated = text.slice(0, 12000);
+  const lastSentence = Math.max(truncated.lastIndexOf(". "), truncated.lastIndexOf(".\n"));
+  return (lastSentence > 9600 ? truncated.slice(0, lastSentence + 1) : truncated) + "\n\n[Content truncated at 12,000 characters]";
+}
+
+// ─── Direct fetch fallback (for simple static pages) ──────────
+
 function stripHtml(html: string, maxChars = 12000): string {
-  // Remove non-content elements entirely
   let text = html
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
@@ -76,49 +117,46 @@ function stripHtml(html: string, maxChars = 12000): string {
     .replace(/<aside[\s\S]*?<\/aside>/gi, "")
     .replace(/<form[\s\S]*?<\/form>/gi, "")
     .replace(/<noscript[\s\S]*?<\/noscript>/gi, "")
-    .replace(/<!--[\s\S]*?-->/g, "");
-
-  // Preserve line breaks at block-level elements
-  text = text
+    .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/<\/?(h[1-6]|p|div|section|article|li|tr|br|blockquote)[^>]*>/gi, "\n")
-    .replace(/<\/?(th|td)[^>]*>/gi, "\t");
-
-  // Strip remaining tags
-  text = text.replace(/<[^>]+>/g, "");
-
-  // Decode common HTML entities
-  text = text
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&ndash;/g, "–")
-    .replace(/&mdash;/g, "—")
-    .replace(/&#x27;/g, "'")
-    .replace(/&#x2F;/g, "/");
-
-  // Collapse whitespace
-  text = text
-    .replace(/\t+/g, " ")
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
+    .replace(/<\/?(th|td)[^>]*>/gi, "\t")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/&ndash;/g, "–").replace(/&mdash;/g, "—")
+    .replace(/\t+/g, " ").replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n")
     .trim();
 
   if (text.length <= maxChars) return text;
-
-  // Truncate cleanly at a sentence boundary if possible
   const truncated = text.slice(0, maxChars);
-  const lastSentence = Math.max(
-    truncated.lastIndexOf(". "),
-    truncated.lastIndexOf(".\n"),
-  );
-  return (lastSentence > maxChars * 0.8 ? truncated.slice(0, lastSentence + 1) : truncated) +
-    "\n\n[Content truncated]";
+  const lastSentence = Math.max(truncated.lastIndexOf(". "), truncated.lastIndexOf(".\n"));
+  return (lastSentence > maxChars * 0.8 ? truncated.slice(0, lastSentence + 1) : truncated) + "\n\n[Content truncated]";
 }
 
-async function fetchUrl(url: string): Promise<string> {
+async function directFetch(url: string): Promise<string> {
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (compatible; Inflexion/1.0)",
+      "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
+      "Accept-Language": "en-GB,en;q=0.9",
+    },
+    redirect: "follow",
+  });
+
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+  const contentType = res.headers.get("content-type") ?? "";
+  const text = await res.text();
+
+  if (contentType.includes("text/plain") || contentType.includes("application/json")) {
+    return text.slice(0, 12000);
+  }
+  return stripHtml(text);
+}
+
+// ─── Main fetch_url: Firecrawl first, direct fallback ─────────
+
+async function fetchUrl(url: string, firecrawlApiKey: string): Promise<string> {
   // Validate URL
   let parsed: URL;
   try {
@@ -126,47 +164,26 @@ async function fetchUrl(url: string): Promise<string> {
   } catch {
     throw new Error(`Invalid URL: ${url}`);
   }
-
   if (!["http:", "https:"].includes(parsed.protocol)) {
-    throw new Error(`Only HTTP/HTTPS URLs are supported`);
+    throw new Error("Only HTTP/HTTPS URLs are supported");
   }
 
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (compatible; Inflexion/1.0; +https://inflexion.io)",
-      "Accept": "text/html,application/xhtml+xml,*/*;q=0.8",
-      "Accept-Language": "en-GB,en;q=0.9",
-    },
-    // Follow redirects (default in Cloudflare Workers)
-    redirect: "follow",
-  });
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} fetching ${url}`);
+  // Try Firecrawl first — handles JS rendering, bot protection, paywalls
+  try {
+    return await firecrawlFetch(url, firecrawlApiKey);
+  } catch (firecrawlErr) {
+    // Fall back to direct fetch for simple static pages
+    try {
+      const text = await directFetch(url);
+      // If direct fetch returns very little content, it's probably JS-rendered — report it
+      if (text.trim().length < 200) {
+        throw new Error(`Page appears to require JavaScript rendering and Firecrawl also failed: ${String(firecrawlErr)}`);
+      }
+      return text;
+    } catch (directErr) {
+      throw new Error(`Firecrawl: ${String(firecrawlErr)} | Direct: ${String(directErr)}`);
+    }
   }
-
-  const contentType = res.headers.get("content-type") ?? "";
-
-  // Plain text — return directly
-  if (contentType.includes("text/plain")) {
-    const text = await res.text();
-    return text.slice(0, 12000);
-  }
-
-  // JSON — return as-is (useful for APIs)
-  if (contentType.includes("application/json")) {
-    const text = await res.text();
-    return text.slice(0, 12000);
-  }
-
-  // HTML — strip and clean
-  if (contentType.includes("text/html") || contentType.includes("application/xhtml")) {
-    const html = await res.text();
-    return stripHtml(html);
-  }
-
-  // PDF, binary, etc. — not supported
-  throw new Error(`Unsupported content type: ${contentType}`);
 }
 
 // ─── MCP Tool Definitions ─────────────────────────────────────
@@ -179,7 +196,7 @@ const SEARCH_TOOL = {
     properties: {
       query: {
         type: "string",
-        description: "The search query. Be specific. Include company names, dates, and relevant qualifiers. Example: 'Nth Layer strategic advisory Cardiff UK 2025' or 'competitor.com pricing funding 2025'.",
+        description: "The search query. Be specific. Include company names, dates, and relevant qualifiers.",
       },
       count: {
         type: "number",
@@ -192,20 +209,20 @@ const SEARCH_TOOL = {
 
 const FETCH_TOOL = {
   name: "fetch_url",
-  description: `Fetch the full text content of a URL. Use this to read actual page content after finding URLs via brave_web_search.
+  description: `Fetch the full text content of any URL. Uses Firecrawl to handle JavaScript-rendered pages, bot protection, and modern SaaS sites. Falls back to direct fetch for simple static pages.
 
 Best uses:
-- Company homepage and About page (understand how they describe themselves)
-- Company product/platform pages (features, positioning language)
-- Company pricing page (packaging, tiers)
-- Company customer/case-study pages (ICP signals, use cases)
-- Competitor homepages (hero copy, positioning statements)
-- G2 profile pages (category, ratings, review excerpts)
-- LinkedIn company pages (headcount, recent posts)
-- Analyst summaries (Gartner, Forrester excerpts)
-- News articles (funding rounds, launches, leadership changes)
+- Company homepage, /about, /product, /pricing, /customers pages
+- Competitor homepages — read actual hero copy and positioning language
+- G2 and TrustRadius profile pages — actual review text
+- Glassdoor company pages — ratings and review themes
+- LinkedIn company pages — headcount, posts
+- News articles about funding, launches, leadership changes
+- Crunchbase profiles — funding history
+- Analyst summaries — Gartner, Forrester excerpts
+- SaaS benchmark blog posts — SaaS Capital, OpenView, Benchmarkit
 
-Returns cleaned readable text (up to 12,000 characters). Not suitable for PDFs or binary files.`,
+Returns cleaned markdown text (up to 12,000 characters).`,
   inputSchema: {
     type: "object",
     properties: {
@@ -232,7 +249,6 @@ function jsonrpcError(id: unknown, code: number, message: string) {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // CORS preflight
     if (request.method === "OPTIONS") {
       return new Response(null, {
         headers: {
@@ -245,12 +261,10 @@ export default {
 
     const url = new URL(request.url);
 
-    // Health check
     if (url.pathname === "/health") {
-      return Response.json({ ok: true, service: "inflexion-mcp-search", tools: ["brave_web_search", "fetch_url"] });
+      return Response.json({ ok: true, service: "inflexion-mcp-search", version: "3.0.0", tools: ["brave_web_search", "fetch_url"] });
     }
 
-    // MCP endpoint
     if (url.pathname !== "/mcp" && url.pathname !== "/") {
       return new Response("Not found", { status: 404 });
     }
@@ -268,13 +282,11 @@ export default {
 
     const { id, method, params } = body;
 
-    // ── MCP methods ──────────────────────────────────────────
-
     if (method === "initialize") {
       return jsonrpc(id, {
         protocolVersion: "2024-11-05",
         capabilities: { tools: {} },
-        serverInfo: { name: "inflexion-mcp-search", version: "2.0.0" },
+        serverInfo: { name: "inflexion-mcp-search", version: "3.0.0" },
       });
     }
 
@@ -286,36 +298,25 @@ export default {
       const toolName = (params?.name as string) ?? "";
       const toolArgs = (params?.arguments as Record<string, unknown>) ?? {};
 
-      // ── brave_web_search ────────────────────────────────────
       if (toolName === "brave_web_search") {
         const query = String(toolArgs.query ?? "");
         const count = Math.min(Number(toolArgs.count ?? 10), 20);
-
-        if (!query) {
-          return jsonrpcError(id, -32602, "query is required");
-        }
-
+        if (!query) return jsonrpcError(id, -32602, "query is required");
         try {
           const results = await braveSearch(query, env.BRAVE_API_KEY, count);
-          const text = formatResults(results);
           return jsonrpc(id, {
-            content: [{ type: "text", text: `Search results for: "${query}"\n\n${text}` }],
+            content: [{ type: "text", text: `Search results for: "${query}"\n\n${formatResults(results)}` }],
           });
         } catch (err) {
           return jsonrpcError(id, -32603, `Search failed: ${String(err)}`);
         }
       }
 
-      // ── fetch_url ───────────────────────────────────────────
       if (toolName === "fetch_url") {
         const targetUrl = String(toolArgs.url ?? "");
-
-        if (!targetUrl) {
-          return jsonrpcError(id, -32602, "url is required");
-        }
-
+        if (!targetUrl) return jsonrpcError(id, -32602, "url is required");
         try {
-          const text = await fetchUrl(targetUrl);
+          const text = await fetchUrl(targetUrl, env.FIRECRAWL_API_KEY);
           return jsonrpc(id, {
             content: [{ type: "text", text: `Content of ${targetUrl}:\n\n${text}` }],
           });
@@ -327,7 +328,6 @@ export default {
       return jsonrpcError(id, -32602, `Unknown tool: ${toolName}`);
     }
 
-    // Notifications — no response needed
     if (method.startsWith("notifications/")) {
       return new Response(null, { status: 204 });
     }
