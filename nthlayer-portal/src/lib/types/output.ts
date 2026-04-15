@@ -43,6 +43,14 @@ export interface OutputSections {
   okrs?: { objective: string; key_results: string[] }[];
   strategic_bets?: { bet: string; hypothesis: string; investment: string }[];
   hundred_day_plan?: { milestone: string; timeline: string; owner: string; deliverable: string }[];
+  // ICP signal — Diagnose compares stated ICP vs. evidence from review sites and case studies
+  icp_signal?: {
+    stated_icp: string;           // what the company profile says
+    actual_icp: string;           // what the evidence shows (review sites, case study logos, win patterns)
+    alignment: "aligned" | "partial" | "divergent";
+    divergence_note: string;      // "" if aligned; one sentence on the gap if partial/divergent
+    signal_strength: "strong" | "moderate" | "weak"; // how much evidence was available
+  };
   // Hypothesis register — created in Frame, updated by each downstream stage
   hypothesis_register?: {
     hypothesis: string;
@@ -71,6 +79,7 @@ export const SECTION_ORDER = [
   "strategic_bets",
   "hundred_day_plan",
   "hypothesis_register",
+  "icp_signal",
 ] as const;
 
 export const SECTION_LABELS: Record<string, string> = {
@@ -89,6 +98,7 @@ export const SECTION_LABELS: Record<string, string> = {
   strategic_bets: "Strategic Bets",
   hundred_day_plan: "100-Day Plan",
   hypothesis_register: "Hypothesis Register",
+  icp_signal: "ICP Signal",
 };
 
 // ─── Stage-aware section labels ─────────────────────────────────
@@ -107,11 +117,11 @@ export const STAGE_SECTION_LABELS: Record<string, Partial<Record<string, string>
 // the stage does not produce them (agents are told not to return them).
 
 export const STAGE_HIDDEN_SECTIONS: Record<string, string[]> = {
-  frame:    ["actions", "monitoring"],
+  frame:    ["actions", "monitoring", "icp_signal"],
   diagnose: ["actions", "monitoring"],
-  decide:   ["monitoring"],
-  position: ["actions", "monitoring"],
-  commit:   [],
+  decide:   ["monitoring", "icp_signal"],
+  position: ["actions", "monitoring", "icp_signal"],
+  commit:   ["icp_signal", "hypothesis_register"],
 };
 
 // ─── Workflow metadata ───────────────────────────────────────

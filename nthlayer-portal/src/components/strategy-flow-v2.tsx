@@ -1215,6 +1215,45 @@ function renderAssumptionsCards(assumptions: (string | Record<string, unknown>)[
   );
 }
 
+function renderIcpSignalCard(icp: { stated_icp: string; actual_icp: string; alignment: string; divergence_note: string; signal_strength: string }): React.ReactNode {
+  const ALIGNMENT_STYLES = {
+    aligned:   { label: "Aligned",   color: "#065f46", bg: "#f0fdf4", border: "#86efac", dot: "#22c55e" },
+    partial:   { label: "Partial",   color: "#92400e", bg: "#fffbeb", border: "#fde68a", dot: "#f59e0b" },
+    divergent: { label: "Divergent", color: "#991b1b", bg: "#fff1f2", border: "#fecaca", dot: "#ef4444" },
+  };
+  const STRENGTH_LABEL = { strong: "Strong evidence", moderate: "Moderate evidence", weak: "Thin evidence" };
+  const st = ALIGNMENT_STYLES[icp.alignment as keyof typeof ALIGNMENT_STYLES] ?? ALIGNMENT_STYLES.partial;
+
+  return (
+    <div style={{ background: st.bg, border: `1px solid ${st.border}`, borderLeft: `4px solid ${st.dot}`, borderRadius: 10, padding: "18px 20px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <span style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: st.color, background: "#fff", border: `1px solid ${st.border}`, borderRadius: 4, padding: "2px 8px" }}>
+          ICP {st.label}
+        </span>
+        <span style={{ fontSize: 10, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 4, padding: "2px 7px" }}>
+          {STRENGTH_LABEL[icp.signal_strength as keyof typeof STRENGTH_LABEL] ?? icp.signal_strength}
+        </span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div>
+          <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#6b7280", margin: "0 0 4px" }}>Stated ICP</p>
+          <p style={{ fontSize: 13, color: "#374151", margin: 0, lineHeight: 1.6 }}>{icp.stated_icp}</p>
+        </div>
+        <div>
+          <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#6b7280", margin: "0 0 4px" }}>Actual ICP (evidence)</p>
+          <p style={{ fontSize: 13, color: "#374151", margin: 0, lineHeight: 1.6 }}>{icp.actual_icp}</p>
+        </div>
+        {icp.divergence_note && (
+          <div style={{ background: "#fff", borderRadius: 6, padding: "10px 14px", border: `1px solid ${st.border}` }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: st.color, margin: "0 0 2px" }}>Gap</p>
+            <p style={{ fontSize: 12, color: "#6b7280", margin: 0, lineHeight: 1.5, fontStyle: "italic" }}>{icp.divergence_note}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 type HypothesisEntry = {
   hypothesis: string;
   source: string;
@@ -1549,6 +1588,8 @@ function renderReport(text: string, sections?: Record<string, unknown>): React.R
         structuredContent = renderHundredDayPlanCards(sections.hundred_day_plan as { milestone: string; timeline: string; owner: string; deliverable: string }[]);
       } else if (h === "hypothesis register" && Array.isArray(sections.hypothesis_register) && sections.hypothesis_register.length > 0) {
         structuredContent = renderHypothesisRegisterCards(sections.hypothesis_register as HypothesisEntry[]);
+      } else if ((h === "icp signal" || h === "the icp signal") && sections.icp_signal && typeof sections.icp_signal === "object") {
+        structuredContent = renderIcpSignalCard(sections.icp_signal as { stated_icp: string; actual_icp: string; alignment: string; divergence_note: string; signal_strength: string });
       }
     }
 
@@ -3923,6 +3964,7 @@ export function StrategyFlow({
           const isActive = stage.id === activeStageId;
           const isComplete = state.status === "complete" || state.reportStatus === "complete";
           const isLocked = state.status === "locked";
+          const isStale = (state.reportSections as Record<string, unknown> | null | undefined)?._stale === true;
 
           return (
             <div key={stage.id} style={{ display: "flex", alignItems: "center", height: isMobile ? 64 : 84 }}>
@@ -3975,15 +4017,26 @@ export function StrategyFlow({
                   )}
                 </span>
                 {!isMobile && (
-                  <span
-                    style={{
-                      fontSize: 17,
-                      fontWeight: isActive ? 800 : 600,
-                      color: isLocked ? "#9ca3af" : isActive ? "#111827" : "#374151",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {stage.name}
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span
+                      style={{
+                        fontSize: 17,
+                        fontWeight: isActive ? 800 : 600,
+                        color: isLocked ? "#9ca3af" : isActive ? "#111827" : "#374151",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {stage.name}
+                    </span>
+                    {isStale && !isActive && (
+                      <span title="Contradictions detected — a later stage flagged this output as stale" style={{
+                        fontSize: 9, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em",
+                        color: "#c2410c", background: "#fff7ed", border: "1px solid #fed7aa",
+                        borderRadius: 10, padding: "1px 6px", flexShrink: 0,
+                      }}>
+                        ⚠ Stale
+                      </span>
+                    )}
                   </span>
                 )}
               </button>

@@ -343,6 +343,14 @@ STAGE OUTPUT RULES — DIAGNOSE:
 - DO populate monitoring with 3–4 diagnostic metrics: signals that would confirm the diagnosis or reveal it needs revision.
 - Distinguish NEW assumptions from those inherited from Frame. Mark inherited assumptions with "[From Frame]".
 
+ICP SIGNAL — MANDATORY STRUCTURED FIELD:
+Populate the icp_signal object by comparing the stated ICPs (from the company context block) against what public evidence shows:
+- "stated_icp": copy the stated ICP(s) from the company context block verbatim (1–2 sentences)
+- "actual_icp": describe what review sites (TrustRadius, Capterra), case study logos, and G2 snippets actually suggest about who uses and values the product (1–2 sentences)
+- "alignment": "aligned" if stated and actual match well | "partial" if there's one notable gap | "divergent" if the evidence contradicts the stated ICP materially
+- "divergence_note": if aligned → "" | if partial or divergent → one sentence on the specific gap (e.g. "Case studies skew SMB but stated ICP is mid-market enterprise")
+- "signal_strength": "strong" if 3+ evidence sources found | "moderate" if 1–2 | "weak" if evidence was thin
+
 HYPOTHESIS REGISTER — MANDATORY. Carry forward and update:
 Look in the prior Frame output for the hypothesis_register array. Populate your hypothesis_register with ALL entries from Frame, updated based on what this stage found. For each entry:
 - Keep "hypothesis", "source", and "tested_in" unchanged
@@ -684,7 +692,15 @@ Label each strategic bet at one of three levels:
 - Sequencing rule: an explicit "X before Y" dependency
 Do not mix levels without clear labels. Aim for 3–5 bets maximum.
 
-Do NOT use web search — all evidence has been gathered in prior stages. Synthesise from the prior stage context provided.
+MARKET REFRESH — LIMITED WEB SEARCH (MANDATORY):
+Do a narrow, targeted search to check for material market changes since the prior stages were run. This is NOT a full research pass — it is a reality check before committing. Run these searches only:
+1. Search "[company name] competitor news 2025" → scan snippets for any major funding rounds, acquisitions, or product launches among the known competitors. Fetch the top article only if a headline signals a significant move.
+2. Search "[category] market news 2025" → scan snippets for any major category shifts, regulatory changes, or platform moves that would affect the strategy.
+3. Search "[top 1–2 competitors from prior stages] announcement 2025" → check for anything that would invalidate the chosen direction.
+
+If you find material new information: note it explicitly in the executive_summary under "### Market Refresh Note" and factor it into the bet portfolio.
+If nothing material has changed: state "No material market changes detected since prior stages" in the executive_summary and proceed with the synthesis.
+Do NOT do broad company research — that was Frame and Diagnose's job. This search is for late-breaking signals only.
 
 REQUIRED SECTION STRUCTURE:
 - In executive_summary: begin with "### Strategic Commitment"
