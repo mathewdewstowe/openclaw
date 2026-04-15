@@ -36,16 +36,29 @@ const OUTPUT_PROPERTIES = {
   evidence_base: {
     type: "object",
     properties: {
-      sources: { type: "array", items: { type: "string" }, description: "Sources used in the analysis." },
+      sources: { type: "array", items: { type: "string" }, description: "URLs cited in the analysis." },
       quotes: { type: "array", items: { type: "string" }, description: "Key verbatim quotes or data points that anchor the analysis." },
     },
     required: ["sources", "quotes"],
   },
-  assumptions: { type: "array", items: { type: "string" }, description: "Explicit assumptions the analysis rests on." },
+  assumptions: {
+    type: "array",
+    description: "Explicit assumptions the analysis rests on. Each must be an object with text, fragility, testable, and status fields.",
+    items: {
+      type: "object",
+      properties: {
+        text: { type: "string", description: "The assumption statement. Max 15 words. No metadata in this field." },
+        fragility: { type: "string", enum: ["low", "medium", "high"], description: "How catastrophic if wrong." },
+        testable: { type: "boolean", description: "Whether this can be validated with data in 90 days." },
+        status: { type: "string", enum: ["unvalidated", "validated", "at_risk", "invalidated"] },
+      },
+      required: ["text", "fragility", "testable", "status"],
+    },
+  },
   confidence: {
     type: "object",
     properties: {
-      score: { type: "number", description: "0.0–1.0. Be honest. Low scores are valuable." },
+      score: { type: "number", description: "0.0–1.0. Capped at 0.85. Be honest. Low scores are valuable." },
       rationale: { type: "string", description: "Why this score. What would raise it." },
     },
     required: ["score", "rationale"],
@@ -55,7 +68,7 @@ const OUTPUT_PROPERTIES = {
     items: {
       type: "object",
       properties: {
-        risk: { type: "string" },
+        risk: { type: "string", description: "One sharp sentence naming the risk. Max 12 words." },
         severity: { type: "string", enum: ["high", "medium", "low"] },
         mitigation: { type: "string" },
       },
@@ -67,7 +80,7 @@ const OUTPUT_PROPERTIES = {
     items: {
       type: "object",
       properties: {
-        action: { type: "string" },
+        action: { type: "string", description: "One sentence. Max 12 words. Active verb." },
         owner: { type: "string" },
         deadline: { type: "string" },
         priority: { type: "string", enum: ["critical", "high", "medium", "low"] },
@@ -80,12 +93,94 @@ const OUTPUT_PROPERTIES = {
     items: {
       type: "object",
       properties: {
-        metric: { type: "string" },
+        metric: { type: "string", description: "The specific thing to watch. Max 10 words." },
         target: { type: "string" },
         frequency: { type: "string" },
       },
       required: ["metric", "target", "frequency"],
     },
+  },
+  // ── Structured optional fields ─────────────────────────────────
+  kill_criteria: {
+    type: "array",
+    description: "Conditions that would cause abandonment of this direction. Populate in Decide and Commit.",
+    items: {
+      type: "object",
+      properties: {
+        criterion: { type: "string", description: "What condition triggers abandonment." },
+        trigger: { type: "string", description: "Specific threshold or signal." },
+        response: { type: "string", description: "What to do if triggered." },
+      },
+      required: ["criterion", "trigger", "response"],
+    },
+  },
+  okrs: {
+    type: "array",
+    description: "Exactly 3 OKRs. Populate in Commit only.",
+    items: {
+      type: "object",
+      properties: {
+        objective: { type: "string" },
+        key_results: { type: "array", items: { type: "string" } },
+      },
+      required: ["objective", "key_results"],
+    },
+  },
+  strategic_bets: {
+    type: "array",
+    description: "3–5 strategic bets. Populate in Commit only.",
+    items: {
+      type: "object",
+      properties: {
+        "Bet name": { type: "string", description: "3–6 words, punchy, directional." },
+        "Type": { type: "string", enum: ["Strategic", "Capability", "Sequencing"] },
+        "Hypothesis": { type: "string", description: "Exactly one sentence: We believe [action] will result in [outcome] because [insight]." },
+        "Minimum viable test": { type: "string", description: "Exactly one sentence: the fastest, cheapest way to validate this bet." },
+      },
+      required: ["Bet name", "Type", "Hypothesis", "Minimum viable test"],
+    },
+  },
+  hundred_day_plan: {
+    type: "array",
+    description: "Milestones at 30, 60, and 90 days. Populate in Commit only.",
+    items: {
+      type: "object",
+      properties: {
+        milestone: { type: "string" },
+        timeline: { type: "string", enum: ["30 days", "60 days", "90 days"] },
+        owner: { type: "string" },
+        deliverable: { type: "string" },
+        gate: { type: "string", description: "What must be true to proceed past this milestone." },
+      },
+      required: ["milestone", "timeline", "owner", "deliverable", "gate"],
+    },
+  },
+  hypothesis_register: {
+    type: "array",
+    description: "Testable hypotheses tracked across all stages. Created in Frame, updated by Diagnose/Decide/Position.",
+    items: {
+      type: "object",
+      properties: {
+        hypothesis: { type: "string", description: "Testable statement. One sentence, max 20 words." },
+        source: { type: "string", enum: ["user_input", "web_research", "inferred"] },
+        tested_in: { type: "string", enum: ["diagnose", "decide", "position", "commit"] },
+        status: { type: "string", enum: ["untested", "validated", "at_risk", "invalidated"] },
+        evidence: { type: "string", description: "One sentence of what was found. Empty string if untested." },
+      },
+      required: ["hypothesis", "source", "tested_in", "status", "evidence"],
+    },
+  },
+  icp_signal: {
+    type: "object",
+    description: "ICP validation from public evidence. Populate in Diagnose only.",
+    properties: {
+      stated_icp: { type: "string", description: "Stated ICP from company context." },
+      actual_icp: { type: "string", description: "What evidence shows about actual users and buyers." },
+      alignment: { type: "string", enum: ["aligned", "partial", "divergent"] },
+      divergence_note: { type: "string", description: "Specific gap if partial or divergent. Empty string if aligned." },
+      signal_strength: { type: "string", enum: ["strong", "moderate", "weak"] },
+    },
+    required: ["stated_icp", "actual_icp", "alignment", "divergence_note", "signal_strength"],
   },
 } as const;
 
@@ -100,11 +195,11 @@ const CORE_REQUIRED = [
 ];
 
 const STAGE_REQUIRED: Record<string, string[]> = {
-  frame:    [...CORE_REQUIRED],                                       // no actions, no monitoring
-  diagnose: [...CORE_REQUIRED],                                       // no actions, no monitoring
-  decide:   [...CORE_REQUIRED, "actions"],                            // actions earned here, no monitoring
-  position: [...CORE_REQUIRED],                                       // no actions, no monitoring
-  commit:   [...CORE_REQUIRED, "actions", "monitoring"],              // all 10
+  frame:    [...CORE_REQUIRED, "hypothesis_register"],
+  diagnose: [...CORE_REQUIRED, "hypothesis_register", "icp_signal"],
+  decide:   [...CORE_REQUIRED, "actions", "kill_criteria", "hypothesis_register"],
+  position: [...CORE_REQUIRED, "hypothesis_register"],
+  commit:   [...CORE_REQUIRED, "actions", "monitoring", "strategic_bets", "okrs", "hundred_day_plan", "kill_criteria"],
 };
 
 function buildToolForStage(stage: string) {
@@ -377,8 +472,8 @@ YOUR TASK:
 6. Define governance rhythm and horizon allocation
 
 STAGE OUTPUT RULES:
-- Do NOT use web search — all evidence has been gathered in prior stages.
-- The evidence_base field should ONLY reference sources cited in prior stages. Do NOT fabricate new URLs. Prefix the sources array with "Inherited from prior stages:" to make provenance clear.
+- Run a brief market refresh search before synthesising (3 searches max): recent competitor news, category moves, and any late-breaking signals that would affect the bet portfolio. Note any material findings in the executive_summary under "### Market Refresh Note". If nothing material changed, state that and move on.
+- The evidence_base field should reference sources from prior stages PLUS any URLs retrieved in the market refresh. Prefix inherited sources with "Inherited:" and new ones with "Market refresh:".
 - The actions and monitoring fields are YOUR primary output — this is where they belong in the cascade. Make them concrete, owned, and time-bound.
 - Clearly distinguish your NEW assumptions from those inherited from prior stages.
 
@@ -404,7 +499,7 @@ async function main() {
   async function updateAgent(id: string, label: string, system: string, stage?: string) {
     console.log(`Updating ${label} (${id})...`);
     const tool = stage ? buildToolForStage(stage) : PRODUCE_OUTPUT_TOOL;
-    const useSearch = stage !== "commit"; // Commit does not use web search
+    const useSearch = true; // All stages including Commit use web search (Commit for market refresh only)
     try {
       const existing = await agents.retrieve(id);
       await agents.update(id, {
