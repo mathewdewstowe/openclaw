@@ -171,10 +171,23 @@ export function downloadStrategyDocument(companyName: string, outputs: StageOutp
   }
 
   // ── 04 Competitive Position ────────────────────────────────
-  if (diagnose.recommendation || diagnose.business_implications) {
+  if (diagnose.recommendation || diagnose.business_implications || diagnose.icp_signal) {
     parts.push(sectionHeader("04", "Competitive Position"));
     if (diagnose.recommendation) parts.push(md(diagnose.recommendation));
     if (diagnose.business_implications) parts.push(md(diagnose.business_implications));
+    const icp = diagnose.icp_signal as { stated_icp?: string; actual_icp?: string; alignment?: string; divergence_note?: string; signal_strength?: string } | undefined;
+    if (icp?.stated_icp || icp?.actual_icp) {
+      parts.push(subheading("ICP Signal"));
+      parts.push(tableHtml(
+        ["", ""],
+        [
+          ["<b>Stated ICP</b>", icp.stated_icp || "—"],
+          ["<b>Actual ICP</b>", icp.actual_icp || "—"],
+          ["<b>Alignment</b>", icp.alignment ? `${icp.alignment.charAt(0).toUpperCase() + icp.alignment.slice(1)} (${icp.signal_strength ?? ""} evidence)` : "—"],
+          ...(icp.divergence_note ? [["<b>Gap</b>", icp.divergence_note]] : []),
+        ]
+      ));
+    }
   }
 
   // ── 05 Strategic Options Considered ───────────────────────
