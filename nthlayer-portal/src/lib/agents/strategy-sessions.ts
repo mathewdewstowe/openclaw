@@ -212,15 +212,33 @@ Each concern stated by the user becomes a hypothesis in the Hypothesis Register.
 ASSUMPTIONS TO TEST — IF PROVIDED:
 Each assumption becomes an explicit, labelled hypothesis. Tag: Source: user-stated. Tested in: Diagnose.
 
-RESEARCH — use web search before forming the frame:
-- Company website, About page, LinkedIn company page — how the company describes itself today
-- Recent news (last 12 months): funding rounds, M&A, leadership changes, product launches
-- Funding history and investor profile: Crunchbase, Tracxn, PitchBook public data
-- Analyst inclusion signals: Gartner MQ, Forrester Wave, G2 category placement
-- Competitor identification (top 5–7): G2 alternatives, Gartner MQ peers
-- Category definition and market sizing: CAGR, TAM/SAM from analyst sources
-- Major platform shifts: relevant migrations, shutdowns, category disruptions
-Ground the frame in current external reality, not only what the user has described.
+RESEARCH — use web search AND fetch_url before forming the frame.
+Search first to discover URLs, then fetch the actual pages to read full content. Snippets alone are insufficient.
+
+COMPANY DEEP READ — MANDATORY. Fetch these pages directly:
+1. fetch_url(company homepage) — hero copy, tagline, primary value proposition
+2. fetch_url(company /about or /about-us) — mission, founding story, leadership team
+3. fetch_url(company /product or /platform or /solution) — features, capabilities, product positioning language
+4. fetch_url(company /customers or /case-studies) — ICP evidence: which companies, sectors, use cases are featured
+5. fetch_url(company /pricing) — packaging tiers, pricing model, enterprise vs. self-serve signals
+6. Search "site:linkedin.com/company [company name]" → fetch the LinkedIn company page — headcount, recent posts, hiring signals
+
+MARKET & ANALYST CONTEXT:
+- Search for Gartner MQ or Forrester Wave for this category → fetch the report summary page
+- Search for "[category] market size CAGR 2024 2025" → fetch the most credible analyst page
+- Search for "[company name] G2 reviews" → fetch the G2 profile page for category, rating, and review excerpts
+- Search for "[company name] Crunchbase" → fetch the Crunchbase page for funding history
+
+COMPETITORS — SKIM LEVEL:
+- Search G2 "[company name] alternatives" → note top 5–7 competitors returned
+- For each major competitor: fetch_url(competitor homepage) — just the homepage, enough to identify positioning
+- Search for any major platform shifts, category disruptions, or migrations in this space (last 12 months)
+
+RECENT NEWS:
+- Search "[company name] funding news 2024 2025" → fetch top news article
+- Search "[company name] acquisition OR leadership change OR product launch 2024 2025" → fetch top article
+
+Ground the frame in what pages actually say, not what search snippets suggest.
 
 REQUIRED SECTION STRUCTURE:
 - In executive_summary: begin with "### The Strategic Moment", then "### Winning Conditions"
@@ -273,17 +291,32 @@ If "Don't know" is selected, flag this as the #1 evidence gap in the report. Sta
 MOAT ASSESSMENT:
 Test each claimed moat against evidence. Do not validate what the evidence doesn't support. Be explicit about claimed advantages that don't survive scrutiny.
 
-RESEARCH — use web search before forming your analysis:
-- Gartner MQ positioning: confirm exact quadrant placement, Leader count, Niche Player confirmation
-- Forrester Wave positioning: inclusion, tier, publication date
-- Competitor product launches (last 12 months): AI capabilities, product velocity comparison
-- Competitor funding and scale: resource asymmetry — who can outspend
-- Market sizing (sub-segment): multiple analyst sources triangulated
-- SaaS growth benchmarks: SaaS Capital, OpenView, Benchmarkit — is the company at/above/below median for its ARR band?
-- NRR benchmarks: Benchmarkit, SaaS Capital
-- Third-party reviews: G2, TrustRadius, Capterra — how the market describes the company vs. self-description
-- Glassdoor / employee sentiment: culture signal, leadership stability
-- Customer case studies: what use cases are being marketed and to whom
+RESEARCH — use web search AND fetch_url. Search to find URLs, then fetch to read actual content.
+
+COMPANY REVIEW SITES — fetch full pages, not just snippets:
+- Search "[company name] G2 reviews" → fetch_url the G2 profile — read the category, average rating, review count, and the first page of review excerpts verbatim
+- Search "[company name] TrustRadius" → fetch_url — read ratings and representative quotes
+- Search "[company name] Capterra reviews" → fetch_url — read category and top reviews
+- Compare what customers say on review sites vs. what the company claims on its own website (fetched in Frame)
+
+COMPETITIVE BENCHMARKING — fetch actual data pages:
+- Search "Gartner Magic Quadrant [category] 2024" → fetch_url the result page — confirm exact quadrant placement, Leader count, whether the company is included
+- Search "Forrester Wave [category] 2024" → fetch_url — tier, inclusion, publication date
+- For each major competitor (top 3): fetch_url(competitor /product or /platform page) — identify AI features, recent capability additions, integration depth
+- Search "[competitor name] funding 2024 2025" → fetch_url top result — confirm scale and burn rate signals
+
+BENCHMARKS — fetch the source data:
+- Search "SaaS growth benchmarks [ARR band] 2024" → fetch_url top result (SaaS Capital, OpenView, or Benchmarkit)
+- Search "NRR benchmarks SaaS 2024" → fetch_url top result — compare against the user's stated NRR
+
+TALENT & CULTURE:
+- Search "[company name] Glassdoor" → fetch_url the Glassdoor company page — overall rating, CEO approval, recent review themes
+- Search "[company name] LinkedIn jobs" → fetch_url — what roles are open? (signals investment areas)
+
+CUSTOMER USE CASES:
+- fetch_url(company /customers or /case-studies) if not already fetched in Frame — which logos, sectors, use cases
+- Search "[company name] customer story [sector]" → fetch_url 2–3 case study pages — what problems are being solved, what measurable outcomes are claimed
+
 Cite URLs for all externally sourced claims. Do not soften difficult findings.
 
 REQUIRED SECTION STRUCTURE:
@@ -348,12 +381,26 @@ Score each option 1–5 on each criterion. Show the matrix. If the recommended o
 COST OF INACTION — MANDATORY SECTION:
 Quantify where possible: growth gap vs. competitors over 12–18 months, analyst position erosion timeline, window closure risk.
 
-RESEARCH — validate the external environment:
-- Are market conditions that make each option viable actually present right now?
-- Comparable repositioning case studies: 2–3 analogies of companies that made a similar move
-- Category adjacency mapping: does an evaluation category exist for the recommended direction?
-- Competitor pricing and packaging: how competitors bundle the capability
-- What happens to Niche Players in consolidating categories?
+RESEARCH — validate the external environment. Search to find URLs, then fetch_url to read the actual content.
+
+MARKET CONDITIONS VALIDATION:
+- For each strategic option being evaluated: search for evidence that the conditions enabling it exist right now
+- Search "[category] consolidation trend 2024 2025" → fetch_url top analyst or trade press article
+- Search "Niche Players [category] Gartner acquisition 2024" → fetch_url — what has happened to sub-scale players?
+
+COMPARABLE CASE STUDIES — fetch, don't summarise from snippets:
+- Search "[analogous company] repositioning [direction] case study" → fetch_url 2–3 articles
+- Read what actually happened: timeline, outcome, investor reaction, market response
+- Quote specific outcomes: ARR change, valuation multiple change, analyst category shift
+
+COMPETITOR PRICING & PACKAGING — fetch actual pricing pages:
+- For the top 2–3 competitors: fetch_url(competitor /pricing) — read actual tiers, price points, packaging logic
+- Note what capabilities are bundled vs. add-on, what tier enterprise features sit at
+- Search "[competitor name] pricing change 2024" → fetch_url — any recent repricing signals
+
+CATEGORY ADJACENCY:
+- Search "G2 category [recommended direction]" → fetch_url the G2 category page — does it exist? How many vendors? How many buyers?
+- Search "Gartner [recommended direction] market guide 2024" → fetch_url — is this a recognised category?
 
 REQUIRED SECTION STRUCTURE:
 - In executive_summary: begin with "### Strategic Options Considered"
@@ -421,14 +468,31 @@ Use this to shape GTM implications. If buyers find the company primarily through
 HELMER'S 7 POWERS:
 Where relevant, reference the structural advantages being built. Be honest — only cite a power if there is genuine structural evidence for it. Be explicit about claimed advantages that don't survive scrutiny.
 
-RESEARCH — ground positioning in current market reality:
-- Buyer search behaviour: Google autocomplete, "People also ask" for category terms
-- G2 category definitions: where the company sits in buyer discovery flows
-- Target buyer job descriptions: what tools they're expected to procure (LinkedIn job postings)
-- Competitor positioning language: homepage hero copy, meta descriptions, positioning statements
-- Review site perception: G2, TrustRadius — how customers position the company in their own words
-- SEO / category demand signals: Google Trends for category terms
-- Analyst category definitions: what Gartner and Forrester evaluate
+RESEARCH — ground positioning in current market reality. Search to find URLs, then fetch_url to read actual page content.
+
+COMPETITOR POSITIONING — fetch the actual pages, do not infer from snippets:
+- For each major competitor (top 3–4): fetch_url(competitor homepage) — copy the hero headline, subheadline, and primary CTA verbatim
+- fetch_url(competitor /about) — read their stated mission and differentiator language
+- Note exact positioning language: what category do they claim? What pain do they lead with?
+
+COMPANY'S OWN POSITIONING (if not already fetched):
+- fetch_url(company homepage) — current hero copy, tagline, meta description
+- This is the baseline for the Narrative Gap Analysis
+
+BUYER LANGUAGE & DISCOVERY:
+- Search "[category] reviews" on G2 → fetch_url the G2 category page — read buyer-written descriptions of what they're looking for
+- fetch_url the company's G2 profile → read the 5 most recent reviews verbatim — what language do customers use to describe the product and its value?
+- Search "[primary buyer role] [category] tools" → fetch_url a relevant LinkedIn job posting — what tools are listed as requirements or nice-to-haves?
+- Search "[category] buyer guide 2024" or "[category] comparison 2024" → fetch_url top result — what evaluation criteria are buyers using?
+
+SEO & CATEGORY SIGNALS:
+- Search "[category term] site:trends.google.com" or search "Google Trends [category]" → fetch_url — is demand rising, flat, or declining?
+- Search "[category] Gartner definition" → fetch_url — how do analysts define the category?
+- Search "People also ask [category term]" — note the questions buyers are actually asking
+
+REVIEW SITE PERCEPTION:
+- fetch_url company G2 profile → read the "What do you like best?" and "What do you dislike?" verbatim themes across reviews
+- Search "[company name] vs [competitor]" → fetch_url top comparison article — how is the company positioned against its closest competitor in buyers' minds?
 
 REQUIRED SECTION STRUCTURE:
 - In executive_summary: begin with "### Target Customer", then "### Positioning Statement"
