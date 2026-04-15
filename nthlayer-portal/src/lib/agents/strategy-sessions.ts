@@ -244,13 +244,22 @@ REQUIRED SECTION STRUCTURE:
 - In executive_summary: begin with "### The Strategic Moment", then "### Winning Conditions"
 - In what_matters: use "### Competitive Landscape Overview", "### Decision Boundaries"
 - In recommendation: use "### Core Strategic Question"
-- In business_implications: use "### Hypothesis Register" — list 8–15 testable hypotheses, each with: Hypothesis, Source (user input / web research / inferred), Tested in (Diagnose / Decide / Position / Commit), Status: Untested
+- In business_implications: use "### Strategic Tensions" — surface the key tensions the cascade must resolve. The Hypothesis Register is now a separate structured field (see below) — do NOT list hypotheses in the business_implications text.
 
 STAGE OUTPUT RULES — FRAME:
 - The recommendation field is the CORE STRATEGIC QUESTION — the decision this workflow must answer, carried into Diagnose. Frame as: "The core strategic question this workflow must answer is..." Capture any user-stated beliefs here with explicit labels (leadership hypothesis, stated preference) so they are visible but not concluded.
 - Do NOT return actions — execution steps are premature before diagnosis.
 - DO populate monitoring with 2–3 watch signals: market or competitor moves that would shift the frame.
 - Focus risks on threats to the frame itself: what would invalidate the question or change the winning conditions.
+
+HYPOTHESIS REGISTER — MANDATORY STRUCTURED ARRAY:
+Populate the hypothesis_register array with 8–15 testable hypotheses drawn from user inputs and research. Each object MUST use exactly these field names:
+- "hypothesis": string — the testable statement (one sentence, max 20 words). Start with "We believe..." or "The assumption is that..."
+- "source": exactly one of "user_input" | "web_research" | "inferred"
+- "tested_in": exactly one of "diagnose" | "decide" | "position" | "commit" — which stage should resolve this
+- "status": "untested" — ALWAYS this value in Frame
+- "evidence": "" — ALWAYS empty string in Frame; downstream stages populate this
+Example: { "hypothesis": "Enterprise buyers in DACH convert at 2× the rate of UK buyers", "source": "user_input", "tested_in": "diagnose", "status": "untested", "evidence": "" }
 
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
@@ -333,6 +342,14 @@ STAGE OUTPUT RULES — DIAGNOSE:
 - Do NOT return actions — you are diagnosing, not prescribing.
 - DO populate monitoring with 3–4 diagnostic metrics: signals that would confirm the diagnosis or reveal it needs revision.
 - Distinguish NEW assumptions from those inherited from Frame. Mark inherited assumptions with "[From Frame]".
+
+HYPOTHESIS REGISTER — MANDATORY. Carry forward and update:
+Look in the prior Frame output for the hypothesis_register array. Populate your hypothesis_register with ALL entries from Frame, updated based on what this stage found. For each entry:
+- Keep "hypothesis", "source", and "tested_in" unchanged
+- Update "status": "validated" if evidence confirms it | "at_risk" if evidence weakens it | "invalidated" if evidence contradicts it | "untested" if this stage was not able to test it
+- Add "evidence": one concise sentence of what you found (from web research or user inputs) that informs the status. Empty string if untested.
+- You MAY add NEW hypotheses surfaced by Diagnose research — set tested_in to "decide" | "position" | "commit", status to "untested", evidence to ""
+- Do NOT remove any hypotheses from Frame. Carry all forward.
 
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
@@ -420,6 +437,9 @@ Populate the kill_criteria array with at least 3 explicit kill criteria. Each ob
 - "trigger": string — the specific threshold or signal that activates this criterion
 - "response": string — what the business should do if the trigger fires
 
+HYPOTHESIS REGISTER — MANDATORY. Carry forward and update:
+Look in the prior stage outputs for the most recent hypothesis_register. Populate your hypothesis_register with ALL entries, updated based on what Decide found. Apply the same rules: update status (validated / at_risk / invalidated / untested), add evidence sentences, carry all entries forward unchanged. Add new hypotheses only if Decide surfaces material new ones.
+
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:
 - "text": string — the assumption statement (max 15 words, no pipes or metadata in this field)
@@ -505,6 +525,9 @@ STAGE OUTPUT RULES — POSITION:
 - Do NOT return actions — the execution plan belongs in Commit.
 - DO populate monitoring with 2–3 positioning validation metrics: signals that confirm the position is landing with buyers.
 - Distinguish NEW assumptions from those inherited from prior stages.
+
+HYPOTHESIS REGISTER — MANDATORY. Carry forward and update:
+Look in the prior stage outputs for the most recent hypothesis_register. Populate your hypothesis_register with ALL entries, updated based on what Position found. Apply the same rules: update status (validated / at_risk / invalidated / untested), add evidence sentences for newly tested entries, carry all entries forward unchanged. Add new hypotheses only if Position surfaces material new ones about buyer behaviour, positioning assumptions, or competitive dynamics.
 
 ASSUMPTION FORMAT REQUIREMENT — MANDATORY:
 The assumptions array in your tool call MUST be an array of objects, NOT strings. Each assumption object must have:

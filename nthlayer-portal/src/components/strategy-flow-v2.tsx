@@ -89,6 +89,7 @@ const STANDARD_REPORT_PILLS: Array<{ label: string; anchor: string }> = [
   { label: "Actions",             anchor: "section-actions" },
   { label: "Metrics",             anchor: "section-metrics" },
   { label: "Sources",             anchor: "section-sources" },
+  { label: "Hypotheses",          anchor: "section-hypothesis-register" },
 ];
 
 // Stage-aware label overrides for section pills
@@ -102,11 +103,12 @@ const STAGE_PILL_LABELS: Record<string, Record<string, string>> = {
 
 // Sections hidden per stage (pills not shown)
 const STAGE_HIDDEN_PILLS: Record<string, Set<string>> = {
-  frame:    new Set(["Actions", "Metrics"]),
-  diagnose: new Set(["Actions", "Metrics"]),
-  decide:   new Set(["Metrics"]),
-  position: new Set(["Actions", "Metrics"]),
-  commit:   new Set(),
+  frame:         new Set(["Actions", "Metrics"]),
+  diagnose:      new Set(["Actions", "Metrics"]),
+  decide:        new Set(["Metrics"]),
+  position:      new Set(["Actions", "Metrics"]),
+  commit:        new Set(["Hypotheses"]),
+  competitor_intel: new Set(["Hypotheses"]),
 };
 
 function getReportPillsForStage(stageId: string): Array<{ label: string; anchor: string }> {
@@ -1213,6 +1215,98 @@ function renderAssumptionsCards(assumptions: (string | Record<string, unknown>)[
   );
 }
 
+type HypothesisEntry = {
+  hypothesis: string;
+  source: string;
+  tested_in: string;
+  status: string;
+  evidence?: string;
+};
+
+function renderHypothesisRegisterCards(items: HypothesisEntry[]): React.ReactNode {
+  const STATUS_STYLES: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
+    untested:    { label: "Untested",    color: "#6b7280", bg: "#f9fafb", border: "#e5e7eb", dot: "#9ca3af" },
+    validated:   { label: "Validated",   color: "#065f46", bg: "#f0fdf4", border: "#86efac", dot: "#22c55e" },
+    at_risk:     { label: "At Risk",     color: "#92400e", bg: "#fffbeb", border: "#fde68a", dot: "#f59e0b" },
+    invalidated: { label: "Invalidated", color: "#991b1b", bg: "#fff1f2", border: "#fecaca", dot: "#ef4444" },
+  };
+
+  const SOURCE_LABEL: Record<string, string> = {
+    user_input:    "User input",
+    web_research:  "Research",
+    inferred:      "Inferred",
+  };
+
+  const TESTED_IN_LABEL: Record<string, string> = {
+    diagnose: "Diagnose",
+    decide:   "Decide",
+    position: "Position",
+    commit:   "Commit",
+  };
+
+  // Group by status for a summary header
+  const counts = items.reduce<Record<string, number>>((acc, h) => {
+    const s = h.status ?? "untested";
+    acc[s] = (acc[s] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <div>
+      {/* Summary bar */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+        {(["validated", "at_risk", "invalidated", "untested"] as const).map((s) =>
+          counts[s] ? (
+            <span key={s} style={{
+              fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20,
+              color: STATUS_STYLES[s].color, background: STATUS_STYLES[s].bg,
+              border: `1px solid ${STATUS_STYLES[s].border}`,
+            }}>
+              {counts[s]} {STATUS_STYLES[s].label}
+            </span>
+          ) : null
+        )}
+      </div>
+      {/* Cards */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {items.map((h, i) => {
+          const st = STATUS_STYLES[h.status ?? "untested"] ?? STATUS_STYLES.untested;
+          return (
+            <div key={i} style={{
+              background: st.bg, border: `1px solid ${st.border}`,
+              borderLeft: `4px solid ${st.dot}`, borderRadius: 10, padding: "14px 18px",
+            }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: h.evidence ? 8 : 0 }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: "#111827", margin: 0, lineHeight: 1.6, flex: 1 }}>{h.hypothesis}</p>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em",
+                  color: st.color, background: "#fff", border: `1px solid ${st.border}`,
+                  borderRadius: 4, padding: "2px 7px", flexShrink: 0, marginTop: 2,
+                }}>{st.label}</span>
+              </div>
+              {h.evidence && (
+                <p style={{ fontSize: 12, color: "#6b7280", margin: "0 0 6px", lineHeight: 1.5, fontStyle: "italic" }}>{h.evidence}</p>
+              )}
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {h.source && (
+                  <span style={{ fontSize: 10, fontWeight: 600, color: "#4b5563", background: "#f3f4f6", border: "1px solid #e5e7eb", borderRadius: 4, padding: "1px 6px" }}>
+                    {SOURCE_LABEL[h.source] ?? h.source}
+                  </span>
+                )}
+                {h.tested_in && (
+                  <span style={{ fontSize: 10, fontWeight: 600, color: "#6366f1", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: 4, padding: "1px 6px" }}>
+                    Test in: {TESTED_IN_LABEL[h.tested_in] ?? h.tested_in}
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function renderKillCriteriaCards(items: { criterion: string; trigger: string; response: string }[]): React.ReactNode {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1453,6 +1547,8 @@ function renderReport(text: string, sections?: Record<string, unknown>): React.R
         structuredContent = renderStrategicBetsCards(sections.strategic_bets as { bet: string; hypothesis: string; investment: string }[]);
       } else if (h === "100-day plan" && Array.isArray(sections.hundred_day_plan) && sections.hundred_day_plan.length > 0) {
         structuredContent = renderHundredDayPlanCards(sections.hundred_day_plan as { milestone: string; timeline: string; owner: string; deliverable: string }[]);
+      } else if (h === "hypothesis register" && Array.isArray(sections.hypothesis_register) && sections.hypothesis_register.length > 0) {
+        structuredContent = renderHypothesisRegisterCards(sections.hypothesis_register as HypothesisEntry[]);
       }
     }
 
@@ -3104,6 +3200,16 @@ export function StrategyFlow({
       );
       lines.push(`## 100-Day Plan\n\n${planLines.join("\n\n")}`);
     }
+    if (Array.isArray(sections.hypothesis_register) && sections.hypothesis_register.length > 0) {
+      const hypoLines = (sections.hypothesis_register as HypothesisEntry[]).map((h) => {
+        const statusLabel = { untested: "Untested", validated: "Validated", at_risk: "At Risk", invalidated: "Invalidated" }[h.status] ?? h.status;
+        const sourceLabel = { user_input: "User input", web_research: "Research", inferred: "Inferred" }[h.source] ?? h.source;
+        const testedLabel = { diagnose: "Diagnose", decide: "Decide", position: "Position", commit: "Commit" }[h.tested_in] ?? h.tested_in;
+        const evidenceLine = h.evidence ? `\n  _Evidence:_ ${h.evidence}` : "";
+        return `- **[${statusLabel}]** ${h.hypothesis} _(${sourceLabel} → test in ${testedLabel})_${evidenceLine}`;
+      });
+      lines.push(`## Hypothesis Register\n\n${hypoLines.join("\n")}`);
+    }
     const eb = sections.evidence_base as { sources?: string[]; quotes?: string[] } | undefined;
     if (eb?.sources && eb.sources.length > 0) {
       lines.push(`## Sources\n\n${eb.sources.map((s, i) => `${i + 1}. ${s}`).join("\n")}`);
@@ -3948,11 +4054,11 @@ export function StrategyFlow({
       {reportModalOpen && isReportComplete && (
         <div
           onClick={() => setReportModalOpen(false)}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "40px 24px", overflowY: "auto" }}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "0", overflowY: "auto" }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            style={{ background: "#fff", borderRadius: 16, width: "100%", maxWidth: 1300, position: "relative", overflow: "hidden", boxShadow: "0 24px 80px rgba(0,0,0,0.3)" }}
+            style={{ background: "#fff", borderRadius: 0, width: "100%", maxWidth: 1300, position: "relative", overflow: "hidden", boxShadow: "0 24px 80px rgba(0,0,0,0.3)", minHeight: "100vh" }}
           >
             {/* Modal header */}
             <div style={{ position: "sticky", top: 0, background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
@@ -3984,7 +4090,7 @@ export function StrategyFlow({
               </button>
             </div>
             {/* Modal body */}
-            <div style={{ padding: "32px 40px 48px" }} id="report-print-area">
+            <div style={{ padding: "16px 16px 48px" }} className="sm:!p-[32px_40px_48px]" id="report-print-area">
               {/* Persona tag */}
               {(() => {
                 const persona = typeof stageStates["frame"]?.answers?.["persona"] === "string"
@@ -4958,16 +5064,9 @@ export function StrategyFlow({
                     </button>
                   </div>
 
-                  {/* Export PDF + Share + Ask Me — below dark card */}
+                  {/* Export PDF + Share — below dark card */}
                   {isReportComplete && (
                     <div style={{ margin: "8px 16px 0", display: "flex", flexDirection: "column", gap: 6 }}>
-                      <button
-                        onClick={() => setChatModalOpen(true)}
-                        style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", border: "1px solid #111827", borderRadius: 8, background: "#111827", fontSize: 13, fontWeight: 600, color: "#fff", cursor: "pointer", fontFamily: "inherit", width: "100%" }}
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                        Ask Me
-                      </button>
                       <button
                         onClick={() => { if (activeState.reportSections) downloadReportPDF(activeStage.name, companyName, activeState.reportSections, activeState.report); }}
                         style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", border: "1px solid #e5e7eb", borderRadius: 8, background: "#fff", fontSize: 13, color: "#374151", cursor: "pointer", fontFamily: "inherit", width: "100%" }}

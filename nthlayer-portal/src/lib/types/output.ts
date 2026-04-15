@@ -43,6 +43,14 @@ export interface OutputSections {
   okrs?: { objective: string; key_results: string[] }[];
   strategic_bets?: { bet: string; hypothesis: string; investment: string }[];
   hundred_day_plan?: { milestone: string; timeline: string; owner: string; deliverable: string }[];
+  // Hypothesis register — created in Frame, updated by each downstream stage
+  hypothesis_register?: {
+    hypothesis: string;
+    source: "user_input" | "web_research" | "inferred";
+    tested_in: "diagnose" | "decide" | "position" | "commit";
+    status: "untested" | "validated" | "at_risk" | "invalidated";
+    evidence: string;
+  }[];
 }
 
 // ─── Section metadata for rendering ──────────────────────────
@@ -62,6 +70,7 @@ export const SECTION_ORDER = [
   "okrs",
   "strategic_bets",
   "hundred_day_plan",
+  "hypothesis_register",
 ] as const;
 
 export const SECTION_LABELS: Record<string, string> = {
@@ -79,6 +88,7 @@ export const SECTION_LABELS: Record<string, string> = {
   okrs: "OKRs",
   strategic_bets: "Strategic Bets",
   hundred_day_plan: "100-Day Plan",
+  hypothesis_register: "Hypothesis Register",
 };
 
 // ─── Stage-aware section labels ─────────────────────────────────
