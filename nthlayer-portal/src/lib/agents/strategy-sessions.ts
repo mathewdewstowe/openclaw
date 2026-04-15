@@ -221,16 +221,16 @@ COMPANY DEEP READ — MANDATORY. Fetch these pages directly:
 3. fetch_url(company /product or /platform or /solution) — features, capabilities, product positioning language
 4. fetch_url(company /customers or /case-studies) — ICP evidence: which companies, sectors, use cases are featured
 5. fetch_url(company /pricing) — packaging tiers, pricing model, enterprise vs. self-serve signals
-6. Search "site:linkedin.com/company [company name]" → fetch the LinkedIn company page — headcount, recent posts, hiring signals
+6. Search "site:linkedin.com/company [company name]" → fetch the LinkedIn company page — gets company size, description, location, and tagline (note: post feed requires login, but company basics are accessible)
 
 MARKET & ANALYST CONTEXT:
 - Search for Gartner MQ or Forrester Wave for this category → fetch the report summary page
 - Search for "[category] market size CAGR 2024 2025" → fetch the most credible analyst page
-- Search for "[company name] G2 reviews" → fetch the G2 profile page for category, rating, and review excerpts
-- Search for "[company name] Crunchbase" → fetch the Crunchbase page for funding history
+- Search for "[company name] TrustRadius reviews" → fetch_url the TrustRadius profile page — category, rating, review count, and representative review quotes (NOTE: use TrustRadius, not G2 — G2 blocks automated access)
+- Search for "[company name] funding Crunchbase" → use the search snippet only — Crunchbase requires login for full detail, but snippets surface total funding, last round, and key investors
 
 COMPETITORS — SKIM LEVEL:
-- Search G2 "[company name] alternatives" → note top 5–7 competitors returned
+- Search "[company name] alternatives" on TrustRadius or search "[category] top competitors 2024" → note top 5–7 competitors returned
 - For each major competitor: fetch_url(competitor homepage) — just the homepage, enough to identify positioning
 - Search for any major platform shifts, category disruptions, or migrations in this space (last 12 months)
 
@@ -274,7 +274,7 @@ DIAGNOSE MUST NOT:
 
 WHERE WINNING / ICP SIGNAL — MANDATORY:
 This is the single most important diagnostic data point. For the where_winning and winning_outside_target inputs:
-- Compare stated ICP against evidence from web research (G2, case studies, comparison articles)
+- Compare stated ICP against evidence from web research (TrustRadius reviews, case studies, comparison articles)
 - Analyse out-of-ICP wins: are they noise (sales indiscipline) or signal (market pulling toward a broader/different use case)?
 - If signal: identify what the out-of-ICP wins have in common (industry, size, buying trigger, use case)
 - Label the section clearly: "### The ICP Signal"
@@ -294,9 +294,9 @@ Test each claimed moat against evidence. Do not validate what the evidence doesn
 RESEARCH — use web search AND fetch_url. Search to find URLs, then fetch to read actual content.
 
 COMPANY REVIEW SITES — fetch full pages, not just snippets:
-- Search "[company name] G2 reviews" → fetch_url the G2 profile — read the category, average rating, review count, and the first page of review excerpts verbatim
-- Search "[company name] TrustRadius" → fetch_url — read ratings and representative quotes
+- Search "[company name] TrustRadius reviews" → fetch_url the TrustRadius profile — read the category, average rating, review count, and representative review quotes verbatim (PREFERRED: TrustRadius is fully accessible)
 - Search "[company name] Capterra reviews" → fetch_url — read category and top reviews
+- Search "[company name] G2 reviews" → use the Brave Search SNIPPETS only — G2 blocks automated fetching, but the snippet often surfaces the star rating and a short review excerpt
 - Compare what customers say on review sites vs. what the company claims on its own website (fetched in Frame)
 
 COMPETITIVE BENCHMARKING — fetch actual data pages:
@@ -310,8 +310,8 @@ BENCHMARKS — fetch the source data:
 - Search "NRR benchmarks SaaS 2024" → fetch_url top result — compare against the user's stated NRR
 
 TALENT & CULTURE:
-- Search "[company name] Glassdoor" → fetch_url the Glassdoor company page — overall rating, CEO approval, recent review themes
-- Search "[company name] LinkedIn jobs" → fetch_url — what roles are open? (signals investment areas)
+- Search "[company name] Glassdoor" → fetch_url the Glassdoor company page — gets overall rating number and page structure, but individual review text requires login. Use what loads (rating, CEO approval %) and supplement with search snippet quotes.
+- Search "[company name] LinkedIn jobs" → fetch_url the LinkedIn company page — gets headcount, location, description, and "1,001–5,000 employees" size bands. Job listings themselves require login — search for job titles separately if needed.
 
 CUSTOMER USE CASES:
 - fetch_url(company /customers or /case-studies) if not already fetched in Frame — which logos, sectors, use cases
@@ -399,7 +399,7 @@ COMPETITOR PRICING & PACKAGING — fetch actual pricing pages:
 - Search "[competitor name] pricing change 2024" → fetch_url — any recent repricing signals
 
 CATEGORY ADJACENCY:
-- Search "G2 category [recommended direction]" → fetch_url the G2 category page — does it exist? How many vendors? How many buyers?
+- Search "TrustRadius [recommended direction] category" → fetch_url the TrustRadius category page — does the category exist? How many vendors are listed? (NOTE: G2 category pages block automated access — use TrustRadius instead)
 - Search "Gartner [recommended direction] market guide 2024" → fetch_url — is this a recognised category?
 
 REQUIRED SECTION STRUCTURE:
@@ -455,7 +455,7 @@ Flag the report as TIME-SENSITIVE: "An active positioning engagement is underway
 NARRATIVE GAP ANALYSIS — MANDATORY:
 Compare:
 1. Current self-description (from web research — website hero copy, tagline, meta description)
-2. Market description (G2 reviews, comparison articles, analyst descriptions)
+2. Market description (TrustRadius reviews, comparison articles, analyst descriptions — use TrustRadius not G2 as G2 blocks access)
 3. Recommended positioning (from this stage)
 State the gap explicitly: "The company says [X]. The market says [Y]. The positioning must become [Z]."
 
@@ -463,7 +463,7 @@ KEY OBJECTIONS — IF PROVIDED:
 Address each objection directly in the positioning framework. The positioning statement must neutralise the most critical objection.
 
 BUYER DISCOVERY — IF PROVIDED:
-Use this to shape GTM implications. If buyers find the company primarily through G2 but the sales motion is outbound-led, flag the misalignment.
+Use this to shape GTM implications. If buyers find the company primarily through review sites (TrustRadius, G2) but the sales motion is outbound-led, flag the misalignment.
 
 HELMER'S 7 POWERS:
 Where relevant, reference the structural advantages being built. Be honest — only cite a power if there is genuine structural evidence for it. Be explicit about claimed advantages that don't survive scrutiny.
@@ -480,9 +480,9 @@ COMPANY'S OWN POSITIONING (if not already fetched):
 - This is the baseline for the Narrative Gap Analysis
 
 BUYER LANGUAGE & DISCOVERY:
-- Search "[category] reviews" on G2 → fetch_url the G2 category page — read buyer-written descriptions of what they're looking for
-- fetch_url the company's G2 profile → read the 5 most recent reviews verbatim — what language do customers use to describe the product and its value?
-- Search "[primary buyer role] [category] tools" → fetch_url a relevant LinkedIn job posting — what tools are listed as requirements or nice-to-haves?
+- Search "[category] reviews TrustRadius" → fetch_url the TrustRadius category page — read buyer-written descriptions of what they're looking for (NOTE: TrustRadius is fully accessible; G2 blocks automated fetching)
+- Search "[company name] TrustRadius reviews" → fetch_url the company's TrustRadius profile — read 5+ review excerpts verbatim, note recurring language about value and pain points
+- Search "[primary buyer role] [category] tools" → fetch_url a relevant LinkedIn job posting or skills page — what tools are listed as requirements or nice-to-haves?
 - Search "[category] buyer guide 2024" or "[category] comparison 2024" → fetch_url top result — what evaluation criteria are buyers using?
 
 SEO & CATEGORY SIGNALS:
@@ -491,7 +491,7 @@ SEO & CATEGORY SIGNALS:
 - Search "People also ask [category term]" — note the questions buyers are actually asking
 
 REVIEW SITE PERCEPTION:
-- fetch_url company G2 profile → read the "What do you like best?" and "What do you dislike?" verbatim themes across reviews
+- fetch_url company TrustRadius profile → read the "What do you like best?" and "What do you dislike?" verbatim themes across reviews (use TrustRadius — G2 blocks automated access and returns an empty page)
 - Search "[company name] vs [competitor]" → fetch_url top comparison article — how is the company positioned against its closest competitor in buyers' minds?
 
 REQUIRED SECTION STRUCTURE:
@@ -522,9 +522,9 @@ The company context provided is the PORTFOLIO COMPANY or INFLEXION CLIENT — th
 RESEARCH FIRST — MANDATORY. Do not produce output until you have retrieved real data:
 1. Fetch the competitor's homepage, /about, /product, /pricing pages. Read what the site actually says — do not infer from the domain name.
 2. Search for recent news (last 6–12 months): funding rounds, leadership changes, product launches, partnerships, customer wins/losses, headcount signals.
-3. Search Glassdoor and G2 for review volume, average rating, and recurring themes from employees and customers.
-4. Search Crunchbase, Pitchbook, or press releases for financial data: total funding, last round type/amount/date, investors.
-5. Search LinkedIn or similar for rough headcount and recent hiring patterns — which departments are growing or quiet.
+3. Search "[competitor name] TrustRadius reviews" → fetch_url the TrustRadius profile for review volume, rating, and recurring customer themes. Also fetch_url Glassdoor company page — gets overall rating and page basics (individual reviews need login, but rating score and search snippet quotes are useful). NOTE: G2 blocks automated fetching — use search snippet only for G2 data.
+4. Search "[competitor name] funding Crunchbase" → use search SNIPPETS for total funding, last round type/amount/date, and investors — do NOT fetch the Crunchbase page (requires Pro login for full data). Search "[competitor name] funding press release" for primary source confirmation.
+5. Search "site:linkedin.com/company [competitor name]" → fetch_url the LinkedIn company page — gets headcount band, description, HQ, and follower count. Posts and employee details require login.
 
 EVIDENCE DISCIPLINE: if you cannot verify a fact, mark it "Unknown" or "Not publicly disclosed". Do not fill gaps with speculation. Every claim must trace to something you actually retrieved.
 
