@@ -3834,8 +3834,24 @@ export function StrategyFlow({
     if (s.what_matters) parts.push(`What Matters Most:\n${s.what_matters}`);
     if (s.recommendation) parts.push(`Recommendation:\n${s.recommendation}`);
     if (s.business_implications) parts.push(`Business Implications:\n${s.business_implications}`);
-    if (Array.isArray(s.assumptions) && (s.assumptions as string[]).length > 0) {
+    if (Array.isArray(s.assumptions) && (s.assumptions as unknown[]).length > 0) {
       parts.push(`Key Assumptions:\n${(s.assumptions as (string | Record<string, unknown>)[]).map((a) => `- ${typeof a === "string" ? a : (a as Record<string, unknown>).text as string ?? ""}`).join("\n")}`);
+    }
+    if (Array.isArray(s.risks) && (s.risks as unknown[]).length > 0) {
+      const riskLines = (s.risks as { risk: string; severity: string; mitigation: string }[]).map((r) => `- [${r.severity}] ${r.risk} — ${r.mitigation}`);
+      parts.push(`Risks:\n${riskLines.join("\n")}`);
+    }
+    if (s.icp_signal && typeof s.icp_signal === "object") {
+      const icp = s.icp_signal as { stated_icp: string; actual_icp: string; alignment: string; divergence_note: string; signal_strength: string };
+      parts.push(`ICP Signal:\nAlignment: ${icp.alignment} (${icp.signal_strength} evidence)\nStated ICP: ${icp.stated_icp}\nActual ICP: ${icp.actual_icp}${icp.divergence_note ? `\nGap: ${icp.divergence_note}` : ""}`);
+    }
+    if (Array.isArray(s.hypothesis_register) && (s.hypothesis_register as unknown[]).length > 0) {
+      const hypoLines = (s.hypothesis_register as HypothesisEntry[]).map((h) => `- [${h.status}] ${h.hypothesis}${h.evidence ? ` (Evidence: ${h.evidence})` : ""}`);
+      parts.push(`Hypothesis Register:\n${hypoLines.join("\n")}`);
+    }
+    if (Array.isArray(s.kill_criteria) && (s.kill_criteria as unknown[]).length > 0) {
+      const kcLines = (s.kill_criteria as { criterion: string; trigger: string; response: string }[]).map((k) => `- ${k.criterion}: ${k.trigger} → ${k.response}`);
+      parts.push(`Kill Criteria:\n${kcLines.join("\n")}`);
     }
     const context = parts.join("\n\n");
 
