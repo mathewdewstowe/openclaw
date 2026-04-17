@@ -22,7 +22,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/inflexion/overview", label: "Dashboard", icon: "grid" },
-  { href: "#", label: "Knowledge Base", icon: "book", comingSoon: true },
+  { href: "/inflexion/knowledge-base", label: "Knowledge Base", icon: "book" },
   { href: "/inflexion/strategy", label: "Frame", icon: "frame", section: "Strategy" },
   { href: "/inflexion/strategy", label: "Diagnose", icon: "search" },
   { href: "/inflexion/strategy", label: "Decide", icon: "scale" },
@@ -154,13 +154,14 @@ const ICONS: Record<string, React.ReactNode> = {
 
 // ─── Component ───────────────────────────────────────────────
 
-export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: () => void; email?: string }) {
+export function SidebarV2({ open, onClose, email, onOpenAskMe }: { open: boolean; onClose: () => void; email?: string; onOpenAskMe?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { entitlements, planName, systemRole } = useEntitlements();
   const { activeCompany } = useCompany();
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [navCounts, setNavCounts] = useState<{ actions: number; risks: number; assumptions: number; metrics: number } | null>(null);
+  const [kbCount, setKbCount] = useState<number | null>(null);
   const isMobile = useIsMobile();
   const { start: startTour } = useWalkthrough();
 
@@ -168,6 +169,7 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
 
   useEffect(() => {
     fetch("/api/inflexion/counts").then((r) => r.json()).then(setNavCounts).catch(() => {});
+    fetch("/api/knowledge-base/count").then((r) => r.json()).then((d) => setKbCount(d.count ?? 0)).catch(() => {});
   }, [activeCompany?.id]);
 
   function isActive(href: string) {
@@ -265,7 +267,7 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
             </svg>
           </div>
           <div>
-            <p style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.2, color: "#111" }}>Nth Layer</p>
+            <p style={{ fontSize: 20, fontWeight: 700, lineHeight: 1.2, color: "#111" }}>Nth Layer</p>
           </div>
           <button onClick={onClose} className="ml-auto lg:hidden" style={{ color: "#9ca3af", background: "none", border: "none", cursor: "pointer" }}>
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -276,36 +278,37 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
 
         {/* ── Ask Me ── */}
         <div data-tour="ask-me" style={{ padding: "12px 12px 4px" }}>
-          <Link
-            href="/inflexion/chat"
-            onClick={onClose}
+          <button
+            onClick={() => onOpenAskMe?.()}
             style={{
               display: "flex",
               alignItems: "center",
               gap: 12,
               padding: "10px 14px",
               borderRadius: 10,
-              background: isActive("/inflexion/chat") ? "#f0fdf4" : "transparent",
+              background: "transparent",
               textDecoration: "none",
-              border: `1.5px solid ${isActive("/inflexion/chat") ? "#a3e635" : "#e5e7eb"}`,
+              border: "1.5px solid #e5e7eb",
               cursor: "pointer",
               transition: "all 150ms",
+              width: "100%",
+              fontFamily: "inherit",
             }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "#f0fdf4"; (e.currentTarget as HTMLElement).style.borderColor = "#a3e635"; }}
-            onMouseLeave={(e) => { if (!isActive("/inflexion/chat")) { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.borderColor = "#e5e7eb"; } }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.borderColor = "#e5e7eb"; }}
           >
             <span style={{ color: "#a3e635", flexShrink: 0 }}>
               <svg width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
               </svg>
             </span>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, textAlign: "left" }}>
               <p style={{ fontSize: 18, fontWeight: 700, color: "#111827", margin: 0, lineHeight: 1.2 }}>Ask Me</p>
             </div>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M3 7h8M8 4l3 3-3 3" stroke="#a3e635" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          </Link>
+          </button>
         </div>
 
         {/* ── Nav ── */}
@@ -396,6 +399,9 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
                   >
                     <span style={{ color: active ? "#334155" : "#9ca3af", flexShrink: 0 }}>{ICONS[item.icon]}</span>
                     <span style={{ flex: 1 }}>{item.label}</span>
+                    {kbCount !== null && kbCount > 0 && item.href === "/inflexion/knowledge-base" && (
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#3f6212", background: "#d9f99d", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{kbCount}</span>
+                    )}
                     {navCounts && item.href === "/inflexion/actions" && navCounts.actions > 0 && (
                       <span style={{ fontSize: 11, fontWeight: 700, color: "#3f6212", background: "#d9f99d", borderRadius: 20, padding: "1px 7px", flexShrink: 0 }}>{navCounts.actions}</span>
                     )}
@@ -434,6 +440,7 @@ export function SidebarV2({ open, onClose, email }: { open: boolean; onClose: ()
                 { href: "/inflexion/admin/companies", label: "Companies" },
                 { href: "/inflexion/admin/jobs", label: "Jobs" },
                 { href: "/inflexion/admin/feedback", label: "Feedback" },
+                { href: "/inflexion/admin/waitlist", label: "Waitlist" },
               ].map((item) => (
                 <Link
                   key={item.href}

@@ -174,8 +174,8 @@ export default async function OverviewPage() {
 
 
       <div data-tour="dashboard-overview" style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 36, fontWeight: 800, color: "#111827", marginBottom: 10 }}>Dashboard</h1>
-        <p style={{ fontSize: 22, color: "#374151", lineHeight: 1.7, margin: 0 }}>
+        <h1 className="text-2xl sm:text-4xl" style={{ fontWeight: 800, color: "#111827", marginBottom: 10 }}>Dashboard</h1>
+        <p className="text-base sm:text-xl" style={{ color: "#374151", lineHeight: 1.7, margin: 0 }}>
           {activeCompany
             ? <>Inflexion builds your strategy from structured intelligence — AI-driven analysis across five stages that turns your market position, competitive landscape, and growth options into a board-ready plan with clear bets and accountability. Your judgement drives every decision; Inflexion sharpens it with evidence, surfaces the trade-offs, and gives you the conviction to commit.</>
             : "Set up a company to get started."}
@@ -206,11 +206,11 @@ export default async function OverviewPage() {
               }}
             >
               {card.count > 0 ? (
-                <p style={{ fontSize: 40, fontWeight: 800, color: "#3f6212", margin: "0 0 8px", lineHeight: 1 }}>{card.count}</p>
+                <p className="text-3xl sm:text-4xl" style={{ fontWeight: 800, color: "#3f6212", margin: "0 0 8px", lineHeight: 1 }}>{card.count}</p>
               ) : (
-                <p style={{ fontSize: 40, fontWeight: 800, color: "#d1d5db", margin: "0 0 8px", lineHeight: 1 }}>—</p>
+                <p className="text-3xl sm:text-4xl" style={{ fontWeight: 800, color: "#d1d5db", margin: "0 0 8px", lineHeight: 1 }}>—</p>
               )}
-              <p style={{ fontSize: 20, fontWeight: 700, color: "#111827", marginBottom: 8 }}>{card.label}</p>
+              <p className="text-base sm:text-lg" style={{ fontWeight: 700, color: "#111827", marginBottom: 8 }}>{card.label}</p>
               <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.6, flex: 1 }}>{card.detail}</p>
             </a>
           ))}
@@ -261,7 +261,7 @@ export default async function OverviewPage() {
 
       {/* Strategy section header */}
       <div style={{ marginBottom: 12 }}>
-        <h2 style={{ fontSize: 28, fontWeight: 700, color: "#111827", margin: 0 }}>Strategy</h2>
+        <h2 className="text-xl sm:text-2xl" style={{ fontWeight: 700, color: "#111827", margin: 0 }}>Strategy</h2>
       </div>
 
       {/* Strategy cards */}
@@ -281,10 +281,10 @@ export default async function OverviewPage() {
               data-tour={`stage-${wf.stageId}`}
               {...(!isLocked ? { href: wf.href } : {})}
               title={isLocked ? `Complete ${WORKFLOW_CARDS[cardIdx - 1]?.label ?? "previous stage"} first` : undefined}
+              className="p-4 sm:p-6"
               style={{
                 display: "flex",
                 flexDirection: "column",
-                padding: "24px",
                 border: done ? "1px solid #a7f3d0" : "1px solid #e5e7eb",
                 borderRadius: 12,
                 textDecoration: "none",
@@ -309,9 +309,9 @@ export default async function OverviewPage() {
                   </svg>
                 </div>
               ) : (
-                <p style={{ fontSize: 28, fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", marginBottom: 8 }}>{wf.num}</p>
+                <p className="text-xl sm:text-2xl" style={{ fontWeight: 700, color: "#9ca3af", letterSpacing: "0.08em", marginBottom: 8 }}>{wf.num}</p>
               )}
-              <p style={{ fontSize: 22, fontWeight: 700, color: isLocked ? "#9ca3af" : "#111827", marginBottom: 8 }}>{wf.label}</p>
+              <p className="text-2xl sm:text-3xl" style={{ fontWeight: 800, color: isLocked ? "#9ca3af" : "#111827", marginBottom: 8, letterSpacing: "-0.02em" }}>{wf.label}</p>
               <p style={{ fontSize: 12, color: isLocked ? "#9ca3af" : "#374151", lineHeight: 1.6, flex: 1 }}>{wf.detail}</p>
               {done && (
                 <div style={{ marginTop: 16 }}>

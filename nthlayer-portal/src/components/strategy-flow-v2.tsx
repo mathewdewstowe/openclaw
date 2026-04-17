@@ -3330,6 +3330,9 @@ export function StrategyFlow({
   const [activeStageId, setActiveStageId] = useState<string>(firstRunningStage);
   const [progressValue, setProgressValue] = useState(initialRunningJobs.length > 0 ? 40 : 0);
   const [progressMessage, setProgressMessage] = useState(PROGRESS_MESSAGES[0]);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const elapsedIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const jobStartTimeRef = useRef<number | null>(initialRunningJobs.length > 0 ? Date.now() : null);
   // If we have a completed output for the first stage, default to report tab
   const hasCompletedFirst = !!initialCompletedOutputs[firstRunningStage] && initialRunningJobs.length === 0;
   const [activeTab, setActiveTab] = useState<"qa" | "report">(hasCompletedFirst ? "report" : "qa");
@@ -3392,6 +3395,7 @@ export function StrategyFlow({
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       if (messageIntervalRef.current) clearInterval(messageIntervalRef.current);
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      if (elapsedIntervalRef.current) clearInterval(elapsedIntervalRef.current);
     };
   }, []);
 
@@ -3406,6 +3410,13 @@ export function StrategyFlow({
 
     let progress = 40;
     let msgIdx = 2;
+
+    jobStartTimeRef.current = Date.now();
+    elapsedIntervalRef.current = setInterval(() => {
+      if (jobStartTimeRef.current) {
+        setElapsedSeconds(Math.floor((Date.now() - jobStartTimeRef.current) / 1000));
+      }
+    }, 1000);
 
     progressIntervalRef.current = setInterval(() => {
       const increment = progress < 70 ? 0.4 : 0.15;
@@ -3422,6 +3433,7 @@ export function StrategyFlow({
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       if (messageIntervalRef.current) clearInterval(messageIntervalRef.current);
+      if (elapsedIntervalRef.current) clearInterval(elapsedIntervalRef.current);
     };
 
     pollIntervalRef.current = setInterval(async () => {
@@ -3595,13 +3607,23 @@ export function StrategyFlow({
     updateStage(activeStageId, { reportStatus: "generating" });
     setProgressValue(0);
     setProgressMessage(PROGRESS_MESSAGES[0]);
+    setElapsedSeconds(0);
+    jobStartTimeRef.current = Date.now();
 
-    // Animate progress bar (slow — agents take 30–120s)
+    // Elapsed timer
+    if (elapsedIntervalRef.current) clearInterval(elapsedIntervalRef.current);
+    elapsedIntervalRef.current = setInterval(() => {
+      if (jobStartTimeRef.current) {
+        setElapsedSeconds(Math.floor((Date.now() - jobStartTimeRef.current) / 1000));
+      }
+    }, 1000);
+
+    // Animate progress bar (slow — agents take 3–15 min with deep research)
     let progress = 0;
     let msgIdx = 0;
     progressIntervalRef.current = setInterval(() => {
-      // Slow ramp: inch toward 85% over ~2 minutes
-      const increment = progress < 40 ? 1 : progress < 70 ? 0.4 : 0.15;
+      // Very slow ramp toward 85% — can take 15 min now
+      const increment = progress < 40 ? 0.5 : progress < 70 ? 0.2 : 0.08;
       progress = Math.min(progress + increment, 85);
       setProgressValue(Math.round(progress));
     }, 1000);
@@ -3720,6 +3742,7 @@ export function StrategyFlow({
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
       if (messageIntervalRef.current) clearInterval(messageIntervalRef.current);
+      if (elapsedIntervalRef.current) clearInterval(elapsedIntervalRef.current);
     };
 
     try {
@@ -4126,33 +4149,43 @@ export function StrategyFlow({
         {(() => {
           const allComplete = Object.values(stageStates).filter((s) => s.reportStatus === "complete").length === 5;
           return (
-        <button
-          onClick={() => setDeckModalOpen(true)}
-          className={allComplete ? "unlock-ready" : undefined}
-          style={{
-            marginLeft: "auto",
-            display: "flex",
-            alignItems: "center",
-            gap: 7,
-            background: "#111827",
-            border: "none",
-            borderRadius: 8,
-            padding: "9px 18px",
-            fontSize: 14,
-            fontWeight: 700,
-            color: "#fff",
-            cursor: "pointer",
-            flexShrink: 0,
-            fontFamily: "inherit",
-            whiteSpace: "nowrap",
-            transition: "background 300ms",
-          }}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3e635" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-          </svg>
-          Unlock
-        </button>
+        <>
+          <style>{`
+            @keyframes unlockBounce {
+              0%, 100% { transform: scale(1) translateY(0); background: rgba(163,230,53,0.12); border-color: rgba(163,230,53,0.4); box-shadow: 0 0 0 0 rgba(163,230,53,0); }
+              30% { transform: scale(1.1) translateY(-5px); background: rgba(163,230,53,0.28); border-color: rgba(163,230,53,1); box-shadow: 0 8px 24px 0 rgba(163,230,53,0.35); }
+              50% { transform: scale(1.05) translateY(-2px); background: rgba(163,230,53,0.2); border-color: rgba(163,230,53,0.8); box-shadow: 0 4px 16px 0 rgba(163,230,53,0.2); }
+              70% { transform: scale(1.1) translateY(-5px); background: rgba(163,230,53,0.28); border-color: rgba(163,230,53,1); box-shadow: 0 8px 24px 0 rgba(163,230,53,0.35); }
+            }
+          `}</style>
+          <button
+            onClick={() => setDeckModalOpen(true)}
+            className={allComplete ? "unlock-ready" : undefined}
+            style={{
+              marginLeft: "auto",
+              display: "flex",
+              alignItems: "center",
+              gap: 7,
+              background: "rgba(163,230,53,0.12)",
+              border: "1.5px solid rgba(163,230,53,0.4)",
+              borderRadius: 8,
+              padding: "9px 18px",
+              fontSize: 14,
+              fontWeight: 800,
+              color: "#a3e635",
+              cursor: "pointer",
+              flexShrink: 0,
+              fontFamily: "inherit",
+              whiteSpace: "nowrap",
+              animation: "unlockBounce 2.8s ease-in-out infinite",
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a3e635" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            Unlock
+          </button>
+        </>
           );
         })()}
       </div>
@@ -4809,30 +4842,62 @@ export function StrategyFlow({
                   })()}
 
                   {/* Generating banner */}
-                  {isGenerating && (
-                    <div style={{ marginBottom: 28, background: "#000", borderRadius: 10, padding: "16px 24px" }}>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: "#fff", margin: 0 }}>
-                          Generating {activeStage.name} report...
-                        </p>
-                        <div style={{ textAlign: "right", flexShrink: 0 }}>
-                          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", margin: "0 0 2px", whiteSpace: "nowrap" }}>{progressMessage}</p>
-                          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, whiteSpace: "nowrap" }}>~3–5 min</p>
+                  {isGenerating && (() => {
+                    const mins = Math.floor(elapsedSeconds / 60);
+                    const secs = elapsedSeconds % 60;
+                    const elapsedLabel = elapsedSeconds < 60
+                      ? `${elapsedSeconds}s`
+                      : `${mins}m ${secs.toString().padStart(2, "0")}s`;
+                    const isLong = elapsedSeconds > 600; // > 10 min
+                    const isVeryLong = elapsedSeconds > 1200; // > 20 min
+
+                    return (
+                      <div style={{ marginBottom: 28 }}>
+                        <div style={{ background: "#000", borderRadius: isVeryLong ? "10px 10px 0 0" : 10, padding: "16px 24px" }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                            <p style={{ fontSize: 13, fontWeight: 600, color: "#fff", margin: 0 }}>
+                              Generating {activeStage.name} report...
+                            </p>
+                            <div style={{ textAlign: "right", flexShrink: 0 }}>
+                              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", margin: "0 0 2px", whiteSpace: "nowrap" }}>{progressMessage}</p>
+                              <p style={{ fontSize: 11, color: isLong ? "#fbbf24" : "rgba(255,255,255,0.4)", margin: 0, whiteSpace: "nowrap", fontWeight: isLong ? 600 : 400 }}>
+                                {elapsedSeconds > 0 ? elapsedLabel : "starting..."}
+                                {!isLong && " · deep research in progress"}
+                              </p>
+                            </div>
+                          </div>
+                          <div style={{ height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 2, overflow: "hidden", marginBottom: 12 }}>
+                            <div style={{ height: "100%", background: isLong ? "#fbbf24" : "#fff", borderRadius: 2, width: `${progressValue}%`, transition: "width 150ms ease-out" }} />
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(163,230,53,0.8)" strokeWidth="1.5" style={{ flexShrink: 0 }}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                            </svg>
+                            <p style={{ fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.9)", margin: 0 }}>
+                              We&apos;ll email you when your report is ready — you can safely leave this page
+                            </p>
+                          </div>
                         </div>
+                        {isVeryLong && (
+                          <div style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.3)", borderTop: "none", borderRadius: "0 0 10px 10px", padding: "12px 24px", display: "flex", alignItems: "center", gap: 10 }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" style={{ flexShrink: 0 }}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                            </svg>
+                            <p style={{ fontSize: 12, color: "#fbbf24", margin: 0, fontWeight: 500 }}>
+                              Taking longer than usual. The report is still generating — you&apos;ll receive an email when it&apos;s done. You can safely close this tab.
+                            </p>
+                          </div>
+                        )}
+                        {isLong && !isVeryLong && (
+                          <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderTop: "none", borderRadius: "0 0 10px 10px", padding: "10px 24px" }}>
+                            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: 0 }}>
+                              Deep research stages can take 10–20 minutes. Still working — you can leave and we&apos;ll email you.
+                            </p>
+                          </div>
+                        )}
                       </div>
-                      <div style={{ height: 3, background: "rgba(255,255,255,0.15)", borderRadius: 2, overflow: "hidden", marginBottom: 12 }}>
-                        <div style={{ height: "100%", background: "#fff", borderRadius: 2, width: `${progressValue}%`, transition: "width 150ms ease-out" }} />
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(163,230,53,0.8)" strokeWidth="1.5" style={{ flexShrink: 0 }}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                        </svg>
-                        <p style={{ fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.9)", margin: 0 }}>
-                          We&apos;ll email you when your report is ready — you can safely leave this page
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Commit stage warnings */}
                   {activeStageId === "commit" && !allAnswered && !isGenerating && (() => {
@@ -5178,15 +5243,15 @@ export function StrategyFlow({
                       style={{ background: "none", border: "none", cursor: isReportComplete ? "pointer" : "default", padding: 0, textAlign: "left", width: "100%", fontFamily: "inherit" }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                        <p style={{ fontSize: 18, fontWeight: 700, color: isReportComplete ? "#4ade80" : "#d1d5db", margin: 0 }}>View Report</p>
+                        <p style={{ fontSize: 18, fontWeight: 700, color: isReportComplete ? "#a3e635" : "#d1d5db", margin: 0 }}>View Report</p>
                         {isReportComplete && (
-                          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", color: "#4ade80", background: "rgba(74,222,128,0.12)", borderRadius: 20, padding: "2px 7px" }}>READY</span>
+                          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", color: "#a3e635", background: "rgba(163,230,53,0.12)", borderRadius: 20, padding: "2px 7px" }}>READY</span>
                         )}
                         {!isReportComplete && (
                           <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", color: "#9ca3af", background: "rgba(255,255,255,0.1)", borderRadius: 20, padding: "2px 7px" }}>NOT RUN</span>
                         )}
                       </div>
-                      <p style={{ fontSize: 12, color: isReportComplete ? "#6ee7a0" : "#9ca3af", margin: 0 }}>{activeStage.name} · Exec Summary</p>
+                      <p style={{ fontSize: 12, color: isReportComplete ? "#a3e635" : "#9ca3af", margin: 0 }}>{activeStage.name} · Exec Summary</p>
                     </button>
                   </div>
 

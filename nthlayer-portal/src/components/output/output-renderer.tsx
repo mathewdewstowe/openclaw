@@ -22,7 +22,7 @@ interface OutputData {
 const RIGHT_COLUMN_SECTIONS = new Set(["risks", "actions", "monitoring", "kill_criteria", "okrs", "strategic_bets", "hundred_day_plan"]);
 
 // Optional sections — only render when populated (backward compat with existing outputs)
-const OPTIONAL_SECTIONS = new Set(["kill_criteria", "okrs", "strategic_bets", "hundred_day_plan"]);
+const OPTIONAL_SECTIONS = new Set(["kill_criteria", "okrs", "strategic_bets", "hundred_day_plan", "red_gate"]);
 
 // Stage colours
 const STAGE_COLORS: Record<string, { border: string; bg: string; text: string }> = {
@@ -58,8 +58,11 @@ export function OutputRenderer({
     return true;
   };
 
-  const leftSections  = SECTION_ORDER.filter((s) => !RIGHT_COLUMN_SECTIONS.has(s) && isVisible(s));
-  const rightSections = SECTION_ORDER.filter((s) => RIGHT_COLUMN_SECTIONS.has(s) && isVisible(s));
+  const leftSections  = SECTION_ORDER.filter((s) => s !== "red_gate" && !RIGHT_COLUMN_SECTIONS.has(s) && isVisible(s));
+  const rightSections = SECTION_ORDER.filter((s) => s !== "red_gate" && RIGHT_COLUMN_SECTIONS.has(s) && isVisible(s));
+  const showRedGate   = isVisible("red_gate");
+
+  const label = STAGE_SECTION_LABELS[stage]?.red_gate ?? SECTION_LABELS.red_gate;
 
   return (
     <div style={{ maxWidth: 1200 }}>
@@ -133,6 +136,21 @@ export function OutputRenderer({
         </div>
 
       </div>
+
+      {/* Red Gate — full-width at bottom */}
+      {showRedGate && !!output.sections.red_gate && (
+        <div style={{ marginTop: 32 }}>
+          <RedGatePanel
+            label={label}
+            content={output.sections.red_gate as {
+              next_stage: string;
+              criteria: { criterion: string; status: "pass" | "risk" | "fail"; evidence: string }[];
+              verdict: "proceed" | "proceed_with_caution" | "pause";
+              rationale: string;
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -252,6 +270,10 @@ function SectionContent({ sectionKey, content, compact = false }: { sectionKey: 
 
     case "hundred_day_plan":
       return <HundredDayPlanSection content={content as { milestone: string; timeline: string; owner: string; deliverable: string }[]} />;
+
+    case "red_gate":
+      // Rendered as full-width panel outside column layout — not via SectionCard
+      return null;
 
     default:
       return <TextSection content={String(content)} />;
@@ -668,6 +690,192 @@ function StrategicBetsSection({ content }: { content: { bet: string; hypothesis:
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ─── Red Gate Panel ──────────────────────────────────────────────
+
+function RedGatePanel({
+  label,
+  content,
+}: {
+  label: string;
+  content: {
+    next_stage: string;
+    criteria: { criterion: string; status: "pass" | "risk" | "fail"; evidence: string }[];
+    verdict: "proceed" | "proceed_with_caution" | "pause";
+    rationale: string;
+  };
+}) {
+  const verdictConfig: Record<string, { bg: string; border: string; pillBg: string; pillText: string; label: string; icon: React.ReactNode }> = {
+    proceed: {
+      bg: "#0d1117",
+      border: "#166534",
+      pillBg: "#166534",
+      pillText: "#d1fae5",
+      label: "Proceed to next stage",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        </svg>
+      ),
+    },
+    proceed_with_caution: {
+      bg: "#0d1117",
+      border: "#92400e",
+      pillBg: "#92400e",
+      pillText: "#fef3c7",
+      label: "Proceed with caution",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+      ),
+    },
+    pause: {
+      bg: "#0d1117",
+      border: "#991b1b",
+      pillBg: "#991b1b",
+      pillText: "#fee2e2",
+      label: "Pause — address blockers first",
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+        </svg>
+      ),
+    },
+  };
+
+  const statusConfig = {
+    pass: {
+      bg: "rgba(22,101,52,0.15)",
+      border: "rgba(74,222,128,0.3)",
+      textColor: "#4ade80",
+      label: "Pass",
+      dot: "#4ade80",
+    },
+    risk: {
+      bg: "rgba(146,64,14,0.15)",
+      border: "rgba(251,191,36,0.3)",
+      textColor: "#fbbf24",
+      label: "Risk",
+      dot: "#fbbf24",
+    },
+    fail: {
+      bg: "rgba(153,27,27,0.15)",
+      border: "rgba(248,113,113,0.3)",
+      textColor: "#f87171",
+      label: "Fail",
+      dot: "#f87171",
+    },
+  };
+
+  const vc = verdictConfig[content.verdict] ?? verdictConfig.proceed_with_caution;
+
+  const failCount  = content.criteria.filter((c) => c.status === "fail").length;
+  const riskCount  = content.criteria.filter((c) => c.status === "risk").length;
+  const passCount  = content.criteria.filter((c) => c.status === "pass").length;
+
+  return (
+    <div style={{
+      background: vc.bg,
+      border: `1.5px solid ${vc.border}`,
+      borderRadius: 16,
+      overflow: "hidden",
+    }}>
+      {/* Header bar */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: 12,
+        padding: "20px 28px",
+        borderBottom: `1px solid rgba(255,255,255,0.07)`,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 8,
+            background: `${vc.pillBg}30`,
+            border: `1px solid ${vc.border}`,
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          }}>
+            {vc.icon}
+          </div>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#6b7280", margin: "0 0 2px" }}>
+              {label}
+            </p>
+            <p style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
+              {vc.label}
+            </p>
+          </div>
+        </div>
+
+        {/* Score pills */}
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {passCount > 0 && (
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#4ade80", background: "rgba(74,222,128,0.12)", border: "1px solid rgba(74,222,128,0.25)", padding: "4px 12px", borderRadius: 999 }}>
+              {passCount} pass
+            </span>
+          )}
+          {riskCount > 0 && (
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#fbbf24", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.25)", padding: "4px 12px", borderRadius: 999 }}>
+              {riskCount} risk
+            </span>
+          )}
+          {failCount > 0 && (
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#f87171", background: "rgba(248,113,113,0.12)", border: "1px solid rgba(248,113,113,0.25)", padding: "4px 12px", borderRadius: 999 }}>
+              {failCount} fail
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Criteria grid */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+        gap: 1,
+        background: "rgba(255,255,255,0.04)",
+        margin: "0 28px",
+        borderRadius: 10,
+        overflow: "hidden",
+        marginTop: 20,
+        marginBottom: 20,
+      }}>
+        {content.criteria.map((c, i) => {
+          const sc = statusConfig[c.status] ?? statusConfig.risk;
+          return (
+            <div key={i} style={{
+              background: sc.bg,
+              border: `1px solid ${sc.border}`,
+              borderRadius: 8,
+              padding: "14px 16px",
+              margin: 4,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <div style={{ width: 7, height: 7, borderRadius: "50%", background: sc.dot, flexShrink: 0 }} />
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: sc.textColor }}>
+                  {sc.label}
+                </span>
+              </div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb", margin: "0 0 6px", lineHeight: 1.4 }}>{c.criterion}</p>
+              <p style={{ fontSize: 12, color: "#9ca3af", margin: 0, lineHeight: 1.5 }}>{c.evidence}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Rationale */}
+      {content.rationale && (
+        <div style={{ padding: "0 28px 24px" }}>
+          <p style={{ fontSize: 13, color: "#9ca3af", lineHeight: 1.7, margin: 0, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 16 }}>
+            {content.rationale}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

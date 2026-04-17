@@ -43,6 +43,17 @@ export interface OutputSections {
   okrs?: { objective: string; key_results: string[] }[];
   strategic_bets?: { bet: string; hypothesis: string; investment: string }[];
   hundred_day_plan?: { milestone: string; timeline: string; owner: string; deliverable: string; gate?: string }[];
+  // Red Gate — stage-gate analysis at the bottom of each report
+  red_gate?: {
+    next_stage: string; // "Diagnose" | "Decide" | "Position" | "Commit" | "Complete"
+    criteria: {
+      criterion: string; // what must be true to proceed
+      status: "pass" | "risk" | "fail";
+      evidence: string;  // one sentence on why this status
+    }[];
+    verdict: "proceed" | "proceed_with_caution" | "pause";
+    rationale: string; // overall assessment
+  };
   // ICP signal — Diagnose compares stated ICP vs. evidence from review sites and case studies
   icp_signal?: {
     stated_icp: string;           // what the company profile says
@@ -80,6 +91,7 @@ export const SECTION_ORDER = [
   "hundred_day_plan",
   "hypothesis_register",
   "icp_signal",
+  "red_gate",
 ] as const;
 
 export const SECTION_LABELS: Record<string, string> = {
@@ -99,17 +111,18 @@ export const SECTION_LABELS: Record<string, string> = {
   hundred_day_plan: "100-Day Plan",
   hypothesis_register: "Hypothesis Register",
   icp_signal: "ICP Signal",
+  red_gate: "Stage Gate",
 };
 
 // ─── Stage-aware section labels ─────────────────────────────────
 // Override default labels per stage where the section means something different.
 
 export const STAGE_SECTION_LABELS: Record<string, Partial<Record<string, string>>> = {
-  frame:    { recommendation: "Core Strategic Question" },
-  diagnose: { recommendation: "Emerging Direction" },
-  decide:   {}, // uses defaults — Recommendation is genuinely earned here
-  position: { recommendation: "Positioning Recommendation" },
-  commit:   { evidence_base: "Evidence Inherited" },
+  frame:    { recommendation: "Core Strategic Question", red_gate: "Stage Gate: Frame → Diagnose" },
+  diagnose: { recommendation: "Emerging Direction",      red_gate: "Stage Gate: Diagnose → Decide" },
+  decide:   { red_gate: "Stage Gate: Decide → Position" },
+  position: { recommendation: "Positioning Recommendation", red_gate: "Stage Gate: Position → Commit" },
+  commit:   { evidence_base: "Evidence Inherited",       red_gate: "Stage Gate: Commit — Final Review" },
 };
 
 // ─── Stage-hidden sections ──────────────────────────────────────
@@ -122,6 +135,7 @@ export const STAGE_HIDDEN_SECTIONS: Record<string, string[]> = {
   decide:   ["monitoring", "icp_signal"],
   position: ["actions", "monitoring", "icp_signal"],
   commit:   ["icp_signal", "hypothesis_register"],
+  competitor_intel: ["red_gate", "icp_signal", "hypothesis_register", "kill_criteria", "okrs", "strategic_bets", "hundred_day_plan"],
 };
 
 // ─── Workflow metadata ───────────────────────────────────────

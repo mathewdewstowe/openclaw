@@ -132,12 +132,15 @@ const EVIDENCE_DISCIPLINE = `## Evidence Discipline — MANDATORY
 - If a fact is unverifiable, explicitly say "unverified" and reflect this in the confidence score
 - Confidence scoring: 0.8+ = strong evidence base; 0.4–0.6 = directional signals only; 0.2 = speculative
 - CONFIDENCE FLOOR RULES:
-  - Do NOT return confidence.score above 0.70 unless you have retrieved and cited at least 3 distinct external URLs in this session
+  - Do NOT return confidence.score above 0.70 unless you have retrieved and cited at least 10 distinct external URLs in this session
+  - Do NOT return confidence.score above 0.80 unless you have retrieved and cited at least 15 distinct external URLs
   - Do NOT return confidence.score above 0.85 under any circumstances — all strategic analysis contains irreducible uncertainty
   - Do NOT return confidence.score above 0.60 for any claim about competitor internal operations, private company financials, or future market conditions
   - If the user's inputs contradict external evidence you've found, lower the confidence score accordingly and note the contradiction in your rationale
+- RESEARCH VOLUME REQUIREMENT: A high-quality strategic report requires substantial research. Do not call the output tool until you have fetched and read at least 10 distinct URLs. For Frame and Diagnose stages the minimum is 15 URLs. Depth of research is directly correlated with report quality.
 - Quote specific phrases directly from the user inputs rather than paraphrasing them
 - Do not invent competitor behaviours, market sizes, or growth rates
+- NEVER summarise from search snippets alone — always fetch and read the actual page before citing it
 
 ## Cost & Revenue Rules — MANDATORY (applies to ALL output fields)
 - NEVER include cost estimates, budget figures, dollar amounts, headcount numbers, or salary ranges in any field
@@ -173,6 +176,103 @@ MONITORING — monitoring[].metric:
 - Put targets in the target field. Put cadence in the frequency field. Do not append them to the metric name.
 - BAD: "Advocacy qualification rate — percentage of new enterprise conversations under advocacy-integrated positioning that produce qualified pipeline"
 - GOOD: "Advocacy qualification rate from enterprise conversations"`;
+
+// ─── Red Gate instruction (injected per stage) ───────────────
+
+const RED_GATE_INSTRUCTIONS: Record<string, string> = {
+  frame: `## RED GATE ANALYSIS — MANDATORY STRUCTURED FIELD
+At the end of your analysis, populate the red_gate object. This is a stage-gate assessment: can the team proceed to Diagnose, or must something be resolved first?
+
+The red_gate object MUST use exactly these field names:
+- "next_stage": "Diagnose"
+- "criteria": array of objects, each with:
+  - "criterion": string — what must be true to proceed (max 12 words)
+  - "status": exactly one of "pass" | "risk" | "fail"
+  - "evidence": string — one sentence of evidence for this status (from your research or user inputs)
+- "verdict": exactly one of "proceed" | "proceed_with_caution" | "pause"
+- "rationale": string — 2–3 sentences: what the overall gate status means for timing and confidence
+
+Produce exactly 5 criteria for Frame → Diagnose:
+1. "Inflection event is defined, material, and time-bounded" — pass if the user has described a specific trigger; risk if vague; fail if absent
+2. "Strategic question is crisp and answerable in 6–12 weeks" — pass if it can be answered with evidence; risk if too broad; fail if unanswerable
+3. "Winning conditions are articulated for 24–36 month horizon" — pass if specific and grounded; risk if aspirational but vague; fail if absent
+4. "Competitive landscape is mapped with at least 3 named rivals" — pass if web research identified 3+ competitors with positioning; risk if coverage is thin; fail if unknown
+5. "Hypothesis register populated with 8+ testable hypotheses" — pass if 8+ hypotheses produced; risk if 5–7; fail if fewer than 5
+
+Set verdict to "proceed" if 0 fails and ≤1 risk, "proceed_with_caution" if ≤1 fail or 2–3 risks, "pause" if 2+ fails.`,
+
+  diagnose: `## RED GATE ANALYSIS — MANDATORY STRUCTURED FIELD
+At the end of your analysis, populate the red_gate object. This is a stage-gate assessment: can the team proceed to Decide, or must something be resolved first?
+
+The red_gate object MUST use exactly these field names:
+- "next_stage": "Decide"
+- "criteria": array of 5 objects
+- "verdict": "proceed" | "proceed_with_caution" | "pause"
+- "rationale": 2–3 sentences on timing and confidence
+
+Produce exactly 5 criteria for Diagnose → Decide:
+1. "Fact base is sufficient to evaluate 3+ strategic options" — pass if web research + user data supports evaluation; risk if gaps remain; fail if evidence base is too thin
+2. "Binding constraint is identified and explicitly ranked" — pass if clearly named and ranked; risk if suggested but not confirmed; fail if absent
+3. "ICP signal assessed: stated vs. actual ICP compared" — pass if comparison done with evidence (TrustRadius, case studies); risk if partial evidence; fail if not assessed
+4. "Current competitive position is mapped against top 3 rivals" — pass if differentiation and gaps are clear; risk if one or more gaps unanalysed; fail if not done
+5. "Frame hypotheses tested with evidence — none silently dropped" — pass if all hypotheses carry updated status and evidence; risk if some untested; fail if register incomplete
+
+Set verdict: "proceed" if 0 fails ≤1 risk, "proceed_with_caution" if ≤1 fail or 2–3 risks, "pause" if 2+ fails.`,
+
+  decide: `## RED GATE ANALYSIS — MANDATORY STRUCTURED FIELD
+At the end of your analysis, populate the red_gate object. Stage gate: can the team proceed to Position?
+
+The red_gate object fields:
+- "next_stage": "Position"
+- "criteria": array of 5 objects
+- "verdict": "proceed" | "proceed_with_caution" | "pause"
+- "rationale": 2–3 sentences
+
+Produce exactly 5 criteria for Decide → Position:
+1. "A single committed strategic direction is chosen — not a shortlist" — pass if one direction is named and defended; risk if hedged or conditional; fail if no direction chosen
+2. "Decision matrix completed with 3+ options including status quo" — pass if matrix is present and scored; risk if incomplete; fail if absent
+3. "Kill criteria defined for the chosen direction" — pass if 3+ kill criteria with triggers; risk if present but vague; fail if absent
+4. "Trade-offs are explicitly accepted — not deferred" — pass if the report names what is being sacrificed; risk if trade-offs are acknowledged but not accepted; fail if ignored
+5. "Analogous case studies validate this direction is achievable" — pass if 2+ real cases referenced with outcomes; risk if 1 case or analogies are weak; fail if no comparable cases found
+
+Set verdict: "proceed" if 0 fails ≤1 risk, "proceed_with_caution" if ≤1 fail or 2–3 risks, "pause" if 2+ fails.`,
+
+  position: `## RED GATE ANALYSIS — MANDATORY STRUCTURED FIELD
+At the end of your analysis, populate the red_gate object. Stage gate: can the team proceed to Commit?
+
+The red_gate object fields:
+- "next_stage": "Commit"
+- "criteria": array of 5 objects
+- "verdict": "proceed" | "proceed_with_caution" | "pause"
+- "rationale": 2–3 sentences
+
+Produce exactly 5 criteria for Position → Commit:
+1. "Primary economic buyer is defined with specificity (role, size, trigger)" — pass if named precisely; risk if broad; fail if undefined
+2. "Positioning is differentiated vs. top 2 named competitors with evidence" — pass if differentiation tested against real competitor copy; risk if based on assumption; fail if generic
+3. "Narrative gap analysis completed: current vs. recommended positioning" — pass if gap is explicitly named with evidence; risk if identified but unquantified; fail if absent
+4. "GTM motion is aligned to how buyers actually discover and evaluate" — pass if buyer discovery channel is identified and matched to motion; risk if assumed; fail if not assessed
+5. "Buyer job posting signals incorporated into positioning language" — pass if verbatim job posting language used in positioning; risk if referenced but not integrated; fail if not done
+
+Set verdict: "proceed" if 0 fails ≤1 risk, "proceed_with_caution" if ≤1 fail or 2–3 risks, "pause" if 2+ fails.`,
+
+  commit: `## RED GATE ANALYSIS — MANDATORY STRUCTURED FIELD
+At the end of your analysis, populate the red_gate object. This is the FINAL GATE — a readiness assessment for execution.
+
+The red_gate object fields:
+- "next_stage": "Execution"
+- "criteria": array of 5 objects
+- "verdict": "proceed" | "proceed_with_caution" | "pause"
+- "rationale": 2–3 sentences on execution readiness
+
+Produce exactly 5 criteria for the Commit final review:
+1. "Strategic bet portfolio is sized to stated capacity — no more bets than the team can resource" — pass if bet count ≤ bet_capacity input; risk if at the limit with no slack; fail if over-committed
+2. "OKRs are connected to the revenue target with measurable key results" — pass if each KR has a number and deadline; risk if qualitative only; fail if OKRs absent or disconnected from revenue
+3. "100-day plan has named owner roles and concrete deliverables at 30/60/90" — pass if all three milestones have owners and deliverables; risk if some are vague; fail if plan is incomplete
+4. "Anti-portfolio is explicitly named — the team knows what they are NOT doing" — pass if named options that were rejected are listed with rationale; risk if partial; fail if absent
+5. "Governance cadence defined: who reviews what, and how often" — pass if weekly/monthly/quarterly rhythm is set; risk if cadence exists but is vague; fail if not defined
+
+Set verdict: "proceed" if 0 fails ≤1 risk, "proceed_with_caution" if ≤1 fail or 2–3 risks, "pause" if 2+ fails.`,
+};
 
 // ─── Stage-specific instructions ─────────────────────────────
 
@@ -212,37 +312,62 @@ Each concern stated by the user becomes a hypothesis in the Hypothesis Register.
 ASSUMPTIONS TO TEST — IF PROVIDED:
 Each assumption becomes an explicit, labelled hypothesis. Tag: Source: user-stated. Tested in: Diagnose.
 
-RESEARCH — use web search AND fetch_url before forming the frame.
-Search first to discover URLs, then fetch the actual pages to read full content. Snippets alone are insufficient.
+RESEARCH — MANDATORY DEEP READ. This is not optional and not a skim. Do ALL of the following before writing a single word of output. Search first to find URLs, then fetch_url to read the actual page. Snippets alone are never sufficient — you must fetch and read the full page content for every mandatory item below.
 
-COMPANY DEEP READ — MANDATORY. Fetch these pages directly:
-1. fetch_url(company homepage) — hero copy, tagline, primary value proposition
-2. fetch_url(company /about or /about-us) — mission, founding story, leadership team
-3. fetch_url(company /product or /platform or /solution) — features, capabilities, product positioning language
-4. fetch_url(company /customers or /case-studies) — ICP evidence: which companies, sectors, use cases are featured
-5. fetch_url(company /pricing) — packaging tiers, pricing model, enterprise vs. self-serve signals
-6. Search "site:linkedin.com/company [company name]" → fetch the LinkedIn company page — gets company size, description, location, and tagline (note: post feed requires login, but company basics are accessible)
+MINIMUM RESEARCH BAR: You must retrieve and cite at least 15 distinct external URLs before calling the output tool. If you have fewer than 15 cited sources, do more research.
 
-MARKET & ANALYST CONTEXT:
-- Search for Gartner MQ or Forrester Wave for this category → fetch the report summary page
-- Search for "[category] market size CAGR 2024 2025" → fetch the most credible analyst page
-- Search for "[company name] TrustRadius reviews" → fetch_url the TrustRadius profile page — category, rating, review count, and representative review quotes (NOTE: use TrustRadius, not G2 — G2 blocks automated access)
-- Search for "[company name] funding Crunchbase" → use the search snippet only — Crunchbase requires login for full detail, but snippets surface total funding, last round, and key investors
+── COMPANY DEEP READ (fetch ALL of these) ──────────────────────────────────────
 
-COMPETITORS — SKIM LEVEL:
-- Search "[company name] alternatives" on TrustRadius or search "[category] top competitors 2024" → note top 5–7 competitors returned
-- For each major competitor: fetch_url(competitor homepage) — just the homepage, enough to identify positioning
-- Search for any major platform shifts, category disruptions, or migrations in this space (last 12 months)
+1. fetch_url(company homepage) — read the full page: hero copy, tagline, sub-headline, primary CTA, value proposition language verbatim
+2. fetch_url(company /about or /about-us) — founding story, mission, leadership team names and backgrounds, office locations
+3. fetch_url(company /product or /platform or /features or /solution) — full feature set, capability language, product positioning verbatim
+4. fetch_url(company /customers or /case-studies or /clients) — which logos are featured, which sectors, what outcomes are claimed, what use cases are highlighted
+5. fetch_url(company /pricing) — exact tier names, pricing model (seat/usage/flat), enterprise vs. self-serve signals, trial availability, what's gated
+6. fetch_url(company /blog or /resources or /insights) — most recent 3–5 posts: what topics are they publishing on? What narrative are they building? This reveals product investment direction and market positioning intent.
+7. fetch_url(company /partners or /integrations or /marketplace) — who are their technology partners? What ecosystem are they embedded in?
+8. Search "site:linkedin.com/company [company name]" → fetch the LinkedIn company page — employee count, HQ, description, recent company updates visible in snippets
 
-RECENT NEWS:
-- Search "[company name] funding news 2024 2025" → fetch top news article
-- Search "[company name] acquisition OR leadership change OR product launch 2024 2025" → fetch top article
+── MARKET & ANALYST CONTEXT (fetch ALL of these) ────────────────────────────────
 
-Ground the frame in what pages actually say, not what search snippets suggest.
+9. Search "Gartner Magic Quadrant [category] 2024 2025" → fetch the report summary page — read exact quadrant placements, Leader names, challenger tier, published date
+10. Search "Forrester Wave [category] 2024 2025" → fetch the report page — tier placements, Strong Performer vs. Leader distinction
+11. Search "[category] market size forecast CAGR 2024 2025 2026" → fetch the top analyst or market research page (Grand View Research, MarketsandMarkets, IDC, Gartner) — read the headline TAM figure, CAGR, key growth drivers
+12. Search "[category] market trends 2025" → fetch top trade press article — what are analysts and practitioners saying is changing in this space right now?
+13. Search "[company name] TrustRadius reviews" → fetch_url the full TrustRadius profile — read: category placement, overall rating, review count, top 5 reviewer quotes verbatim, recurring praise and complaint themes (NOTE: use TrustRadius not G2 — G2 blocks automated access)
+14. Search "[company name] Capterra reviews" → fetch_url the Capterra profile — read rating, review count, top reviewer quotes, feature ratings
+15. Search "[company name] funding Crunchbase" → read the search snippet carefully for: total funding amount, last round type and size, lead investors, founding year. Also search "[company name] funding announcement" → fetch the most recent press release for primary source confirmation.
+
+── COMPETITOR DEEP READ (fetch ALL of these) ────────────────────────────────────
+
+16. Search "[company name] alternatives TrustRadius" → fetch_url the alternatives page — read the full list of competitors returned (typically 8–15). Note which ones appear repeatedly.
+17. Search "[category] top vendors 2024 2025" → fetch top analyst or review site article listing the competitive landscape
+18. For each of the TOP 5 COMPETITORS identified: fetch_url(competitor homepage) — read the hero headline, sub-headline, primary CTA, and positioning language verbatim. What category do they claim? What pain do they lead with?
+19. For the TOP 2–3 COMPETITORS: fetch_url(competitor /pricing) — read actual tier names, price points, packaging. What's their pricing model vs. the company?
+20. For the TOP 2–3 COMPETITORS: fetch_url(competitor /customers or /case-studies) — who are their reference customers? Do they overlap with the company's ICP?
+21. Search "[category] consolidation OR acquisition OR merger 2024 2025" → fetch top article — is M&A activity reshaping the competitive landscape?
+22. Search "[category] AI features OR [category] AI integration 2024 2025" → fetch top article — how is AI changing the product expectations in this category?
+
+── RECENT NEWS & SIGNALS (fetch ALL of these) ───────────────────────────────────
+
+23. Search "[company name] news 2024 2025" → fetch the top 2 news articles — any funding, acquisitions, leadership changes, product launches, customer wins, layoffs, or strategic pivots
+24. Search "[company name] press release 2024 2025" → fetch the company's most recent press release — what are they announcing publicly?
+25. Search "[company name] CEO OR CPO interview 2024 2025" → fetch any recent executive interview — what is the leadership saying about strategy and direction?
+26. Search "[category] news 2025" → fetch top trade press article — what macro forces, platform changes, or category shifts are happening right now?
+
+── HIRING PULSE (fetch ALL of these) ────────────────────────────────────────────
+
+27. fetch_url(company /careers or /jobs) — read the full list of open roles: total count, which functions are hiring, any new senior leadership roles, geographic signals
+28. Search "site:greenhouse.io [company name]" OR "site:lever.co [company name]" OR "site:ashbyhq.com [company name]" → fetch the ATS results page — structured list of live roles
+29. For TOP 3 COMPETITORS: search "[competitor name] jobs site:indeed.com" → scan result snippets for role titles and functions being hired (snippets are sufficient for Frame — full fetch in Diagnose)
+30. Interpret hiring as strategy: heavy sales hiring = commercial push; ML/AI engineering surge = product investment; first "Head of Partnerships" = ecosystem play; "Country Manager [city]" = geo expansion confirmed; CS expansion = retention or upsell motion
+
+ALL SOURCES MUST BE CITED. Every factual claim in your output must trace to a URL you actually fetched in this session. Do not use search snippet text as a citation — you must have fetched the page.
+
+Ground the frame in what pages actually say. Do not infer from domain names or snippet previews.
 
 REQUIRED SECTION STRUCTURE:
 - In executive_summary: begin with "### The Strategic Moment", then "### Winning Conditions"
-- In what_matters: use "### Competitive Landscape Overview", "### Decision Boundaries"
+- In what_matters: use "### Competitive Landscape Overview", "### Decision Boundaries", "### Hiring Signal"
 - In recommendation: use "### Core Strategic Question"
 - In business_implications: use "### Strategic Tensions" — surface the key tensions the cascade must resolve. The Hypothesis Register is now a separate structured field (see below) — do NOT list hypotheses in the business_implications text.
 
@@ -267,7 +392,9 @@ The assumptions array in your tool call MUST be an array of objects, NOT strings
 - "fragility": "low" | "medium" | "high" — how catastrophic it would be if wrong
 - "testable": boolean — whether this can be validated with data or experiment in 90 days
 - "status": "unvalidated" — always use this value
-Example: { "text": "Enterprise buyers will pay $50k+ ACV", "fragility": "high", "testable": true, "status": "unvalidated" }`,
+Example: { "text": "Enterprise buyers will pay $50k+ ACV", "fragility": "high", "testable": true, "status": "unvalidated" }
+
+${RED_GATE_INSTRUCTIONS.frame}`,
 
   diagnose: `## Stage Instructions: DIAGNOSE
 Assess, test, identify, explain, compare, isolate, and infer. Do not choose a direction.
@@ -320,7 +447,36 @@ BENCHMARKS — fetch the source data:
 
 TALENT & CULTURE:
 - Search "[company name] Glassdoor" → fetch_url the Glassdoor company page — gets overall rating number and page structure, but individual review text requires login. Use what loads (rating, CEO approval %) and supplement with search snippet quotes.
-- Search "[company name] LinkedIn jobs" → fetch_url the LinkedIn company page — gets headcount, location, description, and "1,001–5,000 employees" size bands. Job listings themselves require login — search for job titles separately if needed.
+- Search "[company name] LinkedIn jobs" → fetch_url the LinkedIn company page — gets headcount, location, description, and "1,001–5,000 employees" size bands. Job listings themselves require login — use job board sources below instead.
+
+HIRING SIGNAL ANALYSIS — HIGH IMPACT. Do all of these:
+
+COMPANY JOB POSTINGS (own hiring):
+- Fetch the company's careers page directly (/careers, /jobs, /join-us) — get a full list of open roles
+- Search "site:greenhouse.io [company name]" OR "site:lever.co [company name]" OR "site:ashbyhq.com [company name]" → fetch the ATS page — gets the actual live job list without login
+- Search "[company name] jobs site:indeed.com" → fetch the Indeed company page — publicly accessible job listings with full descriptions
+- Search "[company name] jobs site:wellfound.com" → fetch Wellfound company page — shows role count, functions, seniority, equity bands (good for early-stage companies)
+- From these listings, extract and report:
+  * Total open role count and trend signal (if detectable)
+  * Function breakdown: what % engineering vs. sales vs. CS vs. marketing vs. ops?
+  * Seniority mix: building IC layers vs. hiring senior leaders — which functions are being led vs. built?
+  * New functions appearing for the first time (signals strategic expansion)
+  * Geographic signals: new city/country in job titles = expansion in flight
+  * Named technology requirements in job specs (what tools/platforms do they expect hires to already know?)
+  * Any roles that reveal product direction (e.g. "ML Infrastructure Engineer" = AI investment; "Enterprise Account Executive, DACH" = geographic push)
+
+COMPETITOR HIRING SIGNALS (for top 2–3 competitors):
+- For each competitor: search "[competitor name] jobs site:indeed.com" → fetch the Indeed company page or scan snippets
+- Search "site:greenhouse.io [competitor name]" → fetch their ATS listing page
+- Extract: total open roles vs. company (are they hiring faster/slower?), which functions are growing, any geographic expansion signals, new technical capability signals
+- Interpret gaps: if a competitor is hiring ML engineers at 3× your rate, they are building a capability you are not — name this explicitly
+
+BUYER ROLE JOB SIGNALS (what your buyers are hiring for):
+- Search "[primary ICP role e.g. Head of Internal Comms, VP Marketing Ops] [category e.g. intranet software, employee engagement] tools" → fetch 2–3 job postings from Indeed, Wellfound, or company careers pages
+- From these listings extract: what tools/platforms are listed as required or preferred? What skills are expected? What outcomes are buyers being hired to deliver?
+- This reveals what the buyer's tech stack looks like TODAY — not what they wish for, but what they're already using and expected to know
+
+Report all hiring signals under "### Hiring Signals" in what_matters. Use concrete numbers where available. Cite the source URLs.
 
 CUSTOMER USE CASES:
 - fetch_url(company /customers or /case-studies) if not already fetched in Frame — which logos, sectors, use cases
@@ -330,9 +486,9 @@ Cite URLs for all externally sourced claims. Do not soften difficult findings.
 
 REQUIRED SECTION STRUCTURE:
 - In executive_summary: begin with "### Business Assessment"
-- In what_matters: use "### Product-Market Fit", "### Competitive Landscape", "### Growth Rate & Benchmark Position"
+- In what_matters: use "### Product-Market Fit", "### Competitive Landscape", "### Growth Rate & Benchmark Position", "### Hiring Signals"
 - In recommendation: use "### Emerging Direction", "### Benchmark Gaps"
-- In business_implications: use "### The ICP Signal", "### Resource-Capability-Ambition Gap"
+- In business_implications: use "### The ICP Signal", "### Resource-Capability-Ambition Gap", "### Buyer Stack & Tool Environment"
 
 WHAT MUST BE PRESSURE-TESTED:
 End the Emerging Direction section with an explicit list: "Before Decide can commit, these must be pressure-tested:" followed by 3–5 specific questions or hypotheses the Decide stage must resolve.
@@ -365,7 +521,9 @@ The assumptions array in your tool call MUST be an array of objects, NOT strings
 - "fragility": "low" | "medium" | "high"
 - "testable": boolean
 - "status": "unvalidated"
-Example: { "text": "Enterprise buyers will pay $50k+ ACV", "fragility": "high", "testable": true, "status": "unvalidated" }`,
+Example: { "text": "Enterprise buyers will pay $50k+ ACV", "fragility": "high", "testable": true, "status": "unvalidated" }
+
+${RED_GATE_INSTRUCTIONS.diagnose}`,
 
   decide: `## Stage Instructions: DECIDE
 Compare, reject, choose, prioritise, state, gate. This is the first stage where a committed strategic direction is produced.
@@ -427,9 +585,16 @@ CATEGORY ADJACENCY:
 - Search "TrustRadius [recommended direction] category" → fetch_url the TrustRadius category page — does the category exist? How many vendors are listed? (NOTE: G2 category pages block automated access — use TrustRadius instead)
 - Search "Gartner [recommended direction] market guide 2024" → fetch_url — is this a recognised category?
 
+COMPETITOR HIRING AS OPTION VALIDATOR — mandatory for each strategic option being evaluated:
+- For the top 2–3 competitors relevant to each option: search "[competitor name] jobs site:indeed.com" or "site:greenhouse.io [competitor name]" → check whether they are hiring to pursue the SAME direction
+- If a competitor is aggressively hiring sales reps in a geography you are considering: they are moving there too — adjust timing and defensibility score accordingly
+- If a competitor is hiring ML/AI engineers at scale while you are not: their product capability gap is closing — factor into the "Competitive defensibility" criterion in the decision matrix
+- If a competitor has posted multiple "Country Manager" or "Regional Director" roles in a new market: they have committed before you — consider whether first-mover advantage is still available
+- State clearly in the decision matrix notes what competitor hiring signals tell you about each option's competitive window
+
 REQUIRED SECTION STRUCTURE:
 - In executive_summary: begin with "### Strategic Options Considered"
-- In what_matters: use "### Decision Matrix", "### Cost of Inaction"
+- In what_matters: use "### Decision Matrix", "### Cost of Inaction", "### Competitive Window Signal"
 - In recommendation: use "### Recommended Direction", "### What Must Be True", "### Kill Criteria"
 - In business_implications: use "### Strategic Trade-offs", "### Analogies"
 
@@ -453,7 +618,9 @@ The assumptions array in your tool call MUST be an array of objects, NOT strings
 - "text": string — the assumption statement (max 15 words, no pipes or metadata in this field)
 - "fragility": "low" | "medium" | "high"
 - "testable": boolean
-- "status": "unvalidated"`,
+- "status": "unvalidated"
+
+${RED_GATE_INSTRUCTIONS.decide}`,
 
   position: `## Stage Instructions: POSITION
 Define, target, frame, differentiate, position, defend.
@@ -510,8 +677,22 @@ COMPANY'S OWN POSITIONING (if not already fetched):
 BUYER LANGUAGE & DISCOVERY:
 - Search "[category] reviews TrustRadius" → fetch_url the TrustRadius category page — read buyer-written descriptions of what they're looking for (NOTE: TrustRadius is fully accessible; G2 blocks automated fetching)
 - Search "[company name] TrustRadius reviews" → fetch_url the company's TrustRadius profile — read 5+ review excerpts verbatim, note recurring language about value and pain points
-- Search "[primary buyer role] [category] tools" → fetch_url a relevant LinkedIn job posting or skills page — what tools are listed as requirements or nice-to-haves?
 - Search "[category] buyer guide 2024" or "[category] comparison 2024" → fetch_url top result — what evaluation criteria are buyers using?
+
+BUYER JOB POSTING ANALYSIS — HIGH IMPACT. Do all of these:
+- Search "[primary buyer role] [category]" on Indeed: fetch_url the search results page (e.g. indeed.com/jobs?q=[role]+[category]) — read 5–10 actual job descriptions. These are publicly accessible without login.
+- Search "[primary buyer role] [category] site:wellfound.com" → fetch_url — startup hiring for this role shows emerging tool stacks and expectations
+- Search "[primary buyer role] [category]" on Greenhouse/Lever: search "site:greenhouse.io [buyer role title]" → fetch a few listing pages
+- From these job postings extract verbatim:
+  * REQUIRED TOOLS: what software platforms are listed as mandatory? (e.g. "Experience with Salesforce required", "Must have used Asana") — these are your buyer's existing stack
+  * PREFERRED TOOLS: what are listed as nice-to-have? — these are adjacency opportunities
+  * OUTCOMES EXPECTED: what results is the buyer being hired to deliver? (e.g. "drive 30% reduction in employee churn") — this is the buyer's definition of success
+  * PAIN POINTS NAMED: what problems are they trying to solve? (e.g. "consolidate our fragmented internal comms stack") — this is your messaging hook
+  * SKILLS VALUED: what capabilities does the buyer need to do their job? (e.g. "experience with change management") — this reveals buyer sophistication level
+- For competitor positioning: search "[top 2 competitors] [buyer role]" on Indeed — what do buyers who use competitors get hired to do differently?
+- Use this to sharpen the positioning statement: your messaging must speak to what this buyer is measured on, use the tools they already know, and solve the problem they were hired to fix
+
+Report extracted job posting signals under "### Buyer Stack & Tool Environment" in business_implications.
 
 SEO & CATEGORY SIGNALS:
 - Search "[category term] site:trends.google.com" or search "Google Trends [category]" → fetch_url — is demand rising, flat, or declining?
@@ -526,7 +707,7 @@ REQUIRED SECTION STRUCTURE:
 - In executive_summary: begin with "### Target Customer", then "### Positioning Statement"
 - In what_matters: use "### Competitive Advantage", "### Narrative Gap Analysis"
 - In recommendation: use "### Positioning Statement (Full)", "### Structural Defensibility"
-- In business_implications: use "### Buyer Persona & Buying Motion", "### GTM Motion Implications", "### Packaging Implications"
+- In business_implications: use "### Buyer Persona & Buying Motion", "### GTM Motion Implications", "### Packaging Implications", "### Buyer Stack & Tool Environment"
 
 STAGE OUTPUT RULES — POSITION:
 - The recommendation field is the POSITIONING RECOMMENDATION — the precise market stance. Include the full positioning statement: "For [target], who [need], [company] is the only [category frame] that [key differentiator] — unlike [alternatives] which [limitation]."
@@ -542,7 +723,9 @@ The assumptions array in your tool call MUST be an array of objects, NOT strings
 - "text": string — the assumption statement (max 15 words, no pipes or metadata in this field)
 - "fragility": "low" | "medium" | "high"
 - "testable": boolean
-- "status": "unvalidated"`,
+- "status": "unvalidated"
+
+${RED_GATE_INSTRUCTIONS.position}`,
 
   competitor_intel: `## Stage Instructions: COMPETITOR INTELLIGENCE
 
@@ -556,6 +739,20 @@ RESEARCH FIRST — MANDATORY. Do not produce output until you have retrieved rea
 3. Search "[competitor name] TrustRadius reviews" → fetch_url the TrustRadius profile for review volume, rating, and recurring customer themes. Also fetch_url Glassdoor company page — gets overall rating and page basics (individual reviews need login, but rating score and search snippet quotes are useful). NOTE: G2 blocks automated fetching — use search snippet only for G2 data.
 4. Search "[competitor name] funding Crunchbase" → use search SNIPPETS for total funding, last round type/amount/date, and investors — do NOT fetch the Crunchbase page (requires Pro login for full data). Search "[competitor name] funding press release" for primary source confirmation.
 5. Search "site:linkedin.com/company [competitor name]" → fetch_url the LinkedIn company page — gets headcount band, description, HQ, and follower count. Posts and employee details require login.
+6. JOB POSTING INTELLIGENCE — HIGH IMPACT. Do ALL of these:
+   - Fetch the competitor's own careers page (/careers, /jobs) — get a live count of open roles and a full list of current openings
+   - Search "site:greenhouse.io [competitor name]" OR "site:lever.co [competitor name]" OR "site:ashbyhq.com [competitor name]" → fetch the ATS results page for a structured list of live roles
+   - Search "[competitor name] jobs site:indeed.com" → fetch the Indeed company page — get full job descriptions. Read 5–10 listings in detail.
+   - From job listings, extract and analyse:
+     * ROLE MIX: what % of roles are engineering vs. sales vs. CS vs. marketing vs. ops? Compare to their stated strategy.
+     * SENIORITY SIGNALS: are they hiring ICs into existing functions (scale) or recruiting senior leaders (new capability)? Which functions are being led?
+     * PRODUCT DIRECTION: what technical skills appear in engineering roles? "ML infrastructure", "LLM fine-tuning", "data pipeline", "mobile SDK" — each signals product investment direction
+     * GEOGRAPHIC EXPANSION: any "Country Manager", "Regional VP", or location-specific roles not previously seen?
+     * NEW CAPABILITIES: any roles for functions they don't appear to have had before (e.g. first "Head of Partnerships", "Enterprise Architect", "Professional Services Lead")?
+     * TALENT ACQUISITION FROM: if job specs mention "experience at [specific company type]", it reveals who they're trying to hire away from
+   - Interpret the TOTAL ROLE COUNT relative to revenue/stage — are they hiring ahead of revenue (VC-style burn) or behind it (PE-style efficiency)?
+   - If headcount is growing faster than their stated market (from news/Crunchbase) this signals confidence or pressure — name which
+   - Quote specific job titles and role descriptions as evidence for predicted next moves
 
 EVIDENCE DISCIPLINE: if you cannot verify a fact, mark it "Unknown" or "Not publicly disclosed". Do not fill gaps with speculation. Every claim must trace to something you actually retrieved.
 
@@ -579,6 +776,13 @@ what_matters — MARKET SIGNAL
 
   ### People Signal
   From Glassdoor/reviews: Positive | Mixed | Negative. Three specific themes from actual reviews (e.g. "PE efficiency pressure surfacing in headcount reviews", "Strong product pride despite commercial instability"). If no review data available, state this explicitly.
+
+  ### Hiring Intelligence
+  From job postings (Indeed, ATS pages, careers page): report the TOTAL open role count. Break down by function. Identify the top 3 signals from their current hiring:
+  - Signal 1: [what a specific cluster of roles reveals about strategic intent]
+  - Signal 2: [what seniority patterns reveal about capability building vs. scaling]
+  - Signal 3: [what geographic or technical roles reveal about next moves]
+  Quote specific role titles as evidence. State explicitly: "Based on current hiring, we predict their next move is [X]" with a confidence level (high/medium/low).
 
   ### Funding & Ownership Context
   If PE-backed: estimated hold period position (early / mid / late based on acquisition date + typical 4–7 year hold), exit pathway likelihood, acquirer landscape. If VC-backed: runway signals, next round positioning. If bootstrapped or public: note this. This is the commercial context that shapes every strategic decision they make.
@@ -697,6 +901,8 @@ Do a narrow, targeted search to check for material market changes since the prio
 1. Search "[company name] competitor news 2025" → scan snippets for any major funding rounds, acquisitions, or product launches among the known competitors. Fetch the top article only if a headline signals a significant move.
 2. Search "[category] market news 2025" → scan snippets for any major category shifts, regulatory changes, or platform moves that would affect the strategy.
 3. Search "[top 1–2 competitors from prior stages] announcement 2025" → check for anything that would invalidate the chosen direction.
+4. HIRING REALITY CHECK — search "site:greenhouse.io [company name]" OR "[company name] jobs site:indeed.com" → scan current open roles against the planned_hires provided. Are the strategic bets reflected in what the company is actually hiring for today? Flag any disconnects between stated bet commitments and current hiring posture — this is an execution risk.
+5. COMPETITOR HIRING FINAL CHECK — for the top 1–2 competitors: check their current open roles on Indeed or their ATS page. Has anything changed since Diagnose? Any new senior hires, new geographies, or capability signals that affect the committed direction?
 
 If you find material new information: note it explicitly in the executive_summary under "### Market Refresh Note" and factor it into the bet portfolio.
 If nothing material has changed: state "No material market changes detected since prior stages" in the executive_summary and proceed with the synthesis.
@@ -704,9 +910,9 @@ Do NOT do broad company research — that was Frame and Diagnose's job. This sea
 
 REQUIRED SECTION STRUCTURE:
 - In executive_summary: begin with "### Strategic Commitment"
-- In what_matters: use "### Strategic Bet Portfolio", "### Anti-Portfolio"
+- In what_matters: use "### Strategic Bet Portfolio", "### Anti-Portfolio", "### Hiring Posture vs. Bet Alignment"
 - In recommendation: use "### What Must Be True (Consolidated)", "### Governance Rhythm"
-- In business_implications: use "### Resource & Investment Implications", "### Team & Capability Implications"
+- In business_implications: use "### Resource & Investment Implications", "### Team & Capability Implications", "### Competitive Hiring Window"
 
 STRUCTURED ARRAYS — MANDATORY (populate as separate fields in the tool call, NOT as ### sub-headings):
 
@@ -739,7 +945,9 @@ The assumptions array in your tool call MUST be an array of objects, NOT strings
 - "text": string — the assumption statement (max 15 words, no pipes or metadata in this field)
 - "fragility": "low" | "medium" | "high"
 - "testable": boolean
-- "status": "unvalidated"`,
+- "status": "unvalidated"
+
+${RED_GATE_INSTRUCTIONS.commit}`,
 };
 
 // ─── Format Q&A ──────────────────────────────────────────────
@@ -863,6 +1071,131 @@ function resolveAgentId(stageId: string): string {
   return id;
 }
 
+// ─── Pre-fetch company pages ──────────────────────────────────
+// Fetches the company's own pages before the agent runs so that
+// baseline company context is guaranteed in the prompt regardless
+// of how much web research the agent does itself.
+
+async function fetchPage(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; StrategyResearchBot/1.0)" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return "";
+    const html = await res.text();
+    // Strip scripts, styles, and tags — keep readable text
+    return html
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[\s\S]*?<\/style>/gi, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s{3,}/g, "\n")
+      .trim()
+      .slice(0, 4000); // cap per page to avoid context bloat
+  } catch {
+    return "";
+  }
+}
+
+async function buildPreResearchContext(company: CompanyContext): Promise<string> {
+  if (!company.url) return "";
+
+  const base = company.url.replace(/\/$/, "");
+  const pages = [
+    { path: "",          label: "Homepage" },
+    { path: "/about",    label: "About" },
+    { path: "/about-us", label: "About" },
+    { path: "/product",  label: "Product" },
+    { path: "/platform", label: "Platform" },
+    { path: "/pricing",  label: "Pricing" },
+    { path: "/customers",label: "Customers" },
+    { path: "/blog",     label: "Blog" },
+    { path: "/careers",  label: "Careers" },
+  ];
+
+  const results: string[] = [];
+
+  // Fetch all pages in parallel, deduplicate by content
+  const fetched = await Promise.allSettled(
+    pages.map(async (p) => {
+      const url = base + p.path;
+      const content = await fetchPage(url);
+      return { url, label: p.label, content };
+    })
+  );
+
+  const seen = new Set<string>();
+  for (const r of fetched) {
+    if (r.status !== "fulfilled") continue;
+    const { url, label, content } = r.value;
+    if (!content || content.length < 100) continue;
+    // Deduplicate — if two paths return identical content (e.g. /about and /about-us both redirect to same page), skip the second
+    const fingerprint = content.slice(0, 200);
+    if (seen.has(fingerprint)) continue;
+    seen.add(fingerprint);
+    results.push(`### Pre-fetched: ${label} (${url})\n${content}`);
+  }
+
+  if (results.length === 0) return "";
+
+  return [
+    "",
+    "## Pre-Fetched Company Pages — Read Before Starting Research",
+    "The following pages were fetched directly from the company website before you began. Use this as your starting point. You still MUST do your own web searches and additional URL fetches to meet the minimum research bar — this data alone is not sufficient.",
+    "",
+    ...results,
+    "",
+  ].join("\n");
+}
+
+// ─── Research gate instruction ─────────────────────────────────
+
+const RESEARCH_GATE = `## RESEARCH GATE — MANDATORY BEFORE WRITING ANY OUTPUT
+
+Before you write a single word of the report sections or call the output tool, you MUST complete the following research checklist. Work through it item by item. Do not skip steps.
+
+PHASE 1 — COMPANY RESEARCH (do all of these):
+[ ] Fetch company homepage — read verbatim copy
+[ ] Fetch company /about — leadership, mission, founding
+[ ] Fetch company /product or /platform — full feature list
+[ ] Fetch company /pricing — tiers, model, packaging
+[ ] Fetch company /customers or /case-studies — logo list, sectors
+[ ] Fetch company /blog — last 3 post titles and topics
+[ ] Fetch company /careers or /jobs — open role count and functions
+[ ] Search "site:greenhouse.io [company]" OR "site:lever.co [company]" — ATS live roles
+
+PHASE 2 — MARKET RESEARCH (do all of these):
+[ ] Search "Gartner Magic Quadrant [category] 2024 2025" — fetch result page
+[ ] Search "Forrester Wave [category] 2024 2025" — fetch result page
+[ ] Search "[category] market size CAGR 2025 2026" — fetch analyst page
+[ ] Search "[category] market trends 2025" — fetch trade press article
+[ ] Search "[company] TrustRadius reviews" — fetch full profile
+[ ] Search "[company] Capterra reviews" — fetch profile
+[ ] Search "[company] funding Crunchbase" — read snippet + fetch press release
+
+PHASE 3 — COMPETITOR RESEARCH (do all of these):
+[ ] Search "[company] alternatives TrustRadius" — fetch alternatives page, list all competitors
+[ ] For each of TOP 5 COMPETITORS: fetch their homepage — read hero copy verbatim
+[ ] For TOP 3 COMPETITORS: fetch their /pricing page
+[ ] For TOP 3 COMPETITORS: fetch their /customers page
+[ ] Search "[category] consolidation OR acquisition 2024 2025" — fetch top article
+[ ] Search "[category] AI 2024 2025" — fetch top article on AI disruption
+
+PHASE 4 — NEWS & SIGNALS (do all of these):
+[ ] Search "[company] news 2024 2025" — fetch top 2 articles
+[ ] Search "[company] CEO OR CPO interview 2025" — fetch any executive interview
+[ ] Search "[category] news 2025" — fetch top trade article
+
+PHASE 5 — COMPETITOR HIRING (do all of these):
+[ ] Search "[competitor 1] jobs site:indeed.com" — scan titles
+[ ] Search "[competitor 2] jobs site:indeed.com" — scan titles
+[ ] Search "[competitor 3] jobs site:indeed.com" — scan titles
+
+SELF-CHECK BEFORE WRITING:
+Count the distinct URLs you have fetched in this session. If fewer than 15, go back and fetch more. Only when you have 15+ fetched URLs may you proceed to write the output and call the tool.
+
+YOUR EVIDENCE_BASE SOURCES ARRAY must include ALL URLs you fetched during research — every single one. This is what populates the Knowledge Base. An empty or short sources array means you did not do enough research.`;
+
 // ─── Public: createStrategySession ───────────────────────────
 
 export async function createStrategySession(input: StrategySessionInput): Promise<string> {
@@ -876,21 +1209,36 @@ export async function createStrategySession(input: StrategySessionInput): Promis
   const formattedAnswers = formatAnswers(questions, answers);
   const priorContext = buildPriorStageContext(priorReports ?? []);
 
+  // Pre-fetch company pages for Frame and Diagnose stages (most research-heavy)
+  const preResearch = (stageId === "frame" || stageId === "diagnose")
+    ? await buildPreResearchContext(company)
+    : "";
+
+  // Only inject the research gate for Frame and Diagnose
+  const researchGate = (stageId === "frame" || stageId === "diagnose" || stageId === "position")
+    ? RESEARCH_GATE
+    : "";
+
   const userMessage = [
     personaFraming,
     "",
     EVIDENCE_DISCIPLINE,
+    "",
+    researchGate,
     "",
     FIELD_CONCISENESS_RULES,
     "",
     stageInstruction,
     "",
     companyBlock,
+    preResearch,
     priorContext,
     "",
     `## ${stageName} — User Inputs`,
     "",
     formattedAnswers,
+    "",
+    `BEFORE CALLING THE TOOL: Verify your evidence_base.sources array contains ALL URLs you fetched during research. This array must have at least 10 entries for Diagnose/Frame stages. An empty sources array is a failure condition — go back and add every URL you retrieved.`,
     "",
     `Call the produce_strategic_diagnosis tool with your complete analysis when you are done.`,
   ]
