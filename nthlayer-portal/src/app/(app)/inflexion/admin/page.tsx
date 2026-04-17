@@ -13,7 +13,7 @@ export default async function AdminPage() {
 
   const dbAny = db as unknown as Record<string, any>;
 
-  const [userCount, companyCount, jobCount, outputCount, shareCount, feedbackCount, stageCounts, shares, feedbacks] =
+  const [userCount, companyCount, jobCount, outputCount, shareCount, feedbackCount, waitlistCount, stageCounts, shares, feedbacks] =
     await Promise.all([
       db.user.count(),
       db.company.count(),
@@ -21,6 +21,7 @@ export default async function AdminPage() {
       db.output.count(),
       dbAny.outputShare?.count().catch(() => 0) ?? 0,
       dbAny.outputFeedback?.count().catch(() => 0) ?? 0,
+      db.waitlistEntry.count().catch(() => 0),
       Promise.all(
         STAGES.map((stage) =>
           db.job.count({ where: { workflowType: stage } }).then((count) => ({ stage, count }))
@@ -48,6 +49,7 @@ export default async function AdminPage() {
     { label: "Outputs", value: outputCount, href: "#" },
     { label: "Shares", value: shareCount, href: "#shares" },
     { label: "Feedback", value: feedbackCount, href: "#feedback" },
+    { label: "Waitlist", value: waitlistCount, href: "/inflexion/admin/waitlist" },
     { label: "Item Feedback", value: "→", href: "/inflexion/admin/feedback" },
   ];
 

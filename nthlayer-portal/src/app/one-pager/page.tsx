@@ -5,8 +5,39 @@ import { useState } from "react";
 /* ─── Nth Layer Marketing One-Pager — nthlayer.co.uk branding ──────────── */
 /* Palette: white bg, #0d2b3e navy, Playfair Display headings, Inter body  */
 
+type WaitlistState = "idle" | "loading" | "success" | "error";
+
 export default function OnePagerPage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", company: "", role: "" });
+  const [waitlistState, setWaitlistState] = useState<WaitlistState>("idle");
+
+  function openWaitlist() {
+    setWaitlistState("idle");
+    setForm({ name: "", email: "", company: "", role: "" });
+    setWaitlistOpen(true);
+  }
+
+  async function submitWaitlist(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.email) return;
+    setWaitlistState("loading");
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        setWaitlistState("success");
+      } else {
+        setWaitlistState("error");
+      }
+    } catch {
+      setWaitlistState("error");
+    }
+  }
 
   return (
     <>
@@ -32,6 +63,155 @@ export default function OnePagerPage() {
           </button>
         </div>
       )}
+
+      {/* ── WAITLIST MODAL ───────────────────────────────────────────────── */}
+      {waitlistOpen && (
+        <div
+          className="fixed inset-0 z-[998] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.6)" }}
+          onClick={() => setWaitlistOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl p-8 shadow-2xl"
+            style={{ background: "#ffffff" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {waitlistState === "success" ? (
+              <div className="text-center py-4">
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
+                  style={{ background: "#f0fdf4" }}
+                >
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 13l4 4L19 7" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <h3
+                  className="text-2xl mb-2"
+                  style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#0d2b3e", fontWeight: 600 }}
+                >
+                  You&rsquo;re on the list
+                </h3>
+                <p className="text-sm leading-relaxed mb-6" style={{ color: "#6b7280" }}>
+                  We&rsquo;ll be in touch when Inflexion opens for early access. We&rsquo;ll keep it short.
+                </p>
+                <button
+                  onClick={() => setWaitlistOpen(false)}
+                  className="text-sm font-semibold"
+                  style={{ color: "#0d2b3e" }}
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Header */}
+                <div className="mb-6">
+                  <div
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold mb-4"
+                    style={{ background: "#f0fdf4", color: "#16a34a" }}
+                  >
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a3e635", display: "inline-block" }} />
+                    Early Waitlist
+                  </div>
+                  <h3
+                    className="text-2xl mb-1"
+                    style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#0d2b3e", fontWeight: 600 }}
+                  >
+                    Get early access to Inflexion
+                  </h3>
+                  <p className="text-sm" style={{ color: "#6b7280" }}>
+                    Board-ready product strategy, built in hours. We&rsquo;ll let you know when we&rsquo;re ready.
+                  </p>
+                </div>
+
+                <form onSubmit={submitWaitlist} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "#374151" }}>
+                      Name <span style={{ color: "#ef4444" }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Your name"
+                      required
+                      value={form.name}
+                      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                      className="w-full px-4 py-2.5 text-sm rounded-lg outline-none"
+                      style={{ border: "1px solid #d1d5db", color: "#111827" }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "#374151" }}>
+                      Work email <span style={{ color: "#ef4444" }}>*</span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="you@company.com"
+                      required
+                      value={form.email}
+                      onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                      className="w-full px-4 py-2.5 text-sm rounded-lg outline-none"
+                      style={{ border: "1px solid #d1d5db", color: "#111827" }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "#374151" }}>
+                      Company <span style={{ color: "#ef4444" }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Company name"
+                      required
+                      value={form.company}
+                      onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
+                      className="w-full px-4 py-2.5 text-sm rounded-lg outline-none"
+                      style={{ border: "1px solid #d1d5db", color: "#111827" }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5" style={{ color: "#374151" }}>
+                      Your role <span style={{ color: "#ef4444" }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. CEO, CPO, Operating Partner"
+                      required
+                      value={form.role}
+                      onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+                      className="w-full px-4 py-2.5 text-sm rounded-lg outline-none"
+                      style={{ border: "1px solid #d1d5db", color: "#111827" }}
+                    />
+                  </div>
+
+                  {waitlistState === "error" && (
+                    <p className="text-xs" style={{ color: "#ef4444" }}>Something went wrong — please try again.</p>
+                  )}
+
+                  <div className="flex items-center gap-3 pt-2">
+                    <button
+                      type="submit"
+                      disabled={waitlistState === "loading"}
+                      className="flex-1 py-3 text-sm font-semibold text-white rounded-lg"
+                      style={{ background: "#0d2b3e", opacity: waitlistState === "loading" ? 0.7 : 1 }}
+                    >
+                      {waitlistState === "loading" ? "Joining…" : "Join the Waitlist"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setWaitlistOpen(false)}
+                      className="px-4 py-3 text-sm font-medium rounded-lg"
+                      style={{ color: "#6b7280", background: "#f3f4f6" }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Google Fonts */}
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link
@@ -56,6 +236,13 @@ export default function OnePagerPage() {
                 The Nth Layer
               </span>
             </div>
+            <button
+              onClick={openWaitlist}
+              className="hidden sm:inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white rounded-lg"
+              style={{ background: "#0d2b3e" }}
+            >
+              Waitlist
+            </button>
           </div>
         </nav>
 
@@ -69,7 +256,7 @@ export default function OnePagerPage() {
                   className="inline-flex items-center rounded-full border px-4 py-1.5 text-xs font-medium tracking-wide uppercase mb-5"
                   style={{ borderColor: "#0d2b3e", color: "#0d2b3e" }}
                 >
-                  Product Strategy for Inflection Points
+                  Inflexion
                 </div>
                 <h1
                   className="text-4xl sm:text-5xl lg:text-[3.5rem] leading-[1.15] mb-6"
@@ -84,15 +271,14 @@ export default function OnePagerPage() {
                   Markets shift. Competitors move. Technology rewrites the rules.{" "}
                   Inflexion takes you from &ldquo;something changed&rdquo; to a committed direction, strategic bets, and a 100-day execution plan &mdash; backed by live evidence, not gut feel.
                 </p>
-                <a
-                  href="#"
-                  onClick={(e) => e.preventDefault()}
-                  className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-semibold text-white cursor-default"
-                  style={{ background: "#0d2b3e", borderRadius: 8, opacity: 0.75 }}
+                <button
+                  onClick={openWaitlist}
+                  className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-semibold text-white"
+                  style={{ background: "#0d2b3e", borderRadius: 8 }}
                 >
                   <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#a3e635", display: "inline-block" }} />
-                  Coming Soon
-                </a>
+                  Waitlist
+                </button>
               </div>
             </div>
           </div>
@@ -125,15 +311,15 @@ export default function OnePagerPage() {
                   className="text-3xl sm:text-4xl mb-6"
                   style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#0d2b3e", fontWeight: 400 }}
                 >
-                  A five-figure engagement, six to twelve weeks, shaped by the consultant's pattern-matching as much as your situation. By the time it lands, the market has moved.
+                  Markets shift.<br />Competitors move.<br />You have weeks — not months.
                 </h2>
               </div>
               <div className="space-y-6 pt-1">
                 <p className="text-base leading-relaxed" style={{ color: "#4a4a4a" }}>
-                  Board-grade product strategy requires research, synthesis, judgement, alignment, and commitment. Done properly, that process takes weeks — and by the time it lands, the market has often moved again.
+                  Inflection points don&rsquo;t wait. When something significant changes — your competitive position, the technology landscape, your funding situation — the window to respond with a clear, committed direction is short. Indecision is a choice, and it compounds.
                 </p>
                 <p className="text-base leading-relaxed" style={{ color: "#4a4a4a" }}>
-                  Inflexion compresses that timeline without cutting corners. It runs autonomous research against live market data — G2, Gartner, Forrester, SaaS benchmarks, competitor sites, hiring signals — and produces board-grade reports with explicit confidence scoring, evidence citation, and testable assumptions. Every claim is grounded. Where data is missing, the system says so.
+                  Inflexion is built for exactly this moment. It runs autonomous research against live market data — G2, Gartner, Forrester, SaaS benchmarks, competitor sites, hiring signals — and produces board-grade strategy with explicit confidence scoring, evidence citation, and testable assumptions. From &ldquo;something changed&rdquo; to a committed direction, in hours.
                 </p>
               </div>
             </div>
@@ -158,64 +344,58 @@ export default function OnePagerPage() {
               </p>
             </div>
 
-            <div className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {[
                 {
                   num: 1,
                   name: "Frame",
                   subtitle: "Define the decision",
-                  desc: "What changed? What does winning look like? Frame establishes the boundaries of the strategic question. The system researches your positioning narrative, funding history, analyst placement across Gartner and Forrester, and independently identifies five to seven competitors through G2, analyst reports, and review sites. Output: a hypothesis register of 8–15 testable assumptions, each tagged to the stage that will test it.",
+                  desc: "What changed and what does winning look like? Sets the strategic question and builds a register of testable assumptions.",
                 },
                 {
                   num: 2,
                   name: "Diagnose",
                   subtitle: "Establish what is true",
-                  desc: "Where do you actually stand? Fifteen autonomous research tasks run across Gartner MQ and Forrester Wave positioning, competitor funding and product launches, market sizing triangulated from six analyst sources, NRR and growth benchmarks from SaaS Capital, OpenView, and Benchmarkit, and third-party reviews across G2, TrustRadius, Capterra, and Gartner Peer Insights. Output: the gap between aspiration and reality, with binding constraints named.",
+                  desc: "15 autonomous research tasks across analysts, competitors, benchmarks, and reviews. Names the gap between where you are and where you need to be.",
                 },
                 {
                   num: 3,
                   name: "Decide",
                   subtitle: "Choose the direction",
-                  desc: "Three to five genuine options — including status quo — scored in a weighted decision matrix across six criteria: resource fit, competitive defensibility, investor alignment, time-to-validation, risk profile, and market size. The system researches comparable PE-backed SaaS repositioning case studies and quantifies the cost of inaction. Output: one explicit recommendation, kill criteria, and two to three company analogies.",
+                  desc: "3–5 real options scored against six criteria. One explicit recommendation, with kill criteria and cost of inaction quantified.",
                 },
                 {
                   num: 4,
                   name: "Position",
                   subtitle: "Define how you win",
-                  desc: "Who do you serve and what makes it defensible? The system researches buyer search behaviour, G2 category placement, competitor positioning language, target buyer job descriptions to reveal procurement criteria, and publicly available RFP evaluation criteria. Output: a positioning statement, narrative gap analysis, competitive frame using Helmer\u2019s 7 Powers, and GTM execution requirements.",
+                  desc: "Who you serve and why it's defensible. Positioning statement, competitive frame, and GTM requirements — grounded in live buyer and market data.",
                 },
                 {
                   num: 5,
                   name: "Commit",
                   subtitle: "Build the execution plan",
-                  desc: "Three to five named strategic bets — each with a testable hypothesis, investment cost, minimum viable test, per-bet confidence score, and dependencies. Plus an anti-portfolio of what is explicitly not being pursued, three OKRs, a 100-day plan with 30/60/90-day gate criteria, and pre-agreed kill criteria with triggers and responses.",
+                  desc: "Named strategic bets with confidence scores, a 100-day plan, OKRs, and pre-agreed kill criteria. No ambiguity about what happens next.",
                 },
               ].map((stage) => (
                 <div
                   key={stage.name}
-                  className="p-6 sm:p-8"
+                  className="p-6 flex flex-col"
                   style={{ background: "#ffffff", border: "1px solid #e8e8e8", borderRadius: 12 }}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-start gap-5">
-                    <div
-                      className="flex items-center justify-center h-10 w-10 rounded-full text-white text-sm font-bold shrink-0"
-                      style={{ background: "#0d2b3e" }}
-                    >
-                      {stage.num}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 mb-2">
-                        <h3
-                          className="text-2xl"
-                          style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#0d2b3e", fontWeight: 700 }}
-                        >
-                          {stage.name}
-                        </h3>
-                        <span className="text-base font-medium" style={{ color: "#444" }}>{stage.subtitle}</span>
-                      </div>
-                      <p className="text-base leading-relaxed" style={{ color: "#555" }}>{stage.desc}</p>
-                    </div>
+                  <div
+                    className="flex items-center justify-center h-9 w-9 rounded-full text-white text-sm font-bold shrink-0 mb-4"
+                    style={{ background: "#0d2b3e" }}
+                  >
+                    {stage.num}
                   </div>
+                  <h3
+                    className="text-2xl mb-1"
+                    style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#0d2b3e", fontWeight: 700 }}
+                  >
+                    {stage.name}
+                  </h3>
+                  <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: "#aaa" }}>{stage.subtitle}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: "#555" }}>{stage.desc}</p>
                 </div>
               ))}
             </div>
@@ -236,7 +416,7 @@ export default function OnePagerPage() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { step: "01", title: "Enter your company URL", desc: "We crawl your site and build an initial company profile automatically." },
+                { step: "01", title: "Tell us about your business", desc: "A few basics about your company and market. Inflexion builds your profile and identifies your competitive context automatically." },
                 { step: "02", title: "Answer guided questions", desc: "5\u20137 per stage, to scope the decision and bring in what only you know." },
                 { step: "03", title: "Live research runs", desc: "Each stage pulls from live sources \u2014 competitor sites, funding data, news, job postings \u2014 and scores every claim." },
                 { step: "04", title: "Review the output", desc: "Structured reports with sourced evidence, confidence scores, and clear recommendations. Ready to share or act on." },
@@ -264,7 +444,7 @@ export default function OnePagerPage() {
                 className="text-3xl sm:text-4xl"
                 style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#0d2b3e", fontWeight: 400 }}
               >
-                Decision-ready output, not process theatre
+                Evidence in. Decisions out.
               </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -299,7 +479,6 @@ export default function OnePagerPage() {
           </div>
         </section>
 
-
         {/* ── THE OUTPUT ─────────────────────────────────────────────────── */}
         <section className="py-12 sm:py-16" style={{ background: "#f7f7f5" }}>
           <div className="mx-auto max-w-7xl px-6">
@@ -310,13 +489,13 @@ export default function OnePagerPage() {
                   className="text-3xl sm:text-4xl mb-6"
                   style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#0d2b3e", fontWeight: 400 }}
                 >
-                  A Final Synthesis Report built for the board room
+                  Actionable. Board-ready. Every claim evidence-based.
                 </h2>
                 <p className="text-base leading-relaxed mb-6" style={{ color: "#4a4a4a" }}>
                   After all five stages, Inflexion produces a single board-ready document — not a summary, but a synthesis. Fifteen sections. Four appendices. Every recommendation traceable to its evidence.
                 </p>
                 <p className="text-base leading-relaxed" style={{ color: "#4a4a4a" }}>
-                  The appendices include a confidence waterfall decomposed by stage, an evidence gap register, a hypothesis register showing every assumption's validation status, and a complete deduplicated source list. Designed for PE and board audiences: quantified, evidence-cited, assumption-explicit, and structured around governance rhythms investors expect.
+                  The appendices include a confidence waterfall decomposed by stage, an evidence gap register, a hypothesis register showing every assumption&rsquo;s validation status, and a complete deduplicated source list. Designed for PE and board audiences: quantified, evidence-cited, assumption-explicit, and structured around governance rhythms investors expect.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -328,7 +507,7 @@ export default function OnePagerPage() {
                 ].map((section, i) => (
                   <div
                     key={section}
-                    className="px-4 py-3 flex items-center gap-3"
+                    className={`px-4 py-3 flex items-center gap-3${i === 0 ? " col-span-2 justify-center" : ""}`}
                     style={{ background: "#ffffff", borderRadius: 8, border: "1px solid #e8e8e8" }}
                   >
                     <span className="text-xs font-mono shrink-0" style={{ color: "#bbb" }}>{String(i + 1).padStart(2, "0")}</span>
@@ -339,7 +518,6 @@ export default function OnePagerPage() {
             </div>
           </div>
         </section>
-
 
         {/* ── FOOTER CTA ─────────────────────────────────────────────────── */}
         <section className="py-12 sm:py-16" style={{ background: "#0d2b3e" }}>
@@ -353,13 +531,14 @@ export default function OnePagerPage() {
             <p className="mb-8" style={{ color: "rgba(255,255,255,0.6)" }}>
               Built for PE portfolio reviews, board strategy sessions, and leadership teams at inflection points.
             </p>
-            <div
-              className="inline-flex items-center gap-2 px-10 py-4 text-base font-semibold"
-              style={{ background: "#ffffff", color: "#0d2b3e", borderRadius: 8, opacity: 0.85 }}
+            <button
+              onClick={openWaitlist}
+              className="inline-flex items-center gap-2 px-10 py-4 text-base font-semibold rounded-lg"
+              style={{ background: "#ffffff", color: "#0d2b3e" }}
             >
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#a3e635", display: "inline-block" }} />
-              Coming Soon
-            </div>
+              Waitlist
+            </button>
           </div>
         </section>
 
@@ -374,7 +553,6 @@ export default function OnePagerPage() {
               </svg>
               <span className="text-sm font-semibold" style={{ color: "#0d2b3e" }}>The Nth Layer</span>
             </div>
-{/* removed portal URL */}
           </div>
         </footer>
       </div>

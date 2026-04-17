@@ -13,8 +13,12 @@ interface Rect {
 
 const PADDING = 8;
 const TOOLTIP_GAP = 12;
-const TOOLTIP_WIDTH = 400;
 const TRANSITION_MS = 300;
+// Responsive tooltip width — never wider than viewport minus 32px margin
+function getTooltipWidth() {
+  if (typeof window === "undefined") return 400;
+  return Math.min(400, window.innerWidth - 32);
+}
 // Tour must render above any modals (deck-cta modal uses z-index 1000)
 const Z_CATCHER = 1090;
 const Z_SPOTLIGHT = 1091;
@@ -35,35 +39,40 @@ function getRect(target: string): Rect | null {
 function getTooltipPos(r: Rect, placement: Placement): { top: number; left: number } {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
+  const tw = getTooltipWidth();
   let top = 0;
   let left = 0;
 
-  if (placement === "right") {
+  // On very small screens always place below the target
+  if (vw < 480) {
+    top = r.top + r.height + TOOLTIP_GAP;
+    left = 16;
+  } else if (placement === "right") {
     top = r.top + r.height / 2 - 80;
     left = r.left + r.width + TOOLTIP_GAP;
-    if (left + TOOLTIP_WIDTH > vw - 16) {
+    if (left + tw > vw - 16) {
       top = r.top + r.height + TOOLTIP_GAP;
-      left = Math.max(16, r.left + r.width / 2 - TOOLTIP_WIDTH / 2);
+      left = Math.max(16, r.left + r.width / 2 - tw / 2);
     }
   } else if (placement === "left") {
     top = r.top + r.height / 2 - 80;
-    left = r.left - TOOLTIP_WIDTH - TOOLTIP_GAP;
+    left = r.left - tw - TOOLTIP_GAP;
     if (left < 16) {
       top = r.top + r.height + TOOLTIP_GAP;
-      left = Math.max(16, r.left + r.width / 2 - TOOLTIP_WIDTH / 2);
+      left = Math.max(16, r.left + r.width / 2 - tw / 2);
     }
   } else if (placement === "bottom") {
     top = r.top + r.height + TOOLTIP_GAP;
-    left = Math.max(16, r.left + r.width / 2 - TOOLTIP_WIDTH / 2);
+    left = Math.max(16, r.left + r.width / 2 - tw / 2);
   } else {
     top = r.top - TOOLTIP_GAP - 180;
-    left = Math.max(16, r.left + r.width / 2 - TOOLTIP_WIDTH / 2);
+    left = Math.max(16, r.left + r.width / 2 - tw / 2);
     if (top < 16) {
       top = r.top + r.height + TOOLTIP_GAP;
     }
   }
 
-  left = Math.max(16, Math.min(left, vw - TOOLTIP_WIDTH - 16));
+  left = Math.max(16, Math.min(left, vw - tw - 16));
   top = Math.max(16, Math.min(top, vh - 200));
   return { top, left };
 }
@@ -162,6 +171,8 @@ export function WalkthroughOverlay() {
 
   const isFirst = currentStep === 0;
   const isLast = currentStep === steps.length - 1;
+  const tooltipWidth = getTooltipWidth();
+  const isMobileTooltip = tooltipWidth < 380;
 
   return (
     <>
@@ -193,24 +204,24 @@ export function WalkthroughOverlay() {
           position: "fixed",
           top: tooltipPos.top,
           left: tooltipPos.left,
-          width: TOOLTIP_WIDTH,
+          width: tooltipWidth,
           zIndex: Z_TOOLTIP,
           background: "#fff",
           borderRadius: 14,
           boxShadow: "0 12px 40px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)",
-          padding: "28px 32px",
+          padding: isMobileTooltip ? "18px 20px" : "28px 32px",
           transition: `all ${TRANSITION_MS}ms ease`,
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(8px)",
         }}
       >
-        <p style={{ fontSize: 13, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
           {currentStep + 1} of {steps.length}
         </p>
-        <h3 style={{ fontSize: 22, fontWeight: 700, color: "#111827", marginBottom: 10, lineHeight: 1.3 }}>
+        <h3 style={{ fontSize: isMobileTooltip ? 17 : 22, fontWeight: 700, color: "#111827", marginBottom: 8, lineHeight: 1.3 }}>
           {step.title}
         </h3>
-        <p style={{ fontSize: 17, color: "#4b5563", lineHeight: 1.65, marginBottom: 24 }}>
+        <p style={{ fontSize: isMobileTooltip ? 14 : 17, color: "#4b5563", lineHeight: 1.65, marginBottom: 20 }}>
           {step.body}
         </p>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>

@@ -7,6 +7,7 @@ import { CompanyProvider } from "@/lib/contexts/company";
 import { WalkthroughProvider } from "./walkthrough/walkthrough-provider";
 import { WalkthroughOverlay } from "./walkthrough/walkthrough-overlay";
 import { TourButton } from "./walkthrough/tour-button";
+import { AskMeModal } from "./ask-me-modal";
 import type { PlanEntitlements } from "@/lib/types/entitlements";
 
 interface CompanyInfo {
@@ -33,13 +34,14 @@ export function AppShellV2({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [askMeOpen, setAskMeOpen] = useState(false);
 
   return (
     <EntitlementProvider entitlements={entitlements} planName={planName} systemRole={systemRole}>
       <CompanyProvider initialCompanies={companies}>
         <WalkthroughProvider>
         <div className="flex min-h-screen">
-          <SidebarV2 open={sidebarOpen} onClose={() => setSidebarOpen(false)} email={email} />
+          <SidebarV2 open={sidebarOpen} onClose={() => setSidebarOpen(false)} email={email} onOpenAskMe={() => { setSidebarOpen(false); setAskMeOpen(true); }} />
 
           <main className="flex-1 min-w-0 lg:ml-[260px]">
             {/* Top bar */}
@@ -79,6 +81,7 @@ export function AppShellV2({
           </main>
         </div>
         <WalkthroughOverlay />
+        <AskMeModal open={askMeOpen} onClose={() => setAskMeOpen(false)} />
         </WalkthroughProvider>
       </CompanyProvider>
     </EntitlementProvider>

@@ -11,6 +11,7 @@ const publicPaths = [
   "/api/auth/register",
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
+  "/api/waitlist",
   "/onboarding",
   "/one-pager",
 ];
