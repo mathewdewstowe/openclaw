@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Nth Layer — AI Transformation for PE & VC-Backed Companies</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:  #111;
+    --white:  #fff;
+    --grey:   #f5f4f1;
+    --orange: #39ff7a;
+    --forest: #0d1f10;
+    --font:   -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--black);
+    color: var(--white);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    background: rgba(17,17,17,0.94);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .nav-logo-text {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white);
+    line-height: 1.25;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #888;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--white); }
+
+  @keyframes ctaPulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(57,255,122,0.35), 0 0 18px rgba(57,255,122,0.15); border-color: rgba(57,255,122,0.7) !important; }
+    50%       { box-shadow: 0 0 20px rgba(57,255,122,0.75), 0 0 40px rgba(57,255,122,0.35); border-color: rgba(57,255,122,1) !important; }
+  }
+
+  .nav-cta {
+    color: var(--white) !important;
+    border: 1px solid rgba(57,255,122,0.8) !important;
+    padding: 9px 20px;
+    box-shadow: 0 0 10px rgba(57,255,122,0.3);
+    animation: ctaPulse 2s ease-in-out infinite;
+  }
+
+  .nav-cta:hover {
+    border-color: rgba(57,255,122,0.95) !important;
+    box-shadow: 0 0 24px rgba(57,255,122,0.8) !important;
+    animation: none;
+  }
+
+  /* ── SHARED ── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #aaa;
+    display: block;
+    margin-bottom: 24px;
+  }
+
+  .section-label.light { color: #bbb; }
+
+  /* ════════════════════════════
+     SECTION 1 — HERO
+  ════════════════════════════ */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 72px;
+    padding-bottom: 72px;
+    background: var(--black);
+    position: relative;
+    overflow-y: hidden;
+  }
+
+  .hero-cubes {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .hero-left {
+    padding: 0 48px;
+  }
+
+  .hero-pill {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--orange);
+    border: 1px solid rgba(57,255,122,0.6);
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 32px;
+    align-self: flex-start;
+  }
+
+  .hero-left h1 {
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--white);
+    max-width: 900px;
+  }
+
+  .hero-left h1 .hero-line {
+    display: block;
+    white-space: nowrap;
+    font-size: clamp(36px, 4.2vw, 64px);
+    color: var(--white);
+    text-shadow: 0 0 30px rgba(57,255,122,0.6), 0 0 60px rgba(57,255,122,0.35);
+    min-height: 1.2em;
+    opacity: 0;
+    animation: fadeSlideIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s forwards;
+  }
+
+  .tw-cursor {
+    display: inline-block;
+    width: 3px;
+    background: var(--orange);
+    margin-left: 3px;
+    vertical-align: middle;
+    height: 0.8em;
+    animation: twblink 0.8s step-end infinite;
+  }
+
+  @keyframes twblink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-right { display: none; }
+  .hero-ctas { display: none; }
+
+  .hero-diag {
+    margin-top: 40px;
+    opacity: 0;
+    animation: fadeSlideIn 0.6s cubic-bezier(0.22,1,0.36,1) 1.4s forwards;
+  }
+
+  .btn-diag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--orange);
+    border: 1px solid rgba(57,255,122,0.45);
+    border-radius: 4px;
+    padding: 10px 22px;
+    box-shadow: 0 0 10px rgba(57,255,122,0.15);
+    transition: border-color 0.2s, box-shadow 0.2s, color 0.2s;
+  }
+
+  .btn-diag:hover {
+    border-color: rgba(57,255,122,0.9);
+    box-shadow: 0 0 20px rgba(57,255,122,0.4);
+    color: #fff;
+  }
+
+  @keyframes btn-pulse {
+    0%, 100% { box-shadow: 0 0 18px rgba(57,255,122,0.5); }
+    50%       { box-shadow: 0 0 42px rgba(57,255,122,0.85), 0 0 72px rgba(57,255,122,0.3); }
+  }
+
+  .btn-primary {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: var(--orange);
+    color: #0a1a0d;
+    padding: 14px 28px;
+    display: inline-block;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 18px rgba(57,255,122,0.5);
+    animation: btn-pulse 2.2s ease-in-out infinite;
+  }
+
+  .btn-primary:hover {
+    background: #5fffaa;
+    box-shadow: 0 0 32px rgba(57,255,122,0.75);
+    animation: none;
+  }
+
+  .btn-text {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #aaa;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .btn-text:hover { color: var(--black); }
+
+  /* ── TICKER ── */
+  .ticker-wrap {
+    background: var(--white);
+    overflow: hidden;
+    padding: 18px 0;
+    border-top: 1px solid #e8e8e8;
+    border-bottom: 1px solid #e8e8e8;
+  }
+
+  .ticker-track {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: max-content;
+    animation: ticker 28s linear infinite;
+  }
+
+  .ticker-item {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #111;
+    white-space: nowrap;
+    padding: 0 28px;
+  }
+
+  .ticker-sep {
+    color: var(--orange);
+    font-size: 10px;
+    flex-shrink: 0;
+    text-shadow: 0 0 8px rgba(57,255,122,0.7);
+  }
+
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ════════════════════════════
+     SECTION 3 — WHO IT'S FOR (SLOT MACHINE)
+  ════════════════════════════ */
+  .who-section {
+    background: var(--black);
+    padding: 48px 0 80px;
+    border-top: none;
+  }
+
+  .who-section .section-label { color: #999; margin-bottom: 32px; }
+
+  .who-wheel-wrap { max-width: 760px; }
+
+  .who-slot {
+    height: clamp(60px, 7.5vw, 88px);
+    overflow: hidden;
+    margin-bottom: 36px;
+    position: relative;
+  }
+
+  .who-slot::before,
+  .who-slot::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 20px;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .who-slot::before { top: 0; background: linear-gradient(to bottom, var(--black), transparent); }
+  .who-slot::after  { bottom: 0; background: linear-gradient(to top, var(--black), transparent); }
+
+  .who-slot-track {
+    display: flex;
+    flex-direction: column;
+    transform: translateY(0);
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .who-slot-item {
+    height: clamp(60px, 7.5vw, 88px);
+    display: flex;
+    align-items: center;
+    font-size: clamp(36px, 5.5vw, 72px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--white);
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .who-desc {
+    font-size: 15px;
+    color: #999;
+    line-height: 1.8;
+    max-width: 580px;
+    transition: opacity 0.25s ease;
+    min-height: 90px;
+  }
+
+  /* ════════════════════════════
+     FRAMEWORK SECTION
+  ════════════════════════════ */
+  .framework {
+    background: #f5f4f1;
+    color: var(--black);
+    padding: 80px 0;
+  }
+
+  .framework .section-label { color: #999; }
+
+  .framework-heading {
+    font-size: clamp(28px, 3vw, 44px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--black);
+    margin-bottom: 12px;
+    line-height: 1.1;
+  }
+
+  .framework-sub {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 52px;
+    max-width: 520px;
+    line-height: 1.65;
+  }
+
+  .framework-stages {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .fw-stage {
+    background: #161616;
+    padding: 28px 24px;
+    border-top: 1px solid rgba(57,255,122,0.8);
+    box-shadow: 0 -3px 14px rgba(57,255,122,0.25);
+    position: relative;
+  }
+
+  .fw-stage::after {
+    content: '→';
+    position: absolute;
+    right: -14px;
+    top: 28px;
+    font-size: 14px;
+    color: #ccc;
+    z-index: 1;
+  }
+
+  .fw-stage:last-child::after { display: none; }
+
+  .fw-n {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #999;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  .fw-name {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #fff;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .fw-desc {
+    font-size: 12px;
+    color: #aaa;
+    line-height: 1.65;
+  }
+
+  .framework-lenses {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+
+  .fw-lens {
+    background: #1a1a1a;
+    border-top: 1px solid #2a2a2a;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .fw-lens-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--orange);
+    box-shadow: 0 0 8px rgba(57,255,122,0.9);
+    flex-shrink: 0;
+  }
+
+  .fw-lens-name {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #888;
+  }
+
+  .fw-lens-desc {
+    font-size: 12px;
+    color: #999;
+    margin-left: auto;
+  }
+
+  /* ════════════════════════════
+     SECTION 4 — INFLEXION
+  ════════════════════════════ */
+  .inflexion {
+    background: var(--black);
+    color: var(--white);
+    padding: 72px 0;
+    border-top: 1px solid #1a1a1a;
+  }
+
+  .inflexion-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .inflexion-pill {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+
+  .inflexion-left h2 {
+    font-size: clamp(52px, 6vw, 80px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1.0;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+
+  .inflexion-subhead {
+    font-size: 14px;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 28px;
+    font-style: italic;
+  }
+
+  .inflexion-left p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+    line-height: 1.8;
+    margin-bottom: 36px;
+  }
+
+  .vector-pills {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 40px;
+  }
+
+  .vector-pill {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .vector-pill::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: rgba(255,255,255,0.15);
+    flex-shrink: 0;
+  }
+
+  .inflexion-link {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .inflexion-link:hover { color: var(--white); }
+
+  .inflexion-graphic {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .vector-block {
+    background: rgba(255,255,255,0.03);
+    border-left: 2px solid rgba(57,255,122,0.6);
+    box-shadow: -4px 0 16px rgba(57,255,122,0.25);
+    padding: 28px 32px;
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .vector-block:hover {
+    background: rgba(57,255,122,0.15);
+    border-left-color: rgba(57,255,122,0.9);
+    box-shadow: -4px 0 24px rgba(57,255,122,0.45);
+  }
+
+  .vb-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .vb-name {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--white);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .vb-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    line-height: 1.6;
+  }
+
+  /* ════════════════════════════
+     ABOUT NTH LAYER
+  ════════════════════════════ */
+  .about-section {
+    background: #0d0d0d;
+    color: var(--white);
+    padding: 100px 0;
+    border-top: 1px solid #1a1a1a;
+  }
+
+  .about-section .section-label { color: #999; }
+
+  .about-inner {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .about-heading {
+    font-size: clamp(36px, 4vw, 56px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--white);
+    margin-bottom: 16px;
+    line-height: 1.05;
+  }
+
+  .about-sub {
+    font-size: 14px;
+    color: #999;
+    line-height: 1.7;
+  }
+
+  .about-right p {
+    font-size: 15px;
+    color: #aaa;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    max-width: 580px;
+  }
+
+  .about-right p:last-of-type { margin-bottom: 32px; }
+
+  .about-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .about-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #888;
+    border: 1px solid #222;
+    padding: 6px 14px;
+  }
+
+  /* ════════════════════════════
+     SECTION 5 — HOW IT WORKS
+  ════════════════════════════ */
+  .how {
+    background: var(--grey);
+    color: var(--black);
+    padding: 100px 0;
+  }
+
+  .how .section-label { color: #bbb; }
+
+  .how-heading {
+    font-size: clamp(32px, 3.5vw, 50px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--black);
+    margin-bottom: 56px;
+    line-height: 1.1;
+  }
+
+  .how-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+
+  .how-step {
+    background: var(--white);
+    padding: 36px 32px;
+    border-top: 2px solid var(--orange);
+    box-shadow: 0 -4px 16px rgba(57,255,122,0.4), inset 0 0 24px rgba(57,255,122,0.1);
+  }
+
+  .step-num {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #ccc;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .how-step h3 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--black);
+    margin-bottom: 16px;
+  }
+
+  .how-step p { font-size: 13px; color: #aaa; line-height: 1.75; }
+
+  /* ════════════════════════════
+     SECTION 6 — CREDIBILITY
+  ════════════════════════════ */
+  .credibility {
+    background: var(--white);
+    color: var(--black);
+    padding: 100px 0;
+    border-top: 1px solid #e8e8e8;
+  }
+
+  .credibility .section-label { color: #bbb; }
+
+  .cred-heading {
+    font-size: clamp(32px, 3.5vw, 50px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--black);
+    margin-bottom: 56px;
+  }
+
+  .cred-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+
+  .cred-stat {
+    background: var(--grey);
+    padding: 36px 32px;
+    border-top: 2px solid var(--orange);
+    box-shadow: 0 -4px 16px rgba(57,255,122,0.4), inset 0 0 24px rgba(57,255,122,0.1);
+  }
+
+  .cred-value {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--black);
+    display: block;
+    margin-bottom: 10px;
+    line-height: 1.15;
+  }
+
+  .cred-label { font-size: 13px; color: #888; line-height: 1.55; }
+
+  /* ════════════════════════════
+     SECTION 7 — DIAGNOSTIC
+  ════════════════════════════ */
+  .diagnostic {
+    background: var(--black);
+    color: var(--white);
+    padding: 120px 0;
+    text-align: center;
+  }
+
+  .diagnostic h2 {
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: var(--white);
+    margin-bottom: 20px;
+    line-height: 1.0;
+  }
+
+  .diagnostic p {
+    font-size: 17px;
+    color: #999;
+    max-width: 520px;
+    margin: 0 auto 44px;
+    line-height: 1.7;
+  }
+
+  .diagnostic .btn-primary {
+    font-size: 13px;
+    padding: 16px 36px;
+  }
+
+  .diagnostic-sub {
+    margin-top: 24px;
+    font-size: 12px;
+    color: #333;
+  }
+
+  .diagnostic-sub a {
+    color: #999;
+    text-decoration: none;
+    border-bottom: 1px solid #333;
+    padding-bottom: 1px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .diagnostic-sub a:hover { color: var(--white); border-color: #aaa; }
+
+  /* ════════════════════════════
+     SECTION 8 — CONTACT
+  ════════════════════════════ */
+  .contact {
+    background: var(--black);
+    color: var(--white);
+    padding: 100px 0;
+    border-top: 1px solid #1a1a1a;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+  }
+
+  .contact-left {
+    background: #161616;
+    padding: 56px 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .contact-left h2 {
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--white);
+    margin-bottom: 16px;
+    line-height: 1.05;
+  }
+
+  .contact-left p { font-size: 15px; color: #999; line-height: 1.7; margin-bottom: 28px; }
+
+  .contact-email {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #888;
+    text-decoration: none;
+    border-bottom: 1px solid #222;
+    padding-bottom: 2px;
+    align-self: flex-start;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .contact-email:hover { color: var(--white); border-color: #999; }
+
+  .contact-right {
+    background: #161616;
+    padding: 56px 48px;
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .contact-form input,
+  .contact-form textarea {
+    width: 100%;
+    background: #111;
+    border: 1px solid #222;
+    color: var(--white);
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 13px 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+
+  .contact-form input:focus,
+  .contact-form textarea:focus { border-color: #888; }
+
+  .contact-form textarea { resize: vertical; min-height: 110px; }
+  .contact-form ::placeholder { color: #333; }
+
+  .contact-form .btn-primary {
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+    padding: 14px 24px;
+    font-size: 12px;
+    align-self: flex-start;
+    margin-top: 6px;
+  }
+
+  .form-success {
+    display: none;
+    font-size: 14px;
+    color: #999;
+    padding: 16px 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--black);
+    border-top: 1px solid #1a1a1a;
+    padding: 32px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-logo {
+    display: flex; align-items: center; gap: 12px; text-decoration: none;
+  }
+
+  .footer-logo-text {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #2a2a2a;
+    line-height: 1.25;
+  }
+
+  footer p { font-size: 11px; color: #2a2a2a; }
+
+  /* ── SIDE NAV ── */
+  .side-nav {
+    position: fixed;
+    right: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 150;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.4s ease;
+  }
+
+  .side-nav-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .side-nav-btn::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #333;
+    display: block;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .side-nav-btn:hover::before { background: #666; }
+
+  .side-nav-btn.active::before {
+    background: var(--orange);
+    box-shadow: 0 0 8px rgba(57,255,122,0.8);
+    transform: scale(1.4);
+  }
+
+  .side-nav-btn.bounce::before {
+    animation: sideNavBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes sideNavBounce {
+    0%   { transform: scale(0.6); opacity: 0.4; }
+    60%  { transform: scale(1.6); }
+    100% { transform: scale(1.4); opacity: 1; }
+  }
+
+  @media (max-width: 1100px) { .side-nav { display: none; } }
+
+  /* ── MOBILE / RESPONSIVE ── */
+  @media (max-width: 860px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .container { padding: 0 20px; }
+
+    .hero { min-height: auto; padding: 100px 0 48px; }
+    .hero-left { padding: 0 20px; }
+
+    .who-section { padding: 64px 0; }
+    .who-slot-item { font-size: clamp(32px, 9vw, 48px); }
+    .who-slot { height: clamp(48px, 12vw, 64px); }
+    .who-slot-track .who-slot-item { height: clamp(48px, 12vw, 64px); }
+
+    .framework-stages {
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .framework-lenses { grid-template-columns: 1fr; }
+
+    .fw-stage::after { display: none; }
+
+    .about-inner { grid-template-columns: 1fr; gap: 32px; }
+    .about-section { padding: 64px 0; }
+
+    .inflexion-inner { grid-template-columns: 1fr; gap: 40px; }
+    .inflexion { padding: 56px 0; }
+
+    .how-steps,
+    .cred-stats { grid-template-columns: 1fr; }
+
+    .contact-grid { grid-template-columns: 1fr; }
+    .contact-left, .contact-right { padding: 40px 20px; }
+    .form-row { grid-template-columns: 1fr; }
+
+    footer { flex-direction: column; gap: 16px; padding: 28px 20px; }
+
+    .diagnostic { padding: 80px 0; }
+  }
+
+  /* ════════════════════════════
+     PROBLEM SECTION
+  ════════════════════════════ */
+  .problem-section {
+    background: var(--black);
+    padding: 80px 0;
+    border-top: 1px solid #1a1a1a;
+  }
+
+  .problem-section .section-label { color: #999; }
+
+  .problem-inner {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 80px;
+    align-items: start;
+    margin-bottom: 48px;
+  }
+
+  .problem-heading {
+    font-size: clamp(32px, 3.5vw, 52px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--white);
+    line-height: 1.1;
+  }
+
+  .problem-body {
+    font-size: 15px;
+    color: #888;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    max-width: 560px;
+  }
+
+  .problem-body:last-child { margin-bottom: 0; }
+
+  .problem-divider {
+    height: 1px;
+    background: #1a1a1a;
+  }
+
+  /* ── HERO SUBTEXT ── */
+  .hero-subtext {
+    font-size: 20px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.75;
+    max-width: 780px;
+    margin-top: 20px;
+    margin-bottom: 36px;
+  }
+
+  /* ════ OUTCOMES STRIP ════ */
+  .outcomes-strip { background: var(--white); padding: 32px 0; border-bottom: 1px solid #e8e8e8; }
+  .outcomes-label { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #aaa; margin-bottom: 24px; }
+  .outcomes-cols { display: grid; grid-template-columns: repeat(3,1fr); gap: 0; }
+  .outcome-col { padding: 0 40px; border-right: 1px solid #e8e8e8; }
+  .outcome-col:first-child { padding-left: 0; }
+  .outcome-col:last-child { border-right: none; }
+  .outcome-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: #111; margin-bottom: 8px; }
+  .outcome-desc { font-size: 14px; color: #555; line-height: 1.65; }
+  @media (max-width: 700px) { .outcomes-cols { grid-template-columns: 1fr; gap: 28px; } .outcome-col { padding: 0; border-right: none; } }
+
+  /* ════ TENSION ════ */
+  .tension-section { background: var(--white); padding: 28px 0; border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; }
+  .tension-quote { font-size: clamp(14px,1.4vw,20px); font-weight: 700; letter-spacing: -0.02em; color: #111; line-height: 1.35; max-width: 100%; margin-bottom: 20px; text-indent: -0.45em; padding-left: 0.45em; white-space: nowrap; }
+  .tension-attribution { font-size: 13px; color: #aaa; font-weight: 500; }
+
+  /* ════ PROBLEM V2 ════ */
+  .problem-v2 { background: #0d0d0d; padding: 40px 0 36px; border-top: 1px solid #1a1a1a; }
+  .problem-v2 .section-label { color: #999; }
+  .problem-v2-heading { font-size: clamp(28px,3vw,44px); font-weight: 700; letter-spacing: -0.03em; color: var(--white); line-height: 1.1; margin-bottom: 0; }
+  .problem-cards { background: var(--white); padding: 52px 0; border-bottom: 1px solid #e8e8e8; }
+  .problem-cols { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  .problem-col { background: #f7f7f5; border-top: 2px solid #e0e0e0; padding: 32px 28px; }
+  .problem-col-n { display: block; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; color: #ddd; margin-bottom: 16px; }
+  .problem-col-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: #111; margin-bottom: 14px; line-height: 1.3; }
+  .problem-col-body { font-size: 13px; color: #666; line-height: 1.75; }
+
+  /* ════ STATS BAR ════ */
+  .stats-bar { background: var(--black); padding: 40px 0; border-top: 1px solid #1a1a1a; }
+  .stats-bar-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 2px; }
+  .stat-item { padding: 0 28px; border-right: 1px solid #1a1a1a; display: flex; flex-direction: column; }
+  .stat-item:first-child { padding-left: 0; }
+  .stat-item:last-child { border-right: none; }
+  .stat-source { margin-top: auto; padding-top: 10px; }
+  .stat-value { font-size: clamp(28px,2.8vw,40px); font-weight: 800; letter-spacing: -0.03em; color: var(--white); line-height: 1; margin-bottom: 10px; }
+  .stat-desc { font-size: 13px; color: #999; line-height: 1.65; margin-bottom: 8px; max-width: 200px; }
+  .stat-source { font-size: 10px; font-weight: 600; color: #555; }
+
+  /* ════ WHY NOW ════ */
+  .why-now-section { background: var(--white); padding: 52px 0; border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; }
+  .why-now-section .section-label { color: #999; }
+  .why-now-inner { display: block; max-width: 720px; }
+  .why-now-heading { font-size: clamp(22px,2.4vw,34px); font-weight: 700; letter-spacing: -0.03em; color: var(--black); line-height: 1.15; margin-bottom: 20px; }
+  .why-now-body { font-size: 14px; color: #555; line-height: 1.8; }
+
+  /* distribution chart */
+  .dist-chart { width: 100%; margin-top: 4px; }
+  .dist-track { display: flex; height: 56px; gap: 3px; }
+  .dist-seg { display: flex; align-items: center; justify-content: center; }
+  .dist-seg.s1 { background: #e0e0e0; flex: 28; }
+  .dist-seg.s2 { background: #c8c8c8; flex: 35; }
+  .dist-seg.s3 { background: #111; flex: 22; }
+  .dist-seg.s4 { background: #999; flex: 8; }
+  .dist-seg.s5 { background: #777; flex: 7; }
+  .dist-pct { font-size: 11px; font-weight: 700; color: rgba(0,0,0,0.45); }
+  .dist-seg.s3 .dist-pct, .dist-seg.s4 .dist-pct, .dist-seg.s5 .dist-pct { color: rgba(255,255,255,0.7); }
+  .dist-names { display: flex; gap: 3px; margin-top: 6px; }
+  .dist-names > div { font-size: 10px; color: #bbb; text-align: center; padding: 0 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dist-names > div.s1 { flex: 28; }
+  .dist-names > div.s2 { flex: 35; }
+  .dist-names > div.s3 { flex: 22; }
+  .dist-names > div.s4 { flex: 8; }
+  .dist-names > div.s5 { flex: 7; }
+  .dist-ann { display: flex; margin-top: 14px; gap: 3px; }
+  .dist-ann-below { flex: 63; font-size: 11px; font-weight: 600; color: #aaa; border-top: 2px solid #ddd; padding-top: 8px; }
+  .dist-ann-above { flex: 37; font-size: 11px; font-weight: 600; color: #1a8a3a; border-top: 2px solid #1a8a3a; padding-top: 8px; text-align: right; }
+  .dist-source { font-size: 11px; color: #ccc; margin-top: 20px; }
+
+  /* ════ WHO CARDS ════ */
+  .who-cards-section { background: var(--white); padding: 52px 0; border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; }
+  .who-cards-section .section-label { color: #aaa; }
+  .who-cards-heading { font-size: clamp(28px,3vw,44px); font-weight: 700; letter-spacing: -0.03em; color: var(--black); line-height: 1.1; margin-bottom: 48px; }
+  .who-cards-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  .who-card { background: #f7f7f5; border-top: 2px solid #e0e0e0; padding: 32px 28px; }
+  .who-card:hover { background: #f0f0ee; }
+  .who-card-role { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: #111; margin-bottom: 6px; }
+  .who-card-type { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: #aaa; margin-bottom: 16px; }
+  .who-card-body { font-size: 13px; color: #666; line-height: 1.75; }
+
+  /* ════ SERVICES ════ */
+  .services-section { background: var(--white); padding: 52px 0; border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; }
+  .services-section .section-label { color: #aaa; }
+  .services-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+  .services-right { padding-top: 72px; }
+  .services-heading { font-size: clamp(28px,3vw,44px); font-weight: 700; letter-spacing: -0.03em; color: var(--black); line-height: 1.1; margin-bottom: 16px; }
+  .services-intro { font-size: 14px; color: #666; line-height: 1.8; max-width: 480px; margin-bottom: 0; }
+  .services-rows { position: relative; min-height: 160px; overflow: hidden; margin-bottom: 0; }
+  .service-row { position: absolute; top: 0; left: 0; width: 100%; display: grid; grid-template-columns: 60px 1fr; padding: 28px 0; align-items: start; opacity: 0; transform: translateY(48px); transition: opacity 0.6s ease, transform 0.65s cubic-bezier(0.25,0.9,0.4,1); pointer-events: none; }
+  .service-row.svc-active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .service-row.svc-exit { opacity: 0; transform: translateY(-48px); }
+  .service-n { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #bbb; padding-top: 4px; }
+  .service-name { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--black); margin-bottom: 10px; line-height: 1.2; }
+  .service-outcome { font-size: 13px; color: #666; line-height: 1.75; max-width: 680px; }
+
+  /* ════ WHY US ════ */
+  .why-us-section { background: #0d0d0d; padding: 0 0; border-top: 1px solid #1a1a1a; }
+  .why-us-section .section-label { color: #999; }
+  .why-us-inner { display: block; max-width: 720px; padding: 52px 0; }
+  .why-us-left { }
+  .why-us-right { display: none; }
+  .why-us-heading { font-size: clamp(28px,3vw,44px); font-weight: 700; letter-spacing: -0.03em; color: var(--white); line-height: 1.1; margin-bottom: 32px; }
+  .why-us-body { font-size: 14px; color: #aaa; line-height: 1.8; }
+  .outcome-boxes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-bottom: 40px; }
+  .outcome-box { border-left: 1px solid #2a2a2a; padding: 20px 20px 20px 20px; }
+  .outcome-box:first-child { border-left: none; padding-left: 0; }
+  .outcome-label { display: block; font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 8px; letter-spacing: -0.01em; }
+  .outcome-desc { display: block; font-size: 12px; color: #666; line-height: 1.6; }
+  .differentiators { display: flex; flex-direction: column; }
+  .diff-item { padding: 20px 0; border-bottom: 1px solid #e8e8e8; }
+  .diff-item:first-child { border-top: 1px solid #e8e8e8; }
+  .diff-title { display: block; font-size: 14px; font-weight: 700; color: #111; margin-bottom: 6px; letter-spacing: -0.01em; }
+  .diff-desc { display: block; font-size: 13px; color: #666; line-height: 1.6; }
+
+  /* ════ FINAL CTA ════ */
+  .final-cta-section { background: var(--black); padding: 120px 0; text-align: center; border-top: 1px solid #1a1a1a; }
+  .final-cta-heading { font-size: clamp(36px,5vw,64px); font-weight: 700; letter-spacing: -0.04em; color: var(--white); margin-bottom: 20px; line-height: 1; }
+  .final-cta-body { font-size: 17px; color: #777; max-width: 460px; margin: 0 auto 44px; line-height: 1.7; }
+  .final-cta-sub { margin-top: 20px; font-size: 12px; color: #333; }
+
+  @media (max-width: 860px) {
+    .problem-inner { grid-template-columns: 1fr; gap: 28px; }
+    .problem-section { padding: 64px 0; }
+    .problem-cols { grid-template-columns: 1fr; }
+    .stats-bar-grid { grid-template-columns: 1fr 1fr; }
+    .stat-item { padding: 16px 0; border-right: none; border-bottom: 1px solid #e8e8e8; }
+    .stat-item:last-child { border-bottom: none; }
+    .why-now-inner, .why-us-inner { grid-template-columns: 1fr; gap: 40px; }
+    .who-cards-grid { grid-template-columns: 1fr; }
+    .why-now-section, .problem-v2, .who-cards-section, .services-section, .why-us-section { padding: 64px 0; }
+    .service-row { grid-template-columns: 40px 1fr; }
+  }
+
+  @media (max-width: 540px) {
+    .framework-stages { grid-template-columns: 1fr; }
+    .hero-left h1 .hero-line { font-size: clamp(24px, 7vw, 36px); }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 80 80" height="34" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="76" height="76" stroke="white" stroke-width="5"/>
+      <rect x="14" y="14" width="52" height="52" stroke="white" stroke-width="5"/>
+      <rect x="26" y="26" width="28" height="28" stroke="white" stroke-width="5"/>
+      <rect x="35" y="35" width="10" height="10" fill="white"/>
+    </svg>
+    <span class="nav-logo-text">The<br>Nth Layer</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#why-now">Why now</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#why-us">About</a></li>
+    <li><a href="nthlayer-inflexion.html" class="nav-cta">Inflexion</a></li>
+  </ul>
+</nav>
+
+<!-- SIDE NAV -->
+<div class="side-nav" id="sideNav">
+  <button class="side-nav-btn active" data-target="hero" data-label="Landing"></button>
+  <button class="side-nav-btn" data-target="problem" data-label="The Problem"></button>
+  <button class="side-nav-btn" data-target="services" data-label="Services"></button>
+  <button class="side-nav-btn" data-target="who" data-label="Who We Work With"></button>
+  <button class="side-nav-btn" data-target="why-now" data-label="Why Now"></button>
+  <button class="side-nav-btn" data-target="why-us" data-label="About Us"></button>
+</div>
+
+<!-- ═══ SECTION 1: HERO ═══ -->
+<section class="hero" id="hero">
+  <div class="hero-left">
+    <div class="hero-pill">Every board is asking</div>
+    <h1><span class="hero-line" id="twTarget"></span></h1>
+    <p class="hero-subtext">We build agentic workflows, embed AI into products, and design the strategy and operating model that drives value creation, growth, and defensible competitive advantage.</p>
+    <div class="hero-diag" style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+      <a href="#diagnostic" class="btn-diag">Quick Diagnostic &rarr;</a>
+      <a href="#contact" class="btn-diag">Get in touch &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ OUTCOMES STRIP ═══ -->
+<section class="outcomes-strip">
+  <div class="container">
+    <div class="outcomes-label">What we deliver</div>
+    <div class="outcomes-cols">
+      <div class="outcome-col">
+        <div class="outcome-title">Product</div>
+        <div class="outcome-desc">AI embedded natively into your core product — and the operating model that supports it. Not bolt-on features. A fundamentally different way of building.</div>
+      </div>
+      <div class="outcome-col">
+        <div class="outcome-title">Process</div>
+        <div class="outcome-desc">Workflows redesigned from first principles. Not AI layered on top of broken systems — processes worth automating.</div>
+      </div>
+      <div class="outcome-col">
+        <div class="outcome-title">People</div>
+        <div class="outcome-desc">Your team leaves owning the outcome. No dependency on us to maintain it. No handover doc.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TENSION ═══ -->
+<section class="tension-section">
+  <div class="container">
+    <p class="tension-quote">&ldquo;Every company will be an AI company, or it will be disrupted by one that is.&rdquo;</p>
+    <p class="tension-attribution">&mdash; Satya Nadella, CEO, Microsoft</p>
+  </div>
+</section>
+
+<!-- ═══ PROBLEM ═══ -->
+<section class="problem-v2" id="problem">
+  <div class="container">
+    <span class="section-label">The Problem</span>
+    <h2 class="problem-v2-heading">It&rsquo;s not a technology problem.<br>It&rsquo;s a decision problem.</h2>
+  </div>
+</section>
+<section class="problem-cards">
+  <div class="container">
+    <div class="problem-cols">
+      <div class="problem-col">
+        <span class="problem-col-n">01</span>
+        <h3 class="problem-col-title">More tools, more pilots, no decisions</h3>
+        <p class="problem-col-body">The instinct is to buy more tools, run more pilots, build a bigger roadmap. But the constraint is never the technology. It&rsquo;s the absence of a clear decision on what to build, what to stop, and in what order.</p>
+      </div>
+      <div class="problem-col">
+        <span class="problem-col-n">02</span>
+        <h3 class="problem-col-title">AI layered on broken processes just breaks faster</h3>
+        <p class="problem-col-body">The question isn&rsquo;t whether your systems can run AI. It&rsquo;s whether your processes are worth automating. Most aren&rsquo;t &mdash; built on workarounds and tribal knowledge that were never designed to scale. Layering AI on top doesn&rsquo;t transform the process. It exposes it.</p>
+      </div>
+      <div class="problem-col">
+        <span class="problem-col-n">03</span>
+        <h3 class="problem-col-title">Dead projects consume budget. Winners get starved.</h3>
+        <p class="problem-col-body">No cost-per-outcome model. No visibility on what&rsquo;s working. Dead projects consume budget. Winning projects get starved. It looks like an AI problem. It&rsquo;s a management problem.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ STATS BAR ═══ -->
+<div class="stats-bar">
+  <div class="container">
+    <div class="stats-bar-grid">
+      <div class="stat-item">
+        <div class="stat-value">95%</div>
+        <div class="stat-desc">GenAI pilots fail before reaching production. The constraint is rarely technical — it's the absence of a clear decision on what to build and why.</div>
+        <div class="stat-source">MIT NANDA</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">42%</div>
+        <div class="stat-desc">Organisations abandoned most AI projects in 2025. Investment without infrastructure and governance doesn't scale — it stalls.</div>
+        <div class="stat-source">S&amp;P / Info-Tech</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">2&times;</div>
+        <div class="stat-desc">The ROIC for PE portcos with systematic AI build-out versus those without. The difference is operational, not aspirational.</div>
+        <div class="stat-source">BCG</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">40%</div>
+        <div class="stat-desc">PE investors apply a valuation discount where digital maturity lags. AI readiness is now a deal variable, not a future consideration.</div>
+        <div class="stat-source">BCG</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SERVICES ═══ -->
+<section class="services-section" id="services">
+  <div class="container">
+    <div class="services-inner">
+      <div class="services-left">
+        <span class="section-label">What We Do</span>
+        <h2 class="services-heading">Product. Process. People.</h2>
+        <p class="services-intro">AI transformation fails when it touches only one of these. We work across all three &mdash; the product bets worth funding, the processes that have to change before AI can work, and the people and ownership structures that make it stick.</p>
+      </div>
+      <div class="services-right">
+        <div class="services-rows">
+          <div class="service-row">
+            <span class="service-n">01</span>
+            <div>
+              <h3 class="service-name">AI Operating Model Design</h3>
+              <p class="service-outcome">You leave with two or three funded bets, explicit kill criteria, and a clear owner for each. Everything else is explicitly deprioritised. That&rsquo;s the value.</p>
+            </div>
+          </div>
+          <div class="service-row">
+            <span class="service-n">02</span>
+            <div>
+              <h3 class="service-name">Agentic Infrastructure Audit &amp; Build</h3>
+              <p class="service-outcome">We find what&rsquo;s blocking your AI before you spend another pound on tooling. CRM, ERP, ATS &mdash; assessed and mapped. Buy, build, or rent specified for each component.</p>
+            </div>
+          </div>
+          <div class="service-row">
+            <span class="service-n">03</span>
+            <div>
+              <h3 class="service-name">Product Operating Model Redesign</h3>
+              <p class="service-outcome">AI embedded in product isn&rsquo;t a feature &mdash; it&rsquo;s a different contract with your users. We redesign the operating model around non-deterministic outputs: new QA loops, human-in-the-loop design, confidence thresholds, and the accountability structures that make it shippable.</p>
+            </div>
+          </div>
+          <div class="service-row">
+            <span class="service-n">04</span>
+            <div>
+              <h3 class="service-name">AI Governance &amp; Risk Framework</h3>
+              <p class="service-outcome">Policies, accountability structures, and audit trails that satisfy boards, regulators, and acquirers. AI governance built for companies that will be scrutinised at exit.</p>
+            </div>
+          </div>
+          <div class="service-row">
+            <span class="service-n">05</span>
+            <div>
+              <h3 class="service-name">AI Product Strategy</h3>
+              <p class="service-outcome">Where does AI create durable product advantage &mdash; and where does it commoditise your differentiation? We define the AI product bets worth making, the build vs. buy vs. partner call for each, and the roadmap sequencing that protects margin as models get cheaper.</p>
+            </div>
+          </div>
+          <div class="service-row">
+            <span class="service-n">06</span>
+            <div>
+              <h3 class="service-name">AI MVP Build</h3>
+              <p class="service-outcome">From validated bet to working product in weeks, not quarters. We scope, build, and instrument the minimum version that proves the unit economics &mdash; so you fund the next stage on evidence, not assumption.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ WHO WE WORK WITH ═══ -->
+<section class="who-cards-section" id="who">
+  <div class="container">
+    <span class="section-label">Who We Work With</span>
+    <div class="who-cards-grid">
+      <div class="who-card">
+        <div class="who-card-role">CEO / Founder</div>
+        <div class="who-card-type">Growth-stage businesses</div>
+        <p class="who-card-body">&pound;5M+ revenue. The board question is live. You need an answer that&rsquo;s operational, not aspirational.</p>
+      </div>
+      <div class="who-card">
+        <div class="who-card-role">PE Operating Partner</div>
+        <div class="who-card-type">PE-backed portcos</div>
+        <p class="who-card-body">AI progress tied to a value creation thesis and visible at exit. Not pilots &mdash; instrumented outcomes a buyer or LP can read.</p>
+      </div>
+      <div class="who-card">
+        <div class="who-card-role">COO / CPO</div>
+        <div class="who-card-type">Operators with a mandate</div>
+        <p class="who-card-body">You&rsquo;ve been handed the AI agenda. We do the infrastructure and the strategy. You own the outcomes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ WHY NOW ═══ -->
+<section class="why-now-section" id="why-now">
+  <div class="container">
+    <span class="section-label">Why Now</span>
+    <div class="why-now-inner">
+      <div class="why-now-left">
+        <h2 class="why-now-heading">Your competitors aren&rsquo;t waiting.<br>And the gap is already opening.</h2>
+        <p class="why-now-body">Every quarter a competitor operates at the next maturity stage, they cut costs you can&rsquo;t match, move faster than you can respond, and build an execution advantage that becomes structural. That&rsquo;s not a technology gap. It&rsquo;s an operating gap &mdash; and those don&rsquo;t close quickly or cheaply.</p>
+        <p class="why-now-body" style="margin-top:16px;">74% of AI spend produces no measurable return. Businesses that can&rsquo;t show the numbers lose the budget to try again &mdash; while the businesses that got it right keep compounding the advantage.</p>
+      </div>
+      <div class="why-now-right">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ WHY THE NTH LAYER ═══ -->
+<section class="why-us-section" id="why-us">
+  <div class="container">
+    <div class="why-us-inner">
+      <div class="why-us-left">
+        <span class="section-label" style="color:#555;">Why Us</span>
+        <h2 class="why-us-heading">We build it.<br>We don&rsquo;t just advise on it.</h2>
+        <div class="outcome-boxes">
+          <div class="outcome-box">
+            <span class="outcome-label">Agentic workflows</span>
+            <span class="outcome-desc">Not pilots. Not prototypes. Systems running in live products, moving real numbers.</span>
+          </div>
+          <div class="outcome-box">
+            <span class="outcome-label">Revenue moved</span>
+            <span class="outcome-desc">AI that changed conversion, retention, or expansion &mdash; with the unit economics to prove it.</span>
+          </div>
+          <div class="outcome-box">
+            <span class="outcome-label">Cost taken out</span>
+            <span class="outcome-desc">Headcount-equivalent savings through agentic automation. Not efficiency theatre.</span>
+          </div>
+          <div class="outcome-box">
+            <span class="outcome-label">Weeks to production</span>
+            <span class="outcome-desc">From scoped bet to live product in weeks. No 6-month strategy phases before anything ships.</span>
+          </div>
+        </div>
+      </div>
+      <div class="why-us-right">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SERVICE CAROUSEL ═══ -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var rows = Array.from(document.querySelectorAll('.service-row'));
+    var current = 0;
+    var timer = null;
+    var started = false;
+
+    function goTo(next) {
+      var prev = current;
+      if (next === prev) return;
+      rows[prev].classList.remove('svc-active');
+      rows[prev].classList.add('svc-exit');
+      setTimeout(function() { rows[prev].classList.remove('svc-exit'); }, 650);
+      rows[next].classList.add('svc-active');
+      current = next;
+    }
+
+    function advance() { goTo((current + 1) % rows.length); }
+
+    function resetTimer() {
+      clearInterval(timer);
+      timer = setInterval(advance, 3500);
+    }
+
+    function start() {
+      if (started) return;
+      started = true;
+      rows[0].classList.add('svc-active');
+      resetTimer();
+    }
+
+    // Start immediately
+    start();
+  });
+</script>
+
+<!-- FOOTER -->
+<footer>
+  <a href="/" class="footer-logo">
+    <svg viewBox="0 0 80 80" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="76" height="76" stroke="white" stroke-width="5"/>
+      <rect x="14" y="14" width="52" height="52" stroke="white" stroke-width="5"/>
+      <rect x="26" y="26" width="28" height="28" stroke="white" stroke-width="5"/>
+      <rect x="35" y="35" width="10" height="10" fill="white"/>
+    </svg>
+    <span class="footer-logo-text" style="color:#fff;">The<br>Nth Layer</span>
+  </a>
+  <p>© 2026 The Nth Layer. All rights reserved.</p>
+</footer>
+
+<!-- ═══ ARROW KEY NAVIGATION ═══ -->
+<script>
+  (function() {
+    var sectionIds = ['hero','problem','services','who','why-now','why-us'];
+    var current = 0;
+    var scrolling = false;
+
+    function getCurrentSection() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      for (var i = sectionIds.length - 1; i >= 0; i--) {
+        var el = document.getElementById(sectionIds[i]);
+        if (el && el.offsetTop <= mid) return i;
+      }
+      return 0;
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) return;
+      if (scrolling) return;
+      e.preventDefault();
+
+      current = getCurrentSection();
+      if (e.key === 'ArrowRight') current = Math.min(current + 1, sectionIds.length - 1);
+      if (e.key === 'ArrowLeft')  current = Math.max(current - 1, 0);
+
+      var target = document.getElementById(sectionIds[current]);
+      if (target) {
+        scrolling = true;
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(function() { scrolling = false; }, 800);
+      }
+    });
+  })();
+</script>
+
+<!-- ═══ TYPEWRITER ═══ -->
+<script>
+  (function() {
+    var target = document.getElementById('twTarget');
+    var phrases = [
+      'How does AI change our product?',
+      'How does AI change our process?',
+      'How does AI change our people?',
+      'What does the business look like in 3 years?'
+    ];
+    var cursor = document.createElement('span');
+    cursor.className = 'tw-cursor';
+    var textNode = document.createTextNode('');
+    target.appendChild(textNode);
+    target.appendChild(cursor);
+
+    var phraseIndex = 0;
+    var charIndex = 0;
+    var isDeleting = false;
+
+    function tick() {
+      var phrase = phrases[phraseIndex];
+      if (!isDeleting) {
+        charIndex++;
+        textNode.data = phrase.slice(0, charIndex);
+        if (charIndex >= phrase.length) {
+          isDeleting = true;
+          setTimeout(tick, 2200);
+          return;
+        }
+        setTimeout(tick, 48);
+      } else {
+        charIndex--;
+        textNode.data = phrase.slice(0, charIndex);
+        if (charIndex <= 0) {
+          isDeleting = false;
+          phraseIndex = (phraseIndex + 1) % phrases.length;
+          charIndex = 0;
+          setTimeout(tick, 400);
+          return;
+        }
+        setTimeout(tick, 24);
+      }
+    }
+
+    setTimeout(tick, 800);
+  })();
+</script>
+
+<!-- ═══ WHO SLOT MACHINE ═══ -->
+<script>
+  (function() {
+    var icps = [
+      'PE and VC firms who need a structured view of AI transformation risk and value creation across their portfolio — company by company. Which portcos are building structural AI advantage. Which have an AI wrapper on a legacy model. And what to do about it before the exit conversation starts.',
+      'Venture firms who need signal on AI capability and transformation risk across their portfolio. Which companies have a genuine AI advantage built in. Which are exposed. Before it shows up in the metrics.',
+      'CEOs and leadership teams who need to translate AI ambition into a concrete transformation plan — across product, process, and organisation. What to do first, what to stop, and what the business looks like when it gets there.'
+    ];
+
+    var current = 0;
+    var track = document.getElementById('whoSlotTrack');
+    var descEl = document.getElementById('whoDesc');
+
+    function getSlotHeight() {
+      return document.getElementById('whoSlot').offsetHeight;
+    }
+
+    function advance() {
+      current = (current + 1) % icps.length;
+      var h = getSlotHeight();
+      track.style.transform = 'translateY(-' + (current * h) + 'px)';
+      // Sync slot-item heights in case of resize
+      var items = track.querySelectorAll('.who-slot-item');
+      items.forEach(function(item) { item.style.height = h + 'px'; });
+      descEl.style.opacity = '0';
+      setTimeout(function() {
+        descEl.textContent = icps[current];
+        descEl.style.opacity = '1';
+      }, 280);
+    }
+
+    setInterval(advance, 3200);
+  })();
+</script>
+
+<!-- ═══ CONTACT FORM ═══ -->
+<script>
+  document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var data = new FormData(this);
+    fetch('https://formspree.io/f/xcontact', {
+      method: 'POST', body: data, headers: { 'Accept': 'application/json' }
+    }).then(done).catch(done);
+    function done() {
+      document.getElementById('contactForm')
+        .querySelectorAll('input,textarea,button')
+        .forEach(function(el){ el.style.display = 'none'; });
+      document.querySelector('.form-success').style.display = 'block';
+    }
+  });
+</script>
+
+<!-- ═══ DIAGNOSTIC MODAL ═══ -->
+<div id="diagModal" style="display:none; position:fixed; inset:0; z-index:900; background:rgba(0,0,0,0.82); backdrop-filter:blur(6px); overflow-y:auto; padding:40px 20px;">
+  <div id="diagBox" style="background:#111; border:1px solid rgba(57,255,122,0.25); box-shadow:0 0 60px rgba(57,255,122,0.1); max-width:620px; margin:0 auto; padding:48px; position:relative; font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;">
+    <button onclick="closeDiag()" style="position:absolute;top:20px;right:24px;background:none;border:none;color:#555;font-size:22px;cursor:pointer;line-height:1;">✕</button>
+
+    <div style="margin-bottom:32px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span id="diagCategory" style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--orange);"></span>
+        <span id="diagCounter" style="font-size:11px;color:#444;"></span>
+      </div>
+      <div style="height:2px;background:#222;border-radius:2px;">
+        <div id="diagProgress" style="height:2px;background:var(--orange);border-radius:2px;transition:width 0.35s ease;width:0%;box-shadow:0 0 8px rgba(57,255,122,0.6);"></div>
+      </div>
+    </div>
+
+    <div id="diagQuestion" style="font-size:clamp(20px,2.2vw,26px);font-weight:700;letter-spacing:-0.02em;color:#fff;line-height:1.3;margin-bottom:32px;"></div>
+    <div id="diagAnswers" style="display:flex;flex-direction:column;gap:12px;"></div>
+
+    <div id="diagEmailGate" style="display:none;text-align:center;">
+      <div style="font-size:clamp(22px,2.5vw,30px);font-weight:700;color:#fff;margin-bottom:12px;line-height:1.3;">Where should we send your results?</div>
+      <div style="font-size:14px;color:#777;margin-bottom:32px;line-height:1.6;">We'll email you a summary with recommended next steps.<br>No spam. No sales call unless you ask.</div>
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:400px;margin:0 auto;">
+        <input id="diagEmailInput" type="email" placeholder="your@email.com" style="background:#1a1a1a;border:1px solid #333;color:#fff;padding:14px 18px;font-size:15px;font-family:inherit;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='rgba(57,255,122,0.6)'" onblur="this.style.borderColor='#333'">
+        <button id="diagEmailSubmit" onclick="submitDiagEmail()" style="background:var(--orange);border:none;color:#0a1a0d;padding:14px 28px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;box-shadow:0 0 16px rgba(57,255,122,0.4);transition:box-shadow 0.2s;">See my results →</button>
+        <button onclick="showDiagResult()" style="background:none;border:none;color:#444;font-size:12px;cursor:pointer;font-family:inherit;padding:4px;text-decoration:underline;text-underline-offset:3px;">Skip — just show me the score</button>
+      </div>
+    </div>
+
+    <div id="diagResult" style="display:none;">
+      <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:4px;">
+        <div id="diagScore" style="font-size:clamp(48px,6vw,72px);font-weight:800;color:var(--orange);text-shadow:0 0 30px rgba(57,255,122,0.5);line-height:1;"></div>
+        <div id="diagLabel" style="font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:#666;"></div>
+      </div>
+      <div id="diagSummary" style="font-size:14px;color:#888;line-height:1.75;margin-bottom:28px;max-width:520px;"></div>
+
+      <div style="margin-bottom:28px;max-width:520px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#555;">AI integration depth</span>
+          <span id="diagDepthColor" style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;"><span id="diagDepthLabel"></span></span>
+        </div>
+        <div style="height:4px;background:#1e1e1e;border-radius:2px;overflow:hidden;">
+          <div id="diagDepthBar" style="height:4px;border-radius:2px;width:0%;transition:width 0.8s cubic-bezier(0.22,1,0.36,1) 0.3s;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;">
+          <span style="font-size:9px;color:#333;letter-spacing:0.06em;text-transform:uppercase;">Superficial</span>
+          <span style="font-size:9px;color:#333;letter-spacing:0.06em;text-transform:uppercase;">Embedded</span>
+        </div>
+      </div>
+
+      <div style="border-left:2px solid #222;padding:14px 16px;margin-bottom:28px;max-width:520px;">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:6px;">vs. your competitors</div>
+        <div id="diagCompetitor" style="font-size:13px;color:#777;line-height:1.7;"></div>
+      </div>
+
+      <div style="margin-bottom:32px;">
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#444;margin-bottom:10px;">Where you sit vs. other companies</div>
+        <svg id="diagCurve" viewBox="0 0 520 100" width="100%" style="overflow:visible;display:block;">
+          <defs>
+            <linearGradient id="curveGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="rgba(57,255,122,0.05)"/>
+              <stop offset="35%" stop-color="rgba(57,255,122,0.18)"/>
+              <stop offset="100%" stop-color="rgba(57,255,122,0.03)"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,88 C10,88 30,85 55,72 C80,58 100,20 140,8 C165,2 185,2 210,12 C240,24 265,50 300,68 C340,84 400,88 520,90 L520,95 L0,95 Z" fill="url(#curveGrad)" stroke="none"/>
+          <path d="M0,88 C10,88 30,85 55,72 C80,58 100,20 140,8 C165,2 185,2 210,12 C240,24 265,50 300,68 C340,84 400,88 520,90" fill="none" stroke="rgba(57,255,122,0.35)" stroke-width="1.5"/>
+          <text x="40" y="99" font-size="8" fill="#333" text-anchor="middle" font-family="-apple-system,sans-serif" letter-spacing="0.05em">Pre-transformation</text>
+          <text x="155" y="99" font-size="8" fill="#333" text-anchor="middle" font-family="-apple-system,sans-serif" letter-spacing="0.05em">Early stage</text>
+          <text x="300" y="99" font-size="8" fill="#333" text-anchor="middle" font-family="-apple-system,sans-serif" letter-spacing="0.05em">Progressing</text>
+          <text x="440" y="99" font-size="8" fill="#333" text-anchor="middle" font-family="-apple-system,sans-serif" letter-spacing="0.05em">Transforming</text>
+          <line id="diagMarker" x1="0" y1="0" x2="0" y2="92" stroke="rgba(57,255,122,0.9)" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <circle id="diagMarkerDot" cx="0" cy="0" r="4" fill="var(--orange)" style="filter:drop-shadow(0 0 4px rgba(57,255,122,0.8))"/>
+          <text id="diagMarkerLabel" x="0" y="-6" font-size="9" fill="var(--orange)" text-anchor="middle" font-family="-apple-system,sans-serif" font-weight="700">You</text>
+        </svg>
+      </div>
+
+      <a href="#contact" onclick="closeDiag()" style="display:inline-block;background:var(--orange);color:#0a1a0d;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:14px 32px;text-decoration:none;box-shadow:0 0 18px rgba(57,255,122,0.5);">Talk to us about your results →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  var diagQuestions = [
+    { cat:'Product', q:'How is AI showing up in your product today?', opts:[
+      {t:'Shipped features with real AI capability',s:3},
+      {t:'Experiments or pilots in progress',s:2},
+      {t:'On the roadmap but not started',s:1},
+      {t:'Not on the roadmap',s:0}
+    ]},
+    { cat:'Product', q:'How would you rate your data infrastructure for AI?', opts:[
+      {t:'Production-ready — clean, accessible, governed',s:3},
+      {t:'Workable but needs investment',s:2},
+      {t:'Early stage — fragmented or siloed',s:1},
+      {t:'We don\'t have a clear picture',s:0}
+    ]},
+    { cat:'Process', q:'What proportion of internal workflows use AI tools today?', opts:[
+      {t:'More than half',s:3},
+      {t:'A quarter to half',s:2},
+      {t:'Less than a quarter',s:1},
+      {t:'None to speak of',s:0}
+    ]},
+    { cat:'Process', q:'Do you have a documented AI adoption strategy?', opts:[
+      {t:'Yes — board-approved and being executed',s:3},
+      {t:'In draft or under review',s:2},
+      {t:'Informal — no document yet',s:1},
+      {t:'No strategy in place',s:0}
+    ]},
+    { cat:'People', q:'How would you describe your team\'s AI literacy?', opts:[
+      {t:'High — most people use AI tools daily',s:3},
+      {t:'Medium — a core group drives it',s:2},
+      {t:'Low — occasional use, no culture yet',s:1},
+      {t:'Minimal — little to no adoption',s:0}
+    ]},
+    { cat:'People', q:'Who owns AI transformation in your organisation?', opts:[
+      {t:'A C-suite exec with a clear mandate',s:3},
+      {t:'A senior manager leading it informally',s:2},
+      {t:'Nobody yet — but we\'re looking',s:1},
+      {t:'No one — it\'s distributed and unfocused',s:0}
+    ]}
+  ];
+
+  var diagIndex = 0;
+  var diagTotal = 0;
+  var diagSelections = [];
+
+  function openDiag(e) {
+    if(e) e.preventDefault();
+    diagIndex = 0; diagTotal = 0; diagSelections = [];
+    document.getElementById('diagModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    renderDiagQ();
+  }
+
+  function closeDiag() {
+    document.getElementById('diagModal').style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('diagResult').style.display = 'none';
+    document.getElementById('diagEmailGate').style.display = 'none';
+    document.getElementById('diagQuestion').style.display = 'block';
+    document.getElementById('diagAnswers').style.display = 'flex';
+    diagIndex = 0; diagTotal = 0; diagSelections = [];
+  }
+
+  function renderDiagQ() {
+    var q = diagQuestions[diagIndex];
+    var pct = (diagIndex / diagQuestions.length) * 100;
+    if (!diagSelections[diagIndex]) diagSelections[diagIndex] = new Set();
+    var sel = diagSelections[diagIndex];
+
+    document.getElementById('diagCategory').textContent = q.cat;
+    document.getElementById('diagCounter').textContent = (diagIndex+1) + ' / ' + diagQuestions.length;
+    document.getElementById('diagProgress').style.width = pct + '%';
+    document.getElementById('diagQuestion').textContent = q.q;
+
+    var ans = document.getElementById('diagAnswers');
+    ans.innerHTML = '';
+
+    q.opts.forEach(function(o, i) {
+      var btn = document.createElement('button');
+      btn.textContent = o.t;
+      btn.dataset.idx = i;
+      var isSelected = sel.has(i);
+      btn.style.cssText = 'background:' + (isSelected ? '#1a2e1a' : '#1a1a1a') + ';border:1px solid ' + (isSelected ? 'rgba(57,255,122,0.8)' : '#2a2a2a') + ';color:' + (isSelected ? '#fff' : '#ccc') + ';padding:14px 20px;text-align:left;font-size:14px;cursor:pointer;transition:border-color 0.15s,color 0.15s,background 0.15s;font-family:inherit;line-height:1.4;display:flex;align-items:center;gap:12px;';
+
+      var chk = document.createElement('span');
+      chk.style.cssText = 'width:16px;height:16px;border:1px solid ' + (isSelected ? 'rgba(57,255,122,0.9)' : '#444') + ';border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--orange);background:' + (isSelected ? 'rgba(57,255,122,0.15)' : 'transparent') + ';';
+      chk.textContent = isSelected ? '✓' : '';
+      btn.insertBefore(chk, btn.firstChild);
+
+      btn.onmouseover = function() {
+        if (!sel.has(i)) { this.style.borderColor='rgba(57,255,122,0.4)'; this.style.color='#fff'; }
+      };
+      btn.onmouseout = function() {
+        if (!sel.has(i)) { this.style.borderColor='#2a2a2a'; this.style.color='#ccc'; }
+      };
+      btn.onclick = function() {
+        if (sel.has(i)) { sel.delete(i); } else { sel.add(i); }
+        renderDiagQ();
+        updateNavButtons();
+      };
+      ans.appendChild(btn);
+    });
+
+    var nav = document.createElement('div');
+    nav.id = 'diagNav';
+    nav.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:12px;';
+
+    var backBtn = document.createElement('button');
+    backBtn.textContent = '← Back';
+    backBtn.id = 'diagBack';
+    backBtn.style.cssText = 'background:none;border:1px solid #333;color:#666;padding:11px 22px;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:border-color 0.15s,color 0.15s;';
+    if (diagIndex === 0) { backBtn.style.visibility = 'hidden'; }
+    backBtn.onmouseover = function(){ this.style.borderColor='#555'; this.style.color='#aaa'; };
+    backBtn.onmouseout  = function(){ this.style.borderColor='#333'; this.style.color='#666'; };
+    backBtn.onclick = function() { diagIndex--; renderDiagQ(); };
+
+    var nextBtn = document.createElement('button');
+    var isLast = diagIndex === diagQuestions.length - 1;
+    nextBtn.textContent = isLast ? 'See results →' : 'Next →';
+    nextBtn.id = 'diagNext';
+    var hasSelection = sel.size > 0;
+    nextBtn.style.cssText = 'background:' + (hasSelection ? 'var(--orange)' : '#222') + ';border:none;color:' + (hasSelection ? '#0a1a0d' : '#444') + ';padding:11px 28px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:' + (hasSelection ? 'pointer' : 'default') + ';font-family:inherit;transition:background 0.15s,color 0.15s;box-shadow:' + (hasSelection ? '0 0 16px rgba(57,255,122,0.4)' : 'none') + ';';
+    nextBtn.onclick = function() {
+      if (!sel.size) return;
+      diagIndex++;
+      if (diagIndex < diagQuestions.length) { renderDiagQ(); }
+      else { diagIndex--; showDiagEmailGate(); }
+    };
+
+    nav.appendChild(backBtn);
+    nav.appendChild(nextBtn);
+    ans.appendChild(nav);
+  }
+
+  function updateNavButtons() {
+    var sel = diagSelections[diagIndex] || new Set();
+    var nextBtn = document.getElementById('diagNext');
+    if (!nextBtn) return;
+    var hasSelection = sel.size > 0;
+    nextBtn.style.background = hasSelection ? 'var(--orange)' : '#222';
+    nextBtn.style.color = hasSelection ? '#0a1a0d' : '#444';
+    nextBtn.style.cursor = hasSelection ? 'pointer' : 'default';
+    nextBtn.style.boxShadow = hasSelection ? '0 0 16px rgba(57,255,122,0.4)' : 'none';
+  }
+
+  function showDiagEmailGate() {
+    document.getElementById('diagQuestion').style.display = 'none';
+    document.getElementById('diagAnswers').style.display = 'none';
+    document.getElementById('diagEmailGate').style.display = 'block';
+  }
+
+  function submitDiagEmail() {
+    var email = document.getElementById('diagEmailInput').value.trim();
+    if (!email || !email.includes('@')) {
+      document.getElementById('diagEmailInput').style.borderColor = 'rgba(255,80,80,0.6)';
+      return;
+    }
+    document.getElementById('diagEmailGate').style.display = 'none';
+    showDiagResult();
+  }
+
+  function showDiagResult() {
+    var total = 0;
+    diagSelections.forEach(function(sel, qi) {
+      if (!sel) return;
+      sel.forEach(function(optIdx) {
+        if (diagQuestions[qi] && diagQuestions[qi].opts[optIdx]) {
+          total += diagQuestions[qi].opts[optIdx].s;
+        }
+      });
+    });
+    var max = diagQuestions.length * 3;
+    var pct = Math.round((total / max) * 100);
+
+    document.getElementById('diagProgress').style.width = '100%';
+    document.getElementById('diagQuestion').style.display = 'none';
+    document.getElementById('diagAnswers').style.display = 'none';
+    document.getElementById('diagEmailGate').style.display = 'none';
+    document.getElementById('diagResult').style.display = 'block';
+    document.getElementById('diagScore').textContent = pct + '%';
+    document.getElementById('diagCounter').textContent = '6 / 6';
+
+    var label, summary, depth, depthPct, competitor;
+    if (pct >= 75) {
+      label = 'Transforming';
+      summary = 'You\'re ahead of most. The fundamentals are in place — now it\'s about velocity, sequencing, and making sure the gains compound. The risk at this stage is complacency.';
+      depth = 'Embedded'; depthPct = 85;
+      competitor = 'You\'re in the top ~15% of companies at your stage. Most of your direct competitors are still at surface-level adoption — you have a structural window, but it closes as others catch up.';
+    } else if (pct >= 50) {
+      label = 'Progressing';
+      summary = 'You\'ve made real moves but the picture is uneven. Some areas are strong, others are exposed. The gap between where you are and where you need to be is closeable — but not without a clear plan.';
+      depth = 'Developing'; depthPct = 55;
+      competitor = 'You\'re ahead of roughly half your peer group. The companies pulling away from you right now aren\'t bigger — they\'re better sequenced. That\'s fixable.';
+    } else if (pct >= 25) {
+      label = 'Early Stage';
+      summary = 'There\'s activity but not yet transformation. Adoption is happening in pockets without a coherent strategy behind it. The window to get structured is still open — but it\'s closing.';
+      depth = 'Superficial'; depthPct = 25;
+      competitor = 'The majority of companies at your size are in the same position — but the ones moving fastest are pulling ahead on cost structure and product capability. The gap is compounding.';
+    } else {
+      label = 'Pre-Transformation';
+      summary = 'Most of the building blocks aren\'t in place yet. That\'s not unusual — but the gap to competitors who are moving is growing faster than most boards realise.';
+      depth = 'Superficial'; depthPct = 10;
+      competitor = 'You\'re behind the majority of your peer group on AI transformation. That gap is still closeable, but not without a structured plan executed in the right order.';
+    }
+
+    document.getElementById('diagLabel').textContent = label;
+    document.getElementById('diagSummary').textContent = summary;
+    document.getElementById('diagDepthLabel').textContent = depth;
+    document.getElementById('diagDepthBar').style.width = depthPct + '%';
+    document.getElementById('diagDepthColor').style.color = depthPct >= 70 ? 'var(--orange)' : depthPct >= 40 ? '#f5a623' : '#e05252';
+    document.getElementById('diagDepthBar').style.background = depthPct >= 70 ? 'var(--orange)' : depthPct >= 40 ? '#f5a623' : '#e05252';
+    document.getElementById('diagDepthBar').style.boxShadow = depthPct >= 70 ? '0 0 12px rgba(57,255,122,0.5)' : 'none';
+    document.getElementById('diagCompetitor').textContent = competitor;
+
+    var markerX = Math.round((pct / 100) * 520);
+    var t = pct / 100;
+    var curveY = 88 - 83 * Math.exp(-Math.pow((t - 0.28) / 0.18, 2));
+    curveY = Math.max(3, Math.min(88, Math.round(curveY)));
+    document.getElementById('diagMarker').setAttribute('x1', markerX);
+    document.getElementById('diagMarker').setAttribute('x2', markerX);
+    document.getElementById('diagMarker').setAttribute('y1', curveY);
+    document.getElementById('diagMarkerDot').setAttribute('cx', markerX);
+    document.getElementById('diagMarkerDot').setAttribute('cy', curveY);
+    document.getElementById('diagMarkerLabel').setAttribute('x', markerX);
+    document.getElementById('diagMarkerLabel').setAttribute('y', curveY - 7);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('a[href="#diagnostic"], .btn-diag[href="#diagnostic"]').forEach(function(el) {
+      el.addEventListener('click', openDiag);
+    });
+  });
+
+  document.getElementById('diagModal').addEventListener('click', function(e) {
+    if(e.target === this) closeDiag();
+  });
+</script>
+
+<!-- ═══ GET IN TOUCH MODAL ═══ -->
+<div id="contactModal" style="display:none; position:fixed; inset:0; z-index:900; background:rgba(0,0,0,0.82); backdrop-filter:blur(6px); overflow-y:auto; padding:40px 20px;">
+  <div style="background:#111; border:1px solid rgba(57,255,122,0.25); box-shadow:0 0 60px rgba(57,255,122,0.1); max-width:560px; margin:0 auto; padding:48px; position:relative; font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;">
+    <button onclick="closeContactModal()" style="position:absolute;top:20px;right:24px;background:none;border:none;color:#555;font-size:22px;cursor:pointer;line-height:1;">✕</button>
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--orange);margin-bottom:12px;">Get in touch</div>
+    <div style="font-size:clamp(22px,2.5vw,30px);font-weight:700;letter-spacing:-0.02em;color:#fff;margin-bottom:8px;line-height:1.2;">Let's talk</div>
+    <div style="font-size:14px;color:#555;margin-bottom:32px;line-height:1.6;">Every engagement starts with a 30-minute call. No deck. Just the right questions.</div>
+    <form id="contactModalForm" style="display:flex;flex-direction:column;gap:12px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <input type="text" name="name" placeholder="Name *" required style="background:#1a1a1a;border:1px solid #2a2a2a;color:#fff;padding:13px 16px;font-size:13px;font-family:inherit;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='rgba(57,255,122,0.5)'" onblur="this.style.borderColor='#2a2a2a'">
+        <input type="text" name="company" placeholder="Company *" required style="background:#1a1a1a;border:1px solid #2a2a2a;color:#fff;padding:13px 16px;font-size:13px;font-family:inherit;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='rgba(57,255,122,0.5)'" onblur="this.style.borderColor='#2a2a2a'">
+      </div>
+      <input type="text" name="jobtitle" placeholder="Job title *" required style="background:#1a1a1a;border:1px solid #2a2a2a;color:#fff;padding:13px 16px;font-size:13px;font-family:inherit;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='rgba(57,255,122,0.5)'" onblur="this.style.borderColor='#2a2a2a'">
+      <input type="email" name="email" placeholder="Email *" required style="background:#1a1a1a;border:1px solid #2a2a2a;color:#fff;padding:13px 16px;font-size:13px;font-family:inherit;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='rgba(57,255,122,0.5)'" onblur="this.style.borderColor='#2a2a2a'">
+      <textarea name="message" placeholder="Message *" rows="4" required style="background:#1a1a1a;border:1px solid #2a2a2a;color:#fff;padding:13px 16px;font-size:13px;font-family:inherit;outline:none;resize:vertical;transition:border-color 0.15s;" onfocus="this.style.borderColor='rgba(57,255,122,0.5)'" onblur="this.style.borderColor='#2a2a2a'"></textarea>
+      <button type="submit" style="background:var(--orange);border:none;color:#0a1a0d;padding:14px 28px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;box-shadow:0 0 16px rgba(57,255,122,0.4);align-self:flex-start;transition:box-shadow 0.2s;">Send message →</button>
+    </form>
+    <div id="contactModalSuccess" style="display:none;font-size:15px;color:#555;padding:24px 0;line-height:1.7;">Thank you — I'll be in touch shortly.</div>
+  </div>
+</div>
+
+<script>
+  function openContactModal(e) {
+    if (e) e.preventDefault();
+    document.getElementById('contactModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeContactModal() {
+    document.getElementById('contactModal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  document.getElementById('contactModal').addEventListener('click', function(e) {
+    if (e.target === this) closeContactModal();
+  });
+  document.getElementById('contactModalForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var data = new FormData(this);
+    fetch('https://formspree.io/f/xcontact', {
+      method: 'POST', body: data, headers: { 'Accept': 'application/json' }
+    }).then(done).catch(done);
+    function done() {
+      document.getElementById('contactModalForm').style.display = 'none';
+      document.getElementById('contactModalSuccess').style.display = 'block';
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('a[href="#contact"]').forEach(function(el) {
+      el.addEventListener('click', openContactModal);
+    });
+
+    // ── Side nav ──
+    var sections = [
+      { id: 'hero' }, { id: 'problem' }, { id: 'why-now' }, { id: 'who' },
+      { id: 'services' }, { id: 'who' }, { id: 'why-now' }, { id: 'why-us' }
+    ];
+
+    var sideNavBtns = document.querySelectorAll('.side-nav-btn');
+
+    sideNavBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var el = document.getElementById(this.dataset.target);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    function setActiveSideNav(id) {
+      sideNavBtns.forEach(function(btn) {
+        var isActive = btn.dataset.target === id;
+        if (isActive && !btn.classList.contains('active')) {
+          btn.classList.remove('bounce');
+          void btn.offsetWidth;
+          btn.classList.add('active', 'bounce');
+        } else if (!isActive) {
+          btn.classList.remove('active', 'bounce');
+        }
+      });
+    }
+
+    var sideNavEl = document.getElementById('sideNav');
+
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          setActiveSideNav(entry.target.id);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    sections.forEach(function(s) {
+      var el = document.getElementById(s.id);
+      if (el) observer.observe(el);
+    });
+  });
+</script>
+</body>
+</html>

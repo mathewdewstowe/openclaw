@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   experimental: {},
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  turbopack: {
+    resolveConditions: ["workerd", "worker", "node", "require", "import"],
+  } as any,
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.resolve = config.resolve || {};

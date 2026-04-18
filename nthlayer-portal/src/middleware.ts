@@ -17,10 +17,15 @@ const publicPaths = [
 ];
 
 // Exact public paths (startsWith would incorrectly open all sub-routes)
-const publicExact = ["/", "/inflexion"];
+const publicExact = ["/", "/inflexion", "/new"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Rewrite /new to static HTML
+  if (pathname === "/new") {
+    return NextResponse.rewrite(new URL("/new.html", req.url));
+  }
 
   // Enforce HTTPS in production (Cloudflare sets x-forwarded-proto)
   if (
