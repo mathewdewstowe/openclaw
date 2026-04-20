@@ -233,7 +233,7 @@ export default function LoginPage() {
 
           {/* Heading */}
           <h1 style={{ fontSize: "clamp(36px, 3.5vw, 56px)", fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.0, color: "#111", marginBottom: 20 }}>
-            AI transformation,<br/>decided.
+            AI Transformation<br/>Roadmap.
           </h1>
 
           {/* Subhead */}
