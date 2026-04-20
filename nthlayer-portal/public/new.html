@@ -64,9 +64,9 @@
   }
 
   .nav-links a {
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     color: #ccc;
     text-decoration: none;
     transition: color 0.2s;
@@ -1037,6 +1037,10 @@
     footer { flex-direction: column; gap: 16px; padding: 28px 20px; }
 
     .diagnostic { padding: 80px 0; }
+    #diagModal { padding: 20px 12px; }
+    #diagBox { padding: 32px 24px; }
+    #contactModal { padding: 20px 12px; }
+    #contactModal > div { padding: 32px 24px; }
   }
 
   /* ════════════════════════════
@@ -1175,8 +1179,8 @@
   .services-section .section-label { color: #aaa; }
   .services-inner { display: grid; grid-template-columns: 2fr 3fr; gap: 64px; align-items: start; }
   .services-right { padding-top: 72px; }
-  .services-heading { font-size: clamp(28px,3vw,44px); font-weight: 700; letter-spacing: -0.03em; color: var(--black); line-height: 1.1; margin-bottom: 16px; }
-  .services-intro { font-size: 14px; color: #444; line-height: 1.8; max-width: 480px; margin-bottom: 0; }
+  .services-heading { font-size: clamp(36px,4vw,60px); font-weight: 700; letter-spacing: -0.03em; color: var(--black); line-height: 1.05; margin-bottom: 20px; }
+  .services-intro { font-size: 17px; color: #444; line-height: 1.75; max-width: 480px; margin-bottom: 0; }
   .services-rows { display: flex; flex-direction: column; gap: 12px; margin-bottom: 0; }
   .service-row { display: grid; grid-template-columns: 60px 1fr; padding: 20px 24px; align-items: start; background: #f7f7f5; border-radius: 10px; }
 
@@ -1227,7 +1231,11 @@
 
   @media (max-width: 540px) {
     .framework-stages { grid-template-columns: 1fr; }
-    .hero-left h1 .hero-line { font-size: clamp(24px, 7vw, 36px); }
+    .hero-left h1 .hero-line { font-size: clamp(22px, 7vw, 36px); white-space: normal; }
+    .hero-left { padding: 0 16px; }
+    .hero { padding-top: 80px; padding-bottom: 40px; }
+    .container { padding: 0 16px; }
+    .hero-pill { font-size: 11px; padding: 8px 16px; }
     .problem-cols { grid-template-columns: 1fr; }
     .who-cards-grid { grid-template-columns: 1fr; }
     .outcomes-stats-grid { grid-template-columns: 1fr; }
@@ -1235,6 +1243,78 @@
     .outcome-stat:last-child { border-bottom: none; }
     .stats-bar-grid { grid-template-columns: 1fr; }
     .final-cta-section { padding: 80px 0; }
+  }
+
+
+  /* ════════════════════════════
+     MOBILE NAV
+  ════════════════════════════ */
+  .nav-hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+  }
+  .nav-hamburger span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .mobile-nav {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #0d0d0d;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+  }
+  .mobile-nav.open { display: flex; }
+  .mobile-nav ul {
+    list-style: none;
+    text-align: center;
+    padding: 0;
+  }
+  .mobile-nav-link {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #ccc;
+    text-decoration: none;
+    padding: 16px 40px;
+    transition: color 0.15s;
+  }
+  .mobile-nav-link:hover { color: #fff; }
+  .mobile-nav-cta {
+    color: var(--orange) !important;
+    border: 1px solid rgba(57,255,122,0.5);
+    margin-top: 16px;
+    font-size: 20px;
+    padding: 14px 40px;
+  }
+  .mobile-nav-close {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  @media (max-width: 860px) {
+    .nav-hamburger { display: flex; }
   }
 
   @keyframes diagSpin { to { transform: rotate(360deg); } }
@@ -1254,13 +1334,28 @@
     <span class="nav-logo-text">The<br>Nth Layer</span>
   </a>
   <ul class="nav-links">
-    <li><a href="#why-now">Why now</a></li>
+    <li><a href="#why-now">Why Now</a></li>
     <li><a href="#services">Services</a></li>
     <li><a href="#why-us">About</a></li>
     <li><a href="/use-cases">Use Cases</a></li>
-<li><a href="/inflexion" class="nav-cta">Inflexion</a></li>
+    <li><a href="/inflexion" class="nav-cta">Inflexion</a></li>
   </ul>
+  <button class="nav-hamburger" id="navHamburger" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MOBILE NAV OVERLAY -->
+<div class="mobile-nav" id="mobileNav">
+  <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu">✕</button>
+  <ul>
+    <li><a href="#why-now" class="mobile-nav-link">Why Now</a></li>
+    <li><a href="#services" class="mobile-nav-link">Services</a></li>
+    <li><a href="#why-us" class="mobile-nav-link">About</a></li>
+    <li><a href="/use-cases" class="mobile-nav-link">Use Cases</a></li>
+    <li><a href="/inflexion" class="mobile-nav-link mobile-nav-cta">Inflexion →</a></li>
+  </ul>
+</div>
 
 <!-- SIDE NAV -->
 <div class="side-nav" id="sideNav">
@@ -2215,6 +2310,20 @@
       if (el) observer.observe(el);
     });
   });
+</script>
+
+<!-- ═══ MOBILE NAV ═══ -->
+<script>
+  (function() {
+    var btn = document.getElementById('navHamburger');
+    var nav = document.getElementById('mobileNav');
+    var close = document.getElementById('mobileNavClose');
+    function open() { nav.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function shut() { nav.classList.remove('open'); document.body.style.overflow = ''; }
+    btn.addEventListener('click', open);
+    close.addEventListener('click', shut);
+    nav.querySelectorAll('.mobile-nav-link').forEach(function(a) { a.addEventListener('click', shut); });
+  })();
 </script>
 </body>
 </html>

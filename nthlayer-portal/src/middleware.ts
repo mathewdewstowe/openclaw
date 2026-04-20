@@ -21,7 +21,8 @@ const publicPaths = [
 ];
 
 // Exact public paths (startsWith would incorrectly open all sub-routes)
-const publicExact = ["/", "/inflexion", "/new", "/use-cases"];
+// Also include the .html rewrite targets in case the rewrite triggers a second middleware pass
+const publicExact = ["/", "/inflexion", "/new", "/use-cases", "/new.html", "/inflexion.html", "/use-cases.html"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
