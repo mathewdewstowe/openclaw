@@ -1211,20 +1211,34 @@
   @media (max-width: 860px) {
     .problem-inner { grid-template-columns: 1fr; gap: 28px; }
     .problem-section { padding: 64px 0; }
-    .problem-cols { grid-template-columns: 1fr; }
+    .problem-cols { grid-template-columns: 1fr 1fr; }
     .stats-bar-grid { grid-template-columns: 1fr 1fr; }
-    .stat-item { padding: 16px 0; border-right: none; border-bottom: 1px solid #e8e8e8; }
+    .stat-item { padding: 16px 0; border-right: none; border-bottom: 1px solid #1a1a1a; }
     .stat-item:last-child { border-bottom: none; }
     .why-now-inner, .why-us-inner { grid-template-columns: 1fr; gap: 40px; }
-    .who-cards-grid { grid-template-columns: 1fr; }
+    .who-cards-grid { grid-template-columns: 1fr 1fr; }
     .why-now-section, .problem-v2, .who-cards-section, .services-section, .why-us-section { padding: 64px 0; }
     .service-row { grid-template-columns: 40px 1fr; }
+    .services-inner { grid-template-columns: 1fr; gap: 48px; }
+    .services-right { padding-top: 0; }
+    .outcomes-stats-grid { grid-template-columns: 1fr 1fr; }
+    .outcome-stat { padding: 24px 20px; }
+    .tension-quote { white-space: normal; font-size: clamp(14px,3.5vw,20px); }
   }
 
   @media (max-width: 540px) {
     .framework-stages { grid-template-columns: 1fr; }
     .hero-left h1 .hero-line { font-size: clamp(24px, 7vw, 36px); }
+    .problem-cols { grid-template-columns: 1fr; }
+    .who-cards-grid { grid-template-columns: 1fr; }
+    .outcomes-stats-grid { grid-template-columns: 1fr; }
+    .outcome-stat { border-left: none; border-bottom: 1px solid #e8e8e8; padding: 20px 0; }
+    .outcome-stat:last-child { border-bottom: none; }
+    .stats-bar-grid { grid-template-columns: 1fr; }
+    .final-cta-section { padding: 80px 0; }
   }
+
+  @keyframes diagSpin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -1244,8 +1258,8 @@
     <li><a href="#why-now">Why now</a></li>
     <li><a href="#services">Services</a></li>
     <li><a href="#why-us">About</a></li>
-    <li><a href="#">Whitepaper</a></li>
-    <li><a href="nthlayer-inflexion.html" class="nav-cta">Inflexion</a></li>
+    <li><a href="/use-cases">Use Cases</a></li>
+<li><a href="nthlayer-inflexion.html" class="nav-cta">Inflexion</a></li>
   </ul>
 </nav>
 
@@ -1703,116 +1717,151 @@
     <div id="diagQuestion" style="font-size:clamp(20px,2.2vw,26px);font-weight:700;letter-spacing:-0.02em;color:#fff;line-height:1.3;margin-bottom:32px;"></div>
     <div id="diagAnswers" style="display:flex;flex-direction:column;gap:12px;"></div>
 
-    <div id="diagEmailGate" style="display:none;text-align:center;">
-      <div style="font-size:clamp(22px,2.5vw,30px);font-weight:700;color:#fff;margin-bottom:12px;line-height:1.3;">Where should your results go?</div>
-      <div style="font-size:14px;color:#777;margin-bottom:32px;line-height:1.6;">A summary with recommended next steps will be emailed to you.<br>No spam. No sales call unless you ask.</div>
-      <div style="display:flex;flex-direction:column;gap:12px;max-width:400px;margin:0 auto;">
-        <input id="diagEmailInput" type="email" placeholder="your@email.com" style="background:#1a1a1a;border:1px solid #333;color:#fff;padding:14px 18px;font-size:15px;font-family:inherit;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='rgba(57,255,122,0.6)'" onblur="this.style.borderColor='#333'">
-        <button id="diagEmailSubmit" onclick="submitDiagEmail()" style="background:var(--orange);border:none;color:#0a1a0d;padding:14px 28px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;box-shadow:0 0 16px rgba(57,255,122,0.4);transition:box-shadow 0.2s;">See my results →</button>
-        <button onclick="showDiagResult()" style="background:none;border:none;color:#444;font-size:12px;cursor:pointer;font-family:inherit;padding:4px;text-decoration:underline;text-underline-offset:3px;">Skip — just show me the score</button>
-      </div>
+    <!-- Loading state -->
+    <div id="diagLoading" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:56px 0;gap:20px;">
+      <div style="width:28px;height:28px;border:2px solid #222;border-top-color:rgba(57,255,122,0.8);border-radius:50%;animation:diagSpin 0.8s linear infinite;"></div>
+      <div style="font-size:13px;color:#666;letter-spacing:0.04em;">Reading your answers…</div>
     </div>
 
+    <!-- Result panel -->
     <div id="diagResult" style="display:none;">
-      <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:4px;">
-        <div id="diagScore" style="font-size:clamp(48px,6vw,72px);font-weight:800;color:var(--orange);text-shadow:0 0 30px rgba(57,255,122,0.5);line-height:1;"></div>
-        <div id="diagLabel" style="font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:#666;"></div>
-      </div>
-      <div id="diagSummary" style="font-size:14px;color:#888;line-height:1.75;margin-bottom:28px;max-width:520px;"></div>
-
-      <div style="margin-bottom:28px;max-width:520px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#555;">AI integration depth</span>
-          <span id="diagDepthColor" style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;"><span id="diagDepthLabel"></span></span>
+      <div id="diagHeadline" style="font-size:clamp(18px,2.2vw,26px);font-weight:700;letter-spacing:-0.02em;color:#fff;line-height:1.35;margin-bottom:32px;"></div>
+      <div style="display:flex;flex-direction:column;gap:20px;margin-bottom:28px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <span style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--orange);">PRODUCT</span>
+            <span id="diagProductScore" style="font-size:11px;font-weight:700;color:var(--orange);"></span>
+          </div>
+          <div style="height:2px;background:#1e1e1e;border-radius:2px;overflow:hidden;margin-bottom:7px;">
+            <div id="diagProductBar" style="height:2px;background:var(--orange);border-radius:2px;width:0%;transition:width 0.85s cubic-bezier(0.22,1,0.36,1) 0.1s;box-shadow:0 0 6px rgba(57,255,122,0.5);"></div>
+          </div>
+          <div id="diagProductLine" style="font-size:13px;color:#888;line-height:1.5;"></div>
         </div>
-        <div style="height:4px;background:#1e1e1e;border-radius:2px;overflow:hidden;">
-          <div id="diagDepthBar" style="height:4px;border-radius:2px;width:0%;transition:width 0.8s cubic-bezier(0.22,1,0.36,1) 0.3s;"></div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <span style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--orange);">PEOPLE</span>
+            <span id="diagPeopleScore" style="font-size:11px;font-weight:700;color:var(--orange);"></span>
+          </div>
+          <div style="height:2px;background:#1e1e1e;border-radius:2px;overflow:hidden;margin-bottom:7px;">
+            <div id="diagPeopleBar" style="height:2px;background:var(--orange);border-radius:2px;width:0%;transition:width 0.85s cubic-bezier(0.22,1,0.36,1) 0.3s;box-shadow:0 0 6px rgba(57,255,122,0.5);"></div>
+          </div>
+          <div id="diagPeopleLine" style="font-size:13px;color:#888;line-height:1.5;"></div>
         </div>
-        <div style="display:flex;justify-content:space-between;margin-top:6px;">
-          <span style="font-size:9px;color:#333;letter-spacing:0.06em;text-transform:uppercase;">Superficial</span>
-          <span style="font-size:9px;color:#333;letter-spacing:0.06em;text-transform:uppercase;">Embedded</span>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <span style="font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--orange);">PROCESS</span>
+            <span id="diagProcessScore" style="font-size:11px;font-weight:700;color:var(--orange);"></span>
+          </div>
+          <div style="height:2px;background:#1e1e1e;border-radius:2px;overflow:hidden;margin-bottom:7px;">
+            <div id="diagProcessBar" style="height:2px;background:var(--orange);border-radius:2px;width:0%;transition:width 0.85s cubic-bezier(0.22,1,0.36,1) 0.5s;box-shadow:0 0 6px rgba(57,255,122,0.5);"></div>
+          </div>
+          <div id="diagProcessLine" style="font-size:13px;color:#888;line-height:1.5;"></div>
         </div>
       </div>
-
-      <div style="border-left:2px solid #222;padding:14px 16px;margin-bottom:28px;max-width:520px;">
-        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#555;margin-bottom:6px;">vs. your competitors</div>
-        <div id="diagCompetitor" style="font-size:13px;color:#777;line-height:1.7;"></div>
+      <div style="border-top:1px solid #222;padding-top:22px;margin-bottom:24px;">
+        <div id="diagCtaHook" style="font-size:13px;font-style:italic;color:#aaa;line-height:1.65;"></div>
       </div>
-
-      <div style="margin-bottom:32px;">
-        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#444;margin-bottom:10px;">Where you sit vs. other companies</div>
-        <svg id="diagCurve" viewBox="0 0 520 100" width="100%" style="overflow:visible;display:block;">
-          <defs>
-            <linearGradient id="curveGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="rgba(57,255,122,0.05)"/>
-              <stop offset="35%" stop-color="rgba(57,255,122,0.18)"/>
-              <stop offset="100%" stop-color="rgba(57,255,122,0.03)"/>
-            </linearGradient>
-          </defs>
-          <path d="M0,88 C10,88 30,85 55,72 C80,58 100,20 140,8 C165,2 185,2 210,12 C240,24 265,50 300,68 C340,84 400,88 520,90 L520,95 L0,95 Z" fill="url(#curveGrad)" stroke="none"/>
-          <path d="M0,88 C10,88 30,85 55,72 C80,58 100,20 140,8 C165,2 185,2 210,12 C240,24 265,50 300,68 C340,84 400,88 520,90" fill="none" stroke="rgba(57,255,122,0.35)" stroke-width="1.5"/>
-          <text x="40" y="99" font-size="8" fill="#333" text-anchor="middle" font-family="-apple-system,sans-serif" letter-spacing="0.05em">Pre-transformation</text>
-          <text x="155" y="99" font-size="8" fill="#333" text-anchor="middle" font-family="-apple-system,sans-serif" letter-spacing="0.05em">Early stage</text>
-          <text x="300" y="99" font-size="8" fill="#333" text-anchor="middle" font-family="-apple-system,sans-serif" letter-spacing="0.05em">Progressing</text>
-          <text x="440" y="99" font-size="8" fill="#333" text-anchor="middle" font-family="-apple-system,sans-serif" letter-spacing="0.05em">Transforming</text>
-          <line id="diagMarker" x1="0" y1="0" x2="0" y2="92" stroke="rgba(57,255,122,0.9)" stroke-width="1.5" stroke-dasharray="3,3"/>
-          <circle id="diagMarkerDot" cx="0" cy="0" r="4" fill="var(--orange)" style="filter:drop-shadow(0 0 4px rgba(57,255,122,0.8))"/>
-          <text id="diagMarkerLabel" x="0" y="-6" font-size="9" fill="var(--orange)" text-anchor="middle" font-family="-apple-system,sans-serif" font-weight="700">You</text>
-        </svg>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="startFullAssessment()" style="background:var(--orange);border:none;color:#0a1a0d;padding:14px 28px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;box-shadow:0 0 20px rgba(57,255,122,0.4);transition:box-shadow 0.2s;text-align:center;">Start the full assessment →</button>
+        <button id="diagEmailCaptureBtn" onclick="showDiagEmailCapture()" style="background:none;border:1px solid #2a2a2a;color:#666;padding:12px 28px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:border-color 0.15s,color 0.15s;" onmouseover="this.style.borderColor='#444';this.style.color='#aaa'" onmouseout="this.style.borderColor='#2a2a2a';this.style.color='#666'">Email me the result</button>
+        <div id="diagEmailCaptureForm" style="display:none;flex-direction:column;gap:10px;">
+          <input id="diagEmailResultInput" type="email" placeholder="your@email.com" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#fff;padding:13px 16px;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='rgba(57,255,122,0.5)'" onblur="this.style.borderColor='#2a2a2a'">
+          <button onclick="submitDiagEmailCapture()" style="background:none;border:1px solid rgba(57,255,122,0.4);color:var(--orange);padding:12px 20px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;">Send me the results →</button>
+          <div id="diagEmailResultMsg" style="display:none;font-size:12px;color:#777;text-align:center;padding-top:4px;"></div>
+        </div>
       </div>
-
-      <a href="#contact" onclick="closeDiag()" style="display:inline-block;background:var(--orange);color:#0a1a0d;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:14px 32px;text-decoration:none;box-shadow:0 0 18px rgba(57,255,122,0.5);">Talk to us about your results →</a>
     </div>
   </div>
 </div>
 
 <script>
   var diagQuestions = [
-    { cat:'Product', q:'How is AI showing up in your product today?', opts:[
-      {t:'Shipped features with real AI capability',s:3},
-      {t:'Experiments or pilots in progress',s:2},
-      {t:'On the roadmap but not started',s:1},
-      {t:'Not on the roadmap',s:0}
-    ]},
-    { cat:'Product', q:'How would you rate your data infrastructure for AI?', opts:[
-      {t:'Production-ready — clean, accessible, governed',s:3},
-      {t:'Workable but needs investment',s:2},
-      {t:'Early stage — fragmented or siloed',s:1},
-      {t:'We don\'t have a clear picture',s:0}
-    ]},
-    { cat:'Process', q:'What proportion of internal workflows use AI tools today?', opts:[
-      {t:'More than half',s:3},
-      {t:'A quarter to half',s:2},
-      {t:'Less than a quarter',s:1},
-      {t:'None to speak of',s:0}
-    ]},
-    { cat:'Process', q:'Do you have a documented AI adoption strategy?', opts:[
-      {t:'Yes — board-approved and being executed',s:3},
-      {t:'In draft or under review',s:2},
-      {t:'Informal — no document yet',s:1},
-      {t:'No strategy in place',s:0}
-    ]},
-    { cat:'People', q:'How would you describe your team\'s AI literacy?', opts:[
-      {t:'High — most people use AI tools daily',s:3},
-      {t:'Medium — a core group drives it',s:2},
-      {t:'Low — occasional use, no culture yet',s:1},
-      {t:'Minimal — little to no adoption',s:0}
-    ]},
-    { cat:'People', q:'Who owns AI transformation in your organisation?', opts:[
-      {t:'A C-suite exec with a clear mandate',s:3},
-      {t:'A senior manager leading it informally',s:2},
-      {t:'Nobody yet — but we\'re looking',s:1},
-      {t:'No one — it\'s distributed and unfocused',s:0}
-    ]}
+    {
+      id: 'q1_product_ai', dim: 'product', cat: 'PRODUCT',
+      q: 'How is AI showing up in your product today?',
+      type: 'single',
+      opts: [
+        {id:'shipped', t:'Shipped features with real AI capability', w:9},
+        {id:'pilots', t:'Experiments or pilots in progress', w:6},
+        {id:'roadmap', t:'On the roadmap but not started', w:3},
+        {id:'not_planned', t:'Not on the roadmap', w:0}
+      ]
+    },
+    {
+      id: 'q2_competitors', dim: 'product', cat: 'PRODUCT',
+      q: "What are competitors doing that you aren't?",
+      type: 'single',
+      opts: [
+        {id:'ahead', t:"We're ahead of them", w:9},
+        {id:'marketing', t:"They're marketing AI heavily — unclear if it's real", w:5},
+        {id:'behind', t:"They've shipped AI features we haven't matched", w:2},
+        {id:'dont_know', t:"Honestly, we don't know", w:0}
+      ]
+    },
+    {
+      id: 'q3_owner', dim: 'people', cat: 'PEOPLE',
+      q: 'Who owns AI transformation in your business?',
+      type: 'single',
+      opts: [
+        {id:'named_budget', t:'A named exec with budget and time', w:10},
+        {id:'named_diluted', t:"A named exec, but it's one of many priorities", w:5},
+        {id:'shared', t:'Shared across the leadership team', w:3},
+        {id:'nobody', t:'Nobody owns it yet', w:0}
+      ]
+    },
+    {
+      id: 'q4_team_adoption', dim: 'people', cat: 'PEOPLE',
+      q: "What's the team's relationship with AI tools right now?",
+      type: 'single',
+      opts: [
+        {id:'adopted', t:'Adopted widely, measurable gains', w:10},
+        {id:'patchy', t:'Some teams using, patchy results', w:5},
+        {id:'enthusiasts', t:'A few enthusiasts, no coordination', w:3},
+        {id:'blocked', t:'Blocked, resistant, or untrained', w:0}
+      ]
+    },
+    {
+      id: 'q5_manual_workflows', dim: 'process', cat: 'PROCESS',
+      q: 'Which of these workflows are still mostly manual?',
+      type: 'multi',
+      opts: [
+        {id:'sales', t:'Sales and lead generation', w:0},
+        {id:'support', t:'Customer support and success', w:0},
+        {id:'engineering', t:'Engineering and delivery', w:0},
+        {id:'onboarding', t:'Onboarding and implementation', w:0},
+        {id:'marketing', t:'Marketing and content', w:0},
+        {id:'finance', t:'Finance and operations', w:0}
+      ]
+    },
+    {
+      id: 'q6_blockers', dim: 'process', cat: 'PROCESS',
+      q: "What's blocking you right now?",
+      type: 'multi',
+      opts: [
+        {id:'no_strategy', t:'No clear strategy or priorities', w:0},
+        {id:'no_budget', t:'Budget not approved', w:0},
+        {id:'alignment', t:'Leadership alignment', w:0},
+        {id:'data', t:'Data quality or access', w:0},
+        {id:'capability', t:'Team capability or capacity', w:0},
+        {id:'nothing', t:"Nothing — we just need to move faster", w:10}
+      ]
+    }
   ];
 
   var diagIndex = 0;
-  var diagTotal = 0;
   var diagSelections = [];
+  window.__diagId = null;
+  window.__diagScores = null;
+  window.__diagVerdict = null;
 
   function openDiag(e) {
-    if(e) e.preventDefault();
-    diagIndex = 0; diagTotal = 0; diagSelections = [];
+    if (e) e.preventDefault();
+    diagIndex = 0; diagSelections = [];
+    window.__diagId = null; window.__diagScores = null; window.__diagVerdict = null;
+    document.getElementById('diagLoading').style.display = 'none';
+    document.getElementById('diagResult').style.display = 'none';
+    document.getElementById('diagQuestion').style.display = 'block';
+    document.getElementById('diagAnswers').style.display = 'flex';
     document.getElementById('diagModal').style.display = 'block';
     document.body.style.overflow = 'hidden';
     renderDiagQ();
@@ -1821,11 +1870,12 @@
   function closeDiag() {
     document.getElementById('diagModal').style.display = 'none';
     document.body.style.overflow = '';
+    document.getElementById('diagLoading').style.display = 'none';
     document.getElementById('diagResult').style.display = 'none';
-    document.getElementById('diagEmailGate').style.display = 'none';
     document.getElementById('diagQuestion').style.display = 'block';
     document.getElementById('diagAnswers').style.display = 'flex';
-    diagIndex = 0; diagTotal = 0; diagSelections = [];
+    diagIndex = 0; diagSelections = [];
+    window.__diagId = null; window.__diagScores = null; window.__diagVerdict = null;
   }
 
   function renderDiagQ() {
@@ -1835,7 +1885,7 @@
     var sel = diagSelections[diagIndex];
 
     document.getElementById('diagCategory').textContent = q.cat;
-    document.getElementById('diagCounter').textContent = (diagIndex+1) + ' / ' + diagQuestions.length;
+    document.getElementById('diagCounter').textContent = (diagIndex + 1) + ' / ' + diagQuestions.length;
     document.getElementById('diagProgress').style.width = pct + '%';
     document.getElementById('diagQuestion').textContent = q.q;
 
@@ -1843,25 +1893,43 @@
     ans.innerHTML = '';
 
     q.opts.forEach(function(o, i) {
-      var btn = document.createElement('button');
-      btn.textContent = o.t;
-      btn.dataset.idx = i;
       var isSelected = sel.has(i);
-      btn.style.cssText = 'background:' + (isSelected ? '#1a2e1a' : '#1a1a1a') + ';border:1px solid ' + (isSelected ? 'rgba(57,255,122,0.8)' : '#2a2a2a') + ';color:' + (isSelected ? '#fff' : '#ccc') + ';padding:14px 20px;text-align:left;font-size:14px;cursor:pointer;transition:border-color 0.15s,color 0.15s,background 0.15s;font-family:inherit;line-height:1.4;display:flex;align-items:center;gap:12px;';
+      var btn = document.createElement('button');
+      btn.dataset.idx = i;
+      btn.style.cssText = 'background:' + (isSelected ? '#1a2e1a' : '#1a1a1a') + ';border:1px solid ' + (isSelected ? 'rgba(57,255,122,0.8)' : '#2a2a2a') + ';color:' + (isSelected ? '#fff' : '#ccc') + ';padding:14px 20px;text-align:left;font-size:14px;cursor:pointer;transition:border-color 0.15s,color 0.15s,background 0.15s;font-family:inherit;line-height:1.4;display:flex;align-items:center;gap:12px;width:100%;';
 
       var chk = document.createElement('span');
-      chk.style.cssText = 'width:16px;height:16px;border:1px solid ' + (isSelected ? 'rgba(57,255,122,0.9)' : '#444') + ';border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--orange);background:' + (isSelected ? 'rgba(57,255,122,0.15)' : 'transparent') + ';';
-      chk.textContent = isSelected ? '✓' : '';
-      btn.insertBefore(chk, btn.firstChild);
+      chk.style.cssText = 'width:16px;height:16px;min-width:16px;border:1px solid ' + (isSelected ? 'rgba(57,255,122,0.9)' : '#444') + ';border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--orange);background:' + (isSelected ? 'rgba(57,255,122,0.15)' : 'transparent') + ';';
+      chk.textContent = isSelected ? '\u2713' : '';
+      btn.appendChild(chk);
+
+      var txt = document.createElement('span');
+      txt.textContent = o.t;
+      btn.appendChild(txt);
 
       btn.onmouseover = function() {
-        if (!sel.has(i)) { this.style.borderColor='rgba(57,255,122,0.4)'; this.style.color='#fff'; }
+        if (!sel.has(i)) { this.style.borderColor = 'rgba(57,255,122,0.4)'; this.style.color = '#fff'; }
       };
       btn.onmouseout = function() {
-        if (!sel.has(i)) { this.style.borderColor='#2a2a2a'; this.style.color='#ccc'; }
+        if (!sel.has(i)) { this.style.borderColor = '#2a2a2a'; this.style.color = '#ccc'; }
       };
       btn.onclick = function() {
-        if (sel.has(i)) { sel.delete(i); } else { sel.add(i); }
+        if (q.type === 'single') {
+          sel.clear();
+          sel.add(i);
+        } else if (q.id === 'q6_blockers') {
+          var isNothing = o.id === 'nothing';
+          if (isNothing) {
+            sel.clear();
+            sel.add(i);
+          } else {
+            // Deselect "nothing" if other option chosen
+            q.opts.forEach(function(opt2, j) { if (opt2.id === 'nothing') sel.delete(j); });
+            if (sel.has(i)) { sel.delete(i); } else { sel.add(i); }
+          }
+        } else {
+          if (sel.has(i)) { sel.delete(i); } else { sel.add(i); }
+        }
         renderDiagQ();
         updateNavButtons();
       };
@@ -1869,29 +1937,26 @@
     });
 
     var nav = document.createElement('div');
-    nav.id = 'diagNav';
     nav.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:12px;';
 
     var backBtn = document.createElement('button');
-    backBtn.textContent = '← Back';
-    backBtn.id = 'diagBack';
-    backBtn.style.cssText = 'background:none;border:1px solid #333;color:#666;padding:11px 22px;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:border-color 0.15s,color 0.15s;';
-    if (diagIndex === 0) { backBtn.style.visibility = 'hidden'; }
-    backBtn.onmouseover = function(){ this.style.borderColor='#555'; this.style.color='#aaa'; };
-    backBtn.onmouseout  = function(){ this.style.borderColor='#333'; this.style.color='#666'; };
+    backBtn.textContent = '\u2190 Back';
+    backBtn.style.cssText = 'background:none;border:1px solid #2a2a2a;color:#555;padding:11px 22px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:border-color 0.15s,color 0.15s;visibility:' + (diagIndex === 0 ? 'hidden' : 'visible') + ';';
+    backBtn.onmouseover = function() { this.style.borderColor = '#555'; this.style.color = '#aaa'; };
+    backBtn.onmouseout = function() { this.style.borderColor = '#2a2a2a'; this.style.color = '#555'; };
     backBtn.onclick = function() { diagIndex--; renderDiagQ(); };
 
-    var nextBtn = document.createElement('button');
     var isLast = diagIndex === diagQuestions.length - 1;
-    nextBtn.textContent = isLast ? 'See results →' : 'Next →';
-    nextBtn.id = 'diagNext';
     var hasSelection = sel.size > 0;
-    nextBtn.style.cssText = 'background:' + (hasSelection ? 'var(--orange)' : '#222') + ';border:none;color:' + (hasSelection ? '#0a1a0d' : '#444') + ';padding:11px 28px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:' + (hasSelection ? 'pointer' : 'default') + ';font-family:inherit;transition:background 0.15s,color 0.15s;box-shadow:' + (hasSelection ? '0 0 16px rgba(57,255,122,0.4)' : 'none') + ';';
+    var nextBtn = document.createElement('button');
+    nextBtn.id = 'diagNext';
+    nextBtn.textContent = isLast ? 'See results \u2192' : 'Next \u2192';
+    nextBtn.style.cssText = 'background:' + (hasSelection ? 'var(--orange)' : '#1e1e1e') + ';border:none;color:' + (hasSelection ? '#0a1a0d' : '#444') + ';padding:11px 28px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:' + (hasSelection ? 'pointer' : 'default') + ';font-family:inherit;transition:background 0.15s,color 0.15s;box-shadow:' + (hasSelection ? '0 0 14px rgba(57,255,122,0.4)' : 'none') + ';';
     nextBtn.onclick = function() {
       if (!sel.size) return;
       diagIndex++;
       if (diagIndex < diagQuestions.length) { renderDiagQ(); }
-      else { diagIndex--; showDiagEmailGate(); }
+      else { diagIndex--; finishDiagnostic(); }
     };
 
     nav.appendChild(backBtn);
@@ -1900,96 +1965,175 @@
   }
 
   function updateNavButtons() {
-    var sel = diagSelections[diagIndex] || new Set();
     var nextBtn = document.getElementById('diagNext');
     if (!nextBtn) return;
-    var hasSelection = sel.size > 0;
-    nextBtn.style.background = hasSelection ? 'var(--orange)' : '#222';
+    var hasSelection = (diagSelections[diagIndex] || new Set()).size > 0;
+    nextBtn.style.background = hasSelection ? 'var(--orange)' : '#1e1e1e';
     nextBtn.style.color = hasSelection ? '#0a1a0d' : '#444';
     nextBtn.style.cursor = hasSelection ? 'pointer' : 'default';
-    nextBtn.style.boxShadow = hasSelection ? '0 0 16px rgba(57,255,122,0.4)' : 'none';
+    nextBtn.style.boxShadow = hasSelection ? '0 0 14px rgba(57,255,122,0.4)' : 'none';
   }
 
-  function showDiagEmailGate() {
+  function computeTriScores() {
+    var scores = { product: [], people: [], process: [] };
+    diagSelections.forEach(function(sel, qi) {
+      if (!sel || sel.size === 0) return;
+      var q = diagQuestions[qi];
+      if (!q) return;
+      var qScore = 0;
+      if (q.type === 'single') {
+        sel.forEach(function(idx) { if (q.opts[idx]) qScore = q.opts[idx].w; });
+      } else {
+        var selectedIds = [];
+        sel.forEach(function(idx) { if (q.opts[idx]) selectedIds.push(q.opts[idx].id); });
+        if (q.id === 'q6_blockers' && selectedIds.indexOf('nothing') !== -1) {
+          qScore = 10;
+        } else {
+          var penalty = q.id === 'q5_manual_workflows' ? 1.5 : 2;
+          qScore = Math.max(0, 10 - sel.size * penalty);
+        }
+      }
+      scores[q.dim].push(qScore);
+    });
+    function avg(arr) {
+      if (!arr.length) return 0;
+      return Math.round(arr.reduce(function(a, b) { return a + b; }, 0) / arr.length);
+    }
+    return { product: avg(scores.product), people: avg(scores.people), process: avg(scores.process) };
+  }
+
+  async function finishDiagnostic() {
+    // Hide questions, show loading
     document.getElementById('diagQuestion').style.display = 'none';
     document.getElementById('diagAnswers').style.display = 'none';
-    document.getElementById('diagEmailGate').style.display = 'block';
+    document.getElementById('diagLoading').style.display = 'flex';
+
+    var scores = computeTriScores();
+
+    // Build answers array for API
+    var answers = [];
+    diagSelections.forEach(function(sel, qi) {
+      if (!sel || sel.size === 0) return;
+      var q = diagQuestions[qi];
+      if (!q) return;
+      var selectedIds = [];
+      sel.forEach(function(idx) { if (q.opts[idx]) selectedIds.push(q.opts[idx].id); });
+      answers.push({ questionId: q.id, selectedOptionIds: selectedIds });
+    });
+    scores.answers = answers;
+
+    // Call Haiku verdict API
+    var verdict = null;
+    try {
+      var res = await fetch('/api/diagnostic/verdict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scores: scores })
+      });
+      if (res.ok) {
+        var data = await res.json();
+        verdict = data.verdict;
+      }
+    } catch (err) { /* handled below */ }
+
+    // Fallback verdict
+    if (!verdict) {
+      var overall = Math.round((scores.product + scores.people + scores.process) / 3);
+      verdict = {
+        headline: overall >= 7 ? "You're ahead of the curve. Now accelerate." : overall >= 4 ? "Progress is real, but the picture is uneven." : "The foundations are not in place yet.",
+        product_line: scores.product >= 7 ? "AI is live in your product and compounding." : scores.product >= 4 ? "Early moves, but competitors are closing." : "No real AI capability shipped yet.",
+        people_line: scores.people >= 7 ? "Ownership is clear and the team is moving." : scores.people >= 4 ? "Some adoption, no coordination." : "No clear owner, no traction.",
+        process_line: scores.process >= 7 ? "Most workflows are already automated." : scores.process >= 4 ? "Manual workflows are slowing you down." : "Almost everything is still manual.",
+        cta_hook: "The gap to the companies pulling ahead is closing fast."
+      };
+    }
+
+    // Save to DB (fire-and-forget)
+    try {
+      var saveRes = await fetch('/api/diagnostic/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scores: scores, verdict: verdict })
+      });
+      if (saveRes.ok) {
+        var saveData = await saveRes.json();
+        window.__diagId = saveData.diagnosticId;
+      }
+    } catch (e) { /* non-critical */ }
+
+    window.__diagScores = scores;
+    window.__diagVerdict = verdict;
+
+    document.getElementById('diagLoading').style.display = 'none';
+    showDiagResult(scores, verdict);
   }
 
-  function submitDiagEmail() {
-    var email = document.getElementById('diagEmailInput').value.trim();
-    if (!email || !email.includes('@')) {
-      document.getElementById('diagEmailInput').style.borderColor = 'rgba(255,80,80,0.6)';
+  function showDiagResult(scores, verdict) {
+    document.getElementById('diagProgress').style.width = '100%';
+    document.getElementById('diagCounter').textContent = '6 / 6';
+    document.getElementById('diagCategory').textContent = '';
+    document.getElementById('diagResult').style.display = 'block';
+
+    document.getElementById('diagHeadline').textContent = verdict.headline;
+    document.getElementById('diagProductScore').textContent = scores.product + '/10';
+    document.getElementById('diagProductBar').style.width = (scores.product * 10) + '%';
+    document.getElementById('diagProductLine').textContent = verdict.product_line;
+    document.getElementById('diagPeopleScore').textContent = scores.people + '/10';
+    document.getElementById('diagPeopleBar').style.width = (scores.people * 10) + '%';
+    document.getElementById('diagPeopleLine').textContent = verdict.people_line;
+    document.getElementById('diagProcessScore').textContent = scores.process + '/10';
+    document.getElementById('diagProcessBar').style.width = (scores.process * 10) + '%';
+    document.getElementById('diagProcessLine').textContent = verdict.process_line;
+    document.getElementById('diagCtaHook').textContent = verdict.cta_hook;
+  }
+
+  function startFullAssessment() {
+    var diagId = window.__diagId;
+    window.location.href = '/inflexion/strategy' + (diagId ? '?diagnostic_id=' + diagId : '');
+  }
+
+  function showDiagEmailCapture() {
+    var form = document.getElementById('diagEmailCaptureForm');
+    var btn = document.getElementById('diagEmailCaptureBtn');
+    form.style.display = 'flex';
+    form.style.flexDirection = 'column';
+    btn.style.display = 'none';
+  }
+
+  async function submitDiagEmailCapture() {
+    var emailInput = document.getElementById('diagEmailResultInput');
+    var msgEl = document.getElementById('diagEmailResultMsg');
+    var email = emailInput.value.trim();
+    if (!email || email.indexOf('@') === -1) {
+      emailInput.style.borderColor = 'rgba(255,80,80,0.6)';
       return;
     }
-    document.getElementById('diagEmailGate').style.display = 'none';
-    showDiagResult();
-  }
-
-  function showDiagResult() {
-    var total = 0;
-    diagSelections.forEach(function(sel, qi) {
-      if (!sel) return;
-      sel.forEach(function(optIdx) {
-        if (diagQuestions[qi] && diagQuestions[qi].opts[optIdx]) {
-          total += diagQuestions[qi].opts[optIdx].s;
-        }
+    try {
+      var res = await fetch('/api/diagnostic/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          scores: window.__diagScores,
+          verdict: window.__diagVerdict,
+          diagnosticId: window.__diagId
+        })
       });
-    });
-    var max = diagQuestions.length * 3;
-    var pct = Math.round((total / max) * 100);
-
-    document.getElementById('diagProgress').style.width = '100%';
-    document.getElementById('diagQuestion').style.display = 'none';
-    document.getElementById('diagAnswers').style.display = 'none';
-    document.getElementById('diagEmailGate').style.display = 'none';
-    document.getElementById('diagResult').style.display = 'block';
-    document.getElementById('diagScore').textContent = pct + '%';
-    document.getElementById('diagCounter').textContent = '6 / 6';
-
-    var label, summary, depth, depthPct, competitor;
-    if (pct >= 75) {
-      label = 'Transforming';
-      summary = 'You\'re ahead of most. The fundamentals are in place — now it\'s about velocity, sequencing, and making sure the gains compound. The risk at this stage is complacency.';
-      depth = 'Embedded'; depthPct = 85;
-      competitor = 'You\'re in the top ~15% of companies at your stage. Most of your direct competitors are still at surface-level adoption — you have a structural window, but it closes as others catch up.';
-    } else if (pct >= 50) {
-      label = 'Progressing';
-      summary = 'You\'ve made real moves but the picture is uneven. Some areas are strong, others are exposed. The gap between where you are and where you need to be is closeable — but not without a clear plan.';
-      depth = 'Developing'; depthPct = 55;
-      competitor = 'You\'re ahead of roughly half your peer group. The companies pulling away from you right now aren\'t bigger — they\'re better sequenced. That\'s fixable.';
-    } else if (pct >= 25) {
-      label = 'Early Stage';
-      summary = 'There\'s activity but not yet transformation. Adoption is happening in pockets without a coherent strategy behind it. The window to get structured is still open — but it\'s closing.';
-      depth = 'Superficial'; depthPct = 25;
-      competitor = 'The majority of companies at your size are in the same position — but the ones moving fastest are pulling ahead on cost structure and product capability. The gap is compounding.';
-    } else {
-      label = 'Pre-Transformation';
-      summary = 'Most of the building blocks aren\'t in place yet. That\'s not unusual — but the gap to competitors who are moving is growing faster than most boards realise.';
-      depth = 'Superficial'; depthPct = 10;
-      competitor = 'You\'re behind the majority of your peer group on AI transformation. That gap is still closeable, but not without a structured plan executed in the right order.';
+      msgEl.style.display = 'block';
+      if (res.ok) {
+        msgEl.textContent = 'Results sent. Check your inbox.';
+        msgEl.style.color = 'var(--orange)';
+        var sendBtn = msgEl.previousElementSibling;
+        if (sendBtn) sendBtn.style.display = 'none';
+      } else {
+        msgEl.textContent = 'Something went wrong. Try again.';
+        msgEl.style.color = '#e05252';
+      }
+    } catch (e) {
+      msgEl.style.display = 'block';
+      msgEl.textContent = 'Something went wrong. Try again.';
+      msgEl.style.color = '#e05252';
     }
-
-    document.getElementById('diagLabel').textContent = label;
-    document.getElementById('diagSummary').textContent = summary;
-    document.getElementById('diagDepthLabel').textContent = depth;
-    document.getElementById('diagDepthBar').style.width = depthPct + '%';
-    document.getElementById('diagDepthColor').style.color = depthPct >= 70 ? 'var(--orange)' : depthPct >= 40 ? '#f5a623' : '#e05252';
-    document.getElementById('diagDepthBar').style.background = depthPct >= 70 ? 'var(--orange)' : depthPct >= 40 ? '#f5a623' : '#e05252';
-    document.getElementById('diagDepthBar').style.boxShadow = depthPct >= 70 ? '0 0 12px rgba(57,255,122,0.5)' : 'none';
-    document.getElementById('diagCompetitor').textContent = competitor;
-
-    var markerX = Math.round((pct / 100) * 520);
-    var t = pct / 100;
-    var curveY = 88 - 83 * Math.exp(-Math.pow((t - 0.28) / 0.18, 2));
-    curveY = Math.max(3, Math.min(88, Math.round(curveY)));
-    document.getElementById('diagMarker').setAttribute('x1', markerX);
-    document.getElementById('diagMarker').setAttribute('x2', markerX);
-    document.getElementById('diagMarker').setAttribute('y1', curveY);
-    document.getElementById('diagMarkerDot').setAttribute('cx', markerX);
-    document.getElementById('diagMarkerDot').setAttribute('cy', curveY);
-    document.getElementById('diagMarkerLabel').setAttribute('x', markerX);
-    document.getElementById('diagMarkerLabel').setAttribute('y', curveY - 7);
   }
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -1999,7 +2143,7 @@
   });
 
   document.getElementById('diagModal').addEventListener('click', function(e) {
-    if(e.target === this) closeDiag();
+    if (e.target === this) closeDiag();
   });
 </script>
 

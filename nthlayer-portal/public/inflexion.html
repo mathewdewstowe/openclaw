@@ -386,7 +386,7 @@
     .nav-back { display: none; }
     .container { padding: 0 20px; }
     .hero { padding: 100px 0 60px; min-height: auto; }
-    .delivers-grid { grid-template-columns: 1fr; }
+    .delivers-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
     .how-stages { grid-template-columns: 1fr 1fr; gap: 12px; }
     .how-stage::after { display: none; }
     footer { flex-direction: column; gap: 16px; padding: 28px 20px; }
@@ -394,6 +394,7 @@
   }
 
   @media (max-width: 540px) {
+    .delivers-grid { grid-template-columns: 1fr; }
     .how-stages { grid-template-columns: 1fr; }
     .hero h1 { font-size: clamp(36px, 9vw, 56px); }
   }
@@ -413,6 +414,7 @@
     <span class="nav-logo-text">The<br>Nth Layer</span>
   </a>
   <div class="nav-right">
+    <a href="/use-cases" class="nav-back">Use Cases</a>
     <a href="/new" class="nav-back">← Back</a>
     <a href="https://nthlayer-portal.matthewdewstowe.workers.dev/login" class="nav-cta">Get access</a>
   </div>

@@ -182,10 +182,19 @@ const DELIVERABLES = [
 
 export default function LoginPage() {
   return (
-    <div style={{ height: "100vh", background: "#fff", color: "#111", fontFamily: "-apple-system, 'Helvetica Neue', Arial, sans-serif", WebkitFontSmoothing: "antialiased", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <div className="login-page" style={{ height: "100vh", background: "#fff", color: "#111", fontFamily: "-apple-system, 'Helvetica Neue', Arial, sans-serif", WebkitFontSmoothing: "antialiased", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .login-page { height: auto; overflow: auto; }
+          .login-nav { padding: 0 20px !important; }
+          .login-main { flex-direction: column; overflow: visible; }
+          .login-left { display: none; }
+          .login-right { padding: 48px 24px !important; }
+        }
+      `}</style>
 
       {/* ── NAV ── */}
-      <nav style={{
+      <nav className="login-nav" style={{
         height: 64,
         minHeight: 64,
         flexShrink: 0,
@@ -213,10 +222,10 @@ export default function LoginPage() {
       </nav>
 
       {/* ── MAIN TWO-COLUMN ── */}
-      <div style={{ display: "flex", flex: 1, overflow: "auto" }}>
+      <div className="login-main" style={{ display: "flex", flex: 1, overflow: "auto" }}>
 
         {/* ── LEFT: MARKETING PANEL ── */}
-        <div style={{
+        <div className="login-left" style={{
           flex: "0 0 55%",
           background: "#f7f7f5",
           borderRight: "1px solid #e8e8e8",
@@ -264,7 +273,7 @@ export default function LoginPage() {
         </div>
 
         {/* ── RIGHT: SIGN-IN PANEL ── */}
-        <div style={{
+        <div className="login-right" style={{
           flex: 1,
           display: "flex",
           alignItems: "center",

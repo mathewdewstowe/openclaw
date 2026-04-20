@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Use Cases — The Nth Layer</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:  #111;
+    --white:  #fff;
+    --grey:   #f5f4f1;
+    --green:  #39ff7a;
+    --font:   -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--black);
+    color: var(--white);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    background: rgba(17,17,17,0.94);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .nav-logo-text {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white);
+    line-height: 1.25;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .nav-back {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: #555;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-back:hover { color: #999; }
+
+  @keyframes ctaPulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(57,255,122,0.35); border-color: rgba(57,255,122,0.7) !important; }
+    50%       { box-shadow: 0 0 20px rgba(57,255,122,0.75); border-color: rgba(57,255,122,1) !important; }
+  }
+
+  .nav-cta {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--white);
+    text-decoration: none;
+    border: 1px solid rgba(57,255,122,0.8);
+    padding: 9px 20px;
+    box-shadow: 0 0 10px rgba(57,255,122,0.3);
+    animation: ctaPulse 2s ease-in-out infinite;
+  }
+
+  .nav-cta:hover {
+    border-color: rgba(57,255,122,0.95) !important;
+    box-shadow: 0 0 24px rgba(57,255,122,0.8) !important;
+    animation: none;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+
+  /* ── INDEX ── */
+  .page-hero {
+    padding: 140px 0 60px;
+    background: var(--black);
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .page-hero-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #aaa;
+    display: block;
+    margin-bottom: 20px;
+  }
+
+  .page-hero h1 {
+    font-size: clamp(36px, 4.5vw, 64px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1.0;
+    color: var(--white);
+    margin-bottom: 20px;
+  }
+
+  .page-hero-sub {
+    font-size: 17px;
+    color: rgba(255,255,255,0.45);
+    max-width: 560px;
+    line-height: 1.7;
+  }
+
+  /* ── CASE NAV ── */
+  .case-nav {
+    background: #0d0d0d;
+    border-bottom: 1px solid #1a1a1a;
+    padding: 0;
+    position: sticky;
+    top: 72px;
+    z-index: 100;
+  }
+
+  .case-nav-inner {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .case-nav-inner::-webkit-scrollbar { display: none; }
+
+  .case-nav-btn {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #444;
+    text-decoration: none;
+    padding: 18px 28px;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+  }
+
+  .case-nav-btn:hover { color: #999; }
+  .case-nav-btn.active { color: var(--green); border-bottom-color: var(--green); }
+
+  /* ── CASE SECTION ── */
+  .case-section {
+    padding: 80px 0;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .case-section:last-child { border-bottom: none; }
+
+  .case-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .case-num {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+
+  .case-client {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: #555;
+    border: 1px solid #222;
+    padding: 4px 12px;
+  }
+
+  .case-title {
+    font-size: clamp(28px, 3.5vw, 48px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--white);
+    margin-bottom: 48px;
+    max-width: 760px;
+  }
+
+  .case-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+
+  /* Challenge — dark card */
+  .challenge-card {
+    background: #161616;
+    border-top: 2px solid rgba(57,255,122,0.6);
+    box-shadow: 0 -4px 18px rgba(57,255,122,0.15);
+    padding: 36px 36px 36px 36px;
+  }
+
+  .col-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #555;
+    display: block;
+    margin-bottom: 24px;
+  }
+
+  .challenge-card .col-label { color: rgba(57,255,122,0.6); }
+
+  .challenge-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .challenge-list li {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.7;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .challenge-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(57,255,122,0.5);
+  }
+
+  .challenge-list li:last-child { border-bottom: none; }
+
+  /* Approach — mid card */
+  .approach-card {
+    background: #141414;
+    border-top: 2px solid #2a2a2a;
+    padding: 36px;
+  }
+
+  .approach-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .approach-list li {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.7;
+    padding: 12px 0;
+    border-bottom: 1px solid #1e1e1e;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .approach-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #333;
+  }
+
+  .approach-list li:last-child { border-bottom: none; }
+
+  /* Result */
+  .result-card {
+    background: #f5f4f1;
+    padding: 40px 36px;
+  }
+
+  .result-card .col-label { color: #999; }
+
+  .result-card p {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.85;
+    margin-bottom: 16px;
+    max-width: 800px;
+  }
+
+  .result-card p:last-child { margin-bottom: 0; }
+
+  /* CTA row */
+  .case-cta {
+    margin-top: 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .btn-contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--green);
+    border: 1px solid rgba(57,255,122,0.45);
+    padding: 10px 22px;
+    box-shadow: 0 0 10px rgba(57,255,122,0.12);
+    transition: border-color 0.2s, box-shadow 0.2s, color 0.2s;
+  }
+
+  .btn-contact:hover {
+    border-color: rgba(57,255,122,0.9);
+    box-shadow: 0 0 20px rgba(57,255,122,0.35);
+    color: #fff;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--black);
+    border-top: 1px solid #1a1a1a;
+    padding: 32px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  footer p { font-size: 11px; color: #2a2a2a; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    nav { padding: 0 20px; }
+    .nav-back { display: none; }
+    .container { padding: 0 20px; }
+    .page-hero { padding: 110px 0 48px; }
+    .case-body { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 16px; padding: 28px 20px; }
+    .case-nav-btn { padding: 14px 18px; font-size: 10px; }
+    .case-section { padding: 56px 0; }
+    .challenge-card, .approach-card { padding: 28px 24px; }
+    .result-card { padding: 28px 24px; }
+  }
+
+  @media (max-width: 540px) {
+    .page-hero h1 { font-size: clamp(28px, 8vw, 44px); }
+    .case-title { font-size: clamp(24px, 6vw, 36px); margin-bottom: 28px; }
+    .case-cta { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/new" class="nav-logo">
+    <svg viewBox="0 0 80 80" height="34" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="76" height="76" stroke="white" stroke-width="5"/>
+      <rect x="14" y="14" width="52" height="52" stroke="white" stroke-width="5"/>
+      <rect x="26" y="26" width="28" height="28" stroke="white" stroke-width="5"/>
+      <rect x="35" y="35" width="10" height="10" fill="white"/>
+    </svg>
+    <span class="nav-logo-text">The<br>Nth Layer</span>
+  </a>
+  <div class="nav-right">
+    <a href="/new" class="nav-back">← Back</a>
+    <a href="#contact" class="nav-cta">Get in touch</a>
+  </div>
+</nav>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <div class="container">
+    <span class="page-hero-label">Use Cases</span>
+    <h1>Work that moved<br>real numbers.</h1>
+    <p class="page-hero-sub">Four engagements. Different sectors, different problems. The same requirement: something concrete enough to act on.</p>
+  </div>
+</section>
+
+<!-- CASE NAV -->
+<div class="case-nav">
+  <div class="container">
+    <div class="case-nav-inner">
+      <a href="#case-1" class="case-nav-btn active">Board Level Strategy</a>
+      <a href="#case-2" class="case-nav-btn">Employee Experience</a>
+      <a href="#case-3" class="case-nav-btn">Conversational AI</a>
+      <a href="#case-4" class="case-nav-btn">AI Operating Model</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CASE 1 ═══ -->
+<section class="case-section" id="case-1">
+  <div class="container">
+    <div class="case-meta">
+      <span class="case-num">01</span>
+      <span class="case-client">Mid-market B2B SaaS · Cybersecurity · Europe</span>
+    </div>
+    <h2 class="case-title">Feature Roadmap to<br>Board Level Strategy</h2>
+
+    <div class="case-body">
+      <div class="challenge-card">
+        <span class="col-label">Challenge</span>
+        <ul class="challenge-list">
+          <li>A 12-month roadmap existed, but it was operational and feature-heavy rather than driven by strategic outcomes.</li>
+          <li>Initiatives were not clearly linked to business metrics, making impact and prioritisation difficult to assess.</li>
+          <li>Alignment across leadership was inconsistent, creating friction between product, commercial, and technical decision-making.</li>
+          <li>Differentiation in a crowded market was difficult to articulate clearly and consistently.</li>
+          <li>Strategic risks were not formally defined, with no clear mitigation plan in place.</li>
+          <li>The product organisation was deeply embedded in delivery, making it difficult to step back and think strategically.</li>
+        </ul>
+      </div>
+      <div class="approach-card">
+        <span class="col-label">Approach</span>
+        <ul class="approach-list">
+          <li>Ran a series of leadership workshops focused on strategic alignment, shifting thinking from operational execution to outcome-led strategy.</li>
+          <li>Created space for strategic thinking by pulling the team out of day-to-day delivery pressures.</li>
+          <li>Grounded discussions in market reality through a structured SWOT analysis — evidence-based rather than opinion-led.</li>
+          <li>Used the Airbnb 11-star exercise to push the team beyond incremental improvements and reimagine the highest-value customer experience.</li>
+          <li>Identified the company's true competitive advantage: depth and measurable outcomes where larger platforms offered only breadth.</li>
+          <li>Developed a board-ready narrative linking differentiation to business metrics.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <span class="col-label">Result</span>
+      <p>The board approved and backed the strategy, supported by a clear, outcome-focused narrative grounded in evidence-based decision-making. A board-ready strategy deck articulated a reimagined vision and defined four strategic bets designed to drive growth.</p>
+      <p>The roadmap evolved from a list of initiatives into a strategic plan tied to measurable business impact — giving the organisation a clear path to differentiation and stronger positioning against larger platform competitors.</p>
+    </div>
+
+    <div class="case-cta">
+      <a href="#contact" class="btn-contact">Get in touch →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CASE 2 ═══ -->
+<section class="case-section" id="case-2">
+  <div class="container">
+    <div class="case-meta">
+      <span class="case-num">02</span>
+      <span class="case-client">Mid-market SME · Intranet / Employee Experience</span>
+    </div>
+    <h2 class="case-title">Intranet to Employee<br>Experience Platform</h2>
+
+    <div class="case-body">
+      <div class="challenge-card">
+        <span class="col-label">Challenge</span>
+        <ul class="challenge-list">
+          <li>Extensive research including customer interviews and strategic work with EY had been completed, but lacked a clear strategic direction.</li>
+          <li>The organisation was drowning in research — low signal-to-noise ratio made prioritisation difficult.</li>
+          <li>Leadership lacked a structured way to turn insight into clear strategic choices and measurable outcomes.</li>
+          <li>No evidence-based plan for evolving the ICP from traditional intranet buyers toward employee experience and North American expansion.</li>
+          <li>Existing buyer personas reinforced legacy positioning while the market shifted toward daily engagement and employee value.</li>
+        </ul>
+      </div>
+      <div class="approach-card">
+        <span class="col-label">Approach</span>
+        <ul class="approach-list">
+          <li>Ran workshops focused on the future of work, clarifying how shifting employee expectations would reshape the employee experience market.</li>
+          <li>Reframed strategy away from legacy buyer needs and toward driving day-to-day engagement and value for end users.</li>
+          <li>Increased signal-to-noise by distilling large volumes of research into a small set of clear strategic priorities.</li>
+          <li>Anchored decisions in commercial evidence through win/loss analysis across 3,000+ opportunities, including MEDDPICC data.</li>
+          <li>Defined four clear strategic bets to reposition from intranet provider to employee experience platform.</li>
+          <li>Built an evidence-based roadmap showing how the ICP could evolve, supporting both upmarket positioning and North American expansion.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <span class="col-label">Result</span>
+      <p>The board approved and backed the strategy, supported by a clear, outcome-focused narrative grounded in evidence-based decision-making. A board-ready strategy deck defined four strategic bets designed to drive growth.</p>
+      <p>The roadmap evolved from a list of initiatives into a strategic plan tied to measurable business impact — with a documented path to move beyond legacy buyer personas and focus investment on outcomes that mattered to end users.</p>
+    </div>
+
+    <div class="case-cta">
+      <a href="#contact" class="btn-contact">Get in touch →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CASE 3 ═══ -->
+<section class="case-section" id="case-3">
+  <div class="container">
+    <div class="case-meta">
+      <span class="case-num">03</span>
+      <span class="case-client">Leading Web3 Recruitment Platform</span>
+    </div>
+    <h2 class="case-title">Conversational AI to<br>Improve User Engagement</h2>
+
+    <div class="case-body">
+      <div class="challenge-card">
+        <span class="col-label">Challenge</span>
+        <ul class="challenge-list">
+          <li>Popular, well-established Web3 job board assets — but leadership needed to validate whether a conversational voice interface could increase engagement.</li>
+          <li>The core hypothesis: natural voice-based conversation would improve matching quality and response rates.</li>
+          <li>If successful, the approach could reduce reliance on traditional recruitment intermediaries by enabling more direct interaction.</li>
+          <li>The challenge was validating quickly without disrupting existing product momentum or committing significant upfront resources.</li>
+        </ul>
+      </div>
+      <div class="approach-card">
+        <span class="col-label">Approach</span>
+        <ul class="approach-list">
+          <li>Built a value chain map to understand how the platform created value and where engagement gaps existed.</li>
+          <li>Used service design principles to identify where conversational AI could naturally fit within the user journey.</li>
+          <li>Defined and tested the core hypothesis that natural voice interaction would increase engagement and improve response rates.</li>
+          <li>Built a conversational voice AI MVP focused specifically on validating user interaction patterns and engagement behaviour.</li>
+          <li>Tested with real users, capturing feedback and iterating quickly to refine the experience.</li>
+          <li>Used continuous feedback loops to validate whether voice-driven engagement created measurable improvement before wider investment.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <span class="col-label">Result</span>
+      <p>The company gained clear strategic direction for its evolution, supported by an evidence-backed, prioritised roadmap grounded in existing research. Leadership had a documented path to reposition the offering and focus on delivering outcomes that mattered to end users.</p>
+      <p>This clarity enabled confident decision-making — allowing the team to make deliberate trade-offs and concentrate investment on the areas most likely to create meaningful differentiation.</p>
+    </div>
+
+    <div class="case-cta">
+      <a href="#contact" class="btn-contact">Get in touch →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CASE 4 ═══ -->
+<section class="case-section" id="case-4">
+  <div class="container">
+    <div class="case-meta">
+      <span class="case-num">04</span>
+      <span class="case-client">High-growth B2B Startup</span>
+    </div>
+    <h2 class="case-title">Building an Operating Model<br>for AI Transformation</h2>
+
+    <div class="case-body">
+      <div class="challenge-card">
+        <span class="col-label">Challenge</span>
+        <ul class="challenge-list">
+          <li>An AI strategy had been announced, but the product operating model remained built for predictable software rather than probabilistic systems.</li>
+          <li>AI initiatives were not tied to key business metrics — no clear way to measure ROI or prioritise investment.</li>
+          <li>Roadmaps remained feature-led, with success measured by delivery rather than commercial impact.</li>
+          <li>No structured approach to continuous evaluation, performance monitoring, or model tuning after deployment.</li>
+          <li>Ownership across product, engineering, and data was unclear — fragmented experimentation and duplicated effort.</li>
+          <li>Governance and risk processes were reactive, slowing progress as AI capabilities moved toward production.</li>
+        </ul>
+      </div>
+      <div class="approach-card">
+        <span class="col-label">Approach</span>
+        <ul class="approach-list">
+          <li>Conducted a focused operating model review centred on commercial accountability for AI investment.</li>
+          <li>Defined clear value hypotheses for each AI initiative, explicitly linked to revenue, margin, cost efficiency, or retention metrics.</li>
+          <li>Reframed roadmaps from feature delivery to outcome-based bets with measurable success criteria.</li>
+          <li>Introduced ROI tracking frameworks connecting model performance to business impact.</li>
+          <li>Established continuous evaluation loops: live performance monitoring, human override tracking, and structured model tuning cycles.</li>
+          <li>Clarified ownership across product, engineering, and data with defined decision rights and accountability.</li>
+          <li>Integrated governance and risk guardrails into experimentation and deployment workflows.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <span class="col-label">Result</span>
+      <p>AI investment shifted from activity without accountability to initiatives directly tied to core business metrics — revenue growth, margin improvement, cost efficiency, and retention. Clear value hypotheses replaced vague experimentation, and each AI initiative was measured against defined commercial outcomes.</p>
+      <p>Continuous evaluation and tuning processes ensured model performance improved over time rather than degrading after launch. AI transformation became a disciplined, ROI-driven product strategy embedded into the operating model — not an isolated innovation programme disconnected from commercial impact.</p>
+    </div>
+
+    <div class="case-cta">
+      <a href="#contact" class="btn-contact">Get in touch →</a>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT ANCHOR -->
+<div id="contact"></div>
+
+<!-- FOOTER -->
+<footer>
+  <a href="/new" style="display:flex;align-items:center;gap:12px;text-decoration:none;">
+    <svg viewBox="0 0 80 80" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="76" height="76" stroke="white" stroke-width="5"/>
+      <rect x="14" y="14" width="52" height="52" stroke="white" stroke-width="5"/>
+      <rect x="26" y="26" width="28" height="28" stroke="white" stroke-width="5"/>
+      <rect x="35" y="35" width="10" height="10" fill="white"/>
+    </svg>
+    <span style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#fff;line-height:1.25;">The<br>Nth Layer</span>
+  </a>
+  <p>&copy; 2026 The Nth Layer. All rights reserved.</p>
+</footer>
+
+<script>
+  // Highlight active case nav btn on scroll
+  (function() {
+    var btns = document.querySelectorAll('.case-nav-btn');
+    var sections = ['case-1','case-2','case-3','case-4'].map(function(id) {
+      return document.getElementById(id);
+    });
+
+    function onScroll() {
+      var mid = window.scrollY + window.innerHeight / 2;
+      var active = 0;
+      sections.forEach(function(s, i) {
+        if (s && s.offsetTop <= mid) active = i;
+      });
+      btns.forEach(function(b, i) {
+        b.classList.toggle('active', i === active);
+      });
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // Contact links open modal on /new — here just scroll to footer
+    document.querySelectorAll('a[href="#contact"]').forEach(function(a) {
+      if (a.classList.contains('nav-cta') || a.classList.contains('btn-contact')) {
+        a.addEventListener('click', function(e) {
+          e.preventDefault();
+          window.location.href = '/new#contact';
+        });
+      }
+    });
+  })();
+</script>
+</body>
+</html>

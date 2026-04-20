@@ -20,7 +20,7 @@ const publicPaths = [
 ];
 
 // Exact public paths (startsWith would incorrectly open all sub-routes)
-const publicExact = ["/", "/inflexion", "/new"];
+const publicExact = ["/", "/inflexion", "/new", "/use-cases"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -32,6 +32,10 @@ export async function middleware(req: NextRequest) {
 
   if (pathname === "/inflexion") {
     return NextResponse.rewrite(new URL("/inflexion.html", req.url));
+  }
+
+  if (pathname === "/use-cases") {
+    return NextResponse.rewrite(new URL("/use-cases.html", req.url));
   }
 
   // Enforce HTTPS in production (Cloudflare sets x-forwarded-proto)
