@@ -12,6 +12,9 @@ const publicPaths = [
   "/api/auth/forgot-password",
   "/api/auth/reset-password",
   "/api/waitlist",
+  "/api/diagnostic/verdict",
+  "/api/diagnostic/save",
+  "/api/diagnostic/email",
   "/onboarding",
   "/one-pager",
 ];
