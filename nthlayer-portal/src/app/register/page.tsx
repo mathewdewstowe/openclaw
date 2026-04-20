@@ -130,7 +130,7 @@ export default function RegisterPage() {
           </div>
 
           <h1 style={{ fontSize: "clamp(36px, 3.5vw, 56px)", fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.0, color: "#111", marginBottom: 20 }}>
-            AI Transformation<br/>Roadmap.
+            AI Transformation<br/>Roadmap
           </h1>
 
           <p style={{ fontSize: 17, color: "#333", lineHeight: 1.6, maxWidth: 520, marginBottom: 20 }}>

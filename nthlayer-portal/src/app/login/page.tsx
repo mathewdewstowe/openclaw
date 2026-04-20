@@ -61,7 +61,7 @@ function LoginForm() {
       )}
 
       <div>
-        <label htmlFor="email" style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#555", marginBottom: 8 }}>
+        <label htmlFor="email" style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#aaa", marginBottom: 8 }}>
           Email
         </label>
         <input
@@ -73,9 +73,9 @@ function LoginForm() {
           autoComplete="email"
           style={{
             width: "100%",
-            background: "#1a1a1a",
-            border: "1px solid #2a2a2a",
-            color: "#fff",
+            background: "#efefed",
+            border: "1px solid #e0e0e0",
+            color: "#111",
             padding: "13px 16px",
             fontSize: 14,
             fontFamily: "inherit",
@@ -84,17 +84,17 @@ function LoginForm() {
             WebkitAppearance: "none",
             transition: "border-color 0.15s",
           }}
-          onFocus={e => (e.target.style.borderColor = "#555")}
-          onBlur={e => (e.target.style.borderColor = "#2a2a2a")}
+          onFocus={e => (e.target.style.borderColor = "#999")}
+          onBlur={e => (e.target.style.borderColor = "#e0e0e0")}
         />
       </div>
 
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-          <label htmlFor="password" style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#555" }}>
+          <label htmlFor="password" style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#aaa" }}>
             Password
           </label>
-          <Link href="/forgot-password" style={{ fontSize: 11, color: "#444", textDecoration: "none", borderBottom: "1px solid #333", paddingBottom: 1 }}>
+          <Link href="/forgot-password" style={{ fontSize: 11, color: "#aaa", textDecoration: "none", borderBottom: "1px solid #ddd", paddingBottom: 1 }}>
             Forgot password?
           </Link>
         </div>
@@ -107,9 +107,9 @@ function LoginForm() {
           autoComplete="current-password"
           style={{
             width: "100%",
-            background: "#1a1a1a",
-            border: "1px solid #2a2a2a",
-            color: "#fff",
+            background: "#efefed",
+            border: "1px solid #e0e0e0",
+            color: "#111",
             padding: "13px 16px",
             fontSize: 14,
             fontFamily: "inherit",
@@ -118,8 +118,8 @@ function LoginForm() {
             WebkitAppearance: "none",
             transition: "border-color 0.15s",
           }}
-          onFocus={e => (e.target.style.borderColor = "#555")}
-          onBlur={e => (e.target.style.borderColor = "#2a2a2a")}
+          onFocus={e => (e.target.style.borderColor = "#999")}
+          onBlur={e => (e.target.style.borderColor = "#e0e0e0")}
         />
       </div>
 
@@ -147,9 +147,9 @@ function LoginForm() {
         {loading ? "Signing in…" : "Sign In"}
       </button>
 
-      <p style={{ textAlign: "center", fontSize: 12, color: "#444", marginTop: 8 }}>
+      <p style={{ textAlign: "center", fontSize: 12, color: "#aaa", marginTop: 8 }}>
         No account?{" "}
-        <Link href="/register" style={{ color: "#777", textDecoration: "none", borderBottom: "1px solid #333" }}>
+        <Link href="/register" style={{ color: "#555", textDecoration: "none", borderBottom: "1px solid #ddd" }}>
           Register
         </Link>
       </p>
@@ -242,7 +242,7 @@ export default function LoginPage() {
 
           {/* Heading */}
           <h1 style={{ fontSize: "clamp(36px, 3.5vw, 56px)", fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.0, color: "#111", marginBottom: 20 }}>
-            AI Transformation<br/>Roadmap.
+            AI Transformation<br/>Roadmap
           </h1>
 
           {/* Subhead */}
@@ -281,10 +281,10 @@ export default function LoginPage() {
           padding: "48px 56px",
           background: "#111",
         }}>
-          <div style={{ width: "100%", maxWidth: 360 }}>
-            <div style={{ marginBottom: 36 }}>
-              <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", marginBottom: 8 }}>Sign in</h2>
-              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>Your board-ready AI transformation report is waiting.</p>
+          <div style={{ width: "100%", maxWidth: 380, background: "#f7f7f5", borderRadius: 16, padding: "40px 36px" }}>
+            <div style={{ marginBottom: 32 }}>
+              <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", color: "#111", marginBottom: 8 }}>Sign in</h2>
+              <p style={{ fontSize: 13, color: "#888", lineHeight: 1.6 }}>Your board-ready AI transformation report is waiting.</p>
             </div>
             <Suspense fallback={null}>
               <LoginForm />
