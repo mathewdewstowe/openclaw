@@ -136,14 +136,14 @@
   }
 
   .hero-pill {
-    font-size: 10px;
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--orange);
     border: 1px solid rgba(57,255,122,0.6);
     display: inline-block;
-    padding: 6px 14px;
+    padding: 10px 22px;
     border-radius: 100px;
     margin-bottom: 32px;
     align-self: flex-start;
@@ -1099,7 +1099,7 @@
   .outcome-col:first-child { padding-left: 0; }
   .outcome-col:last-child { border-right: none; }
   .outcome-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: #111; margin-bottom: 8px; }
-  .outcome-desc { font-size: 14px; color: #bbb; line-height: 1.65; }
+  .outcome-desc { font-size: 14px; color: #444; line-height: 1.65; }
   @media (max-width: 700px) { .outcomes-cols { grid-template-columns: 1fr; gap: 28px; } .outcome-col { padding: 0; border-right: none; } }
 
   /* ════ TENSION ════ */
@@ -1116,7 +1116,7 @@
   .problem-col { background: #f7f7f5; border-radius: 12px; padding: 32px 28px; }
   .problem-col-n { display: inline-block; font-size: 14px; font-weight: 700; letter-spacing: 0.06em; color: #bbb; background: #f0f0ee; border-radius: 8px; padding: 6px 14px; margin-bottom: 16px; }
   .problem-col-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: #111; margin-bottom: 14px; line-height: 1.3; }
-  .problem-col-body { font-size: 13px; color: #bbb; line-height: 1.75; }
+  .problem-col-body { font-size: 13px; color: #444; line-height: 1.75; }
 
   /* ════ STATS BAR ════ */
   .stats-bar { background: var(--black); padding: 40px 0; border-top: 1px solid #1a1a1a; }
@@ -1134,7 +1134,7 @@
   .why-now-section .section-label { color: #999; }
   .why-now-inner { display: block; max-width: 720px; }
   .why-now-heading { font-size: clamp(22px,2.4vw,34px); font-weight: 700; letter-spacing: -0.03em; color: var(--black); line-height: 1.15; margin-bottom: 20px; }
-  .why-now-body { font-size: 14px; color: #bbb; line-height: 1.8; }
+  .why-now-body { font-size: 14px; color: #444; line-height: 1.8; }
 
   /* distribution chart */
   .dist-chart { width: 100%; margin-top: 4px; }
@@ -1168,22 +1168,21 @@
   .who-card:hover { background: #f0f0ee; }
   .who-card-role { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: #111; margin-bottom: 6px; }
   .who-card-type { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: #aaa; margin-bottom: 16px; }
-  .who-card-body { font-size: 13px; color: #bbb; line-height: 1.75; }
+  .who-card-body { font-size: 13px; color: #444; line-height: 1.75; }
 
   /* ════ SERVICES ════ */
   .services-section { background: var(--white); padding: 52px 0; border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; }
   .services-section .section-label { color: #aaa; }
-  .services-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+  .services-inner { display: grid; grid-template-columns: 2fr 3fr; gap: 64px; align-items: start; }
   .services-right { padding-top: 72px; }
   .services-heading { font-size: clamp(28px,3vw,44px); font-weight: 700; letter-spacing: -0.03em; color: var(--black); line-height: 1.1; margin-bottom: 16px; }
-  .services-intro { font-size: 14px; color: #bbb; line-height: 1.8; max-width: 480px; margin-bottom: 0; }
-  .services-rows { position: relative; min-height: 160px; overflow: hidden; margin-bottom: 0; }
-  .service-row { position: absolute; top: 0; left: 0; width: 100%; display: grid; grid-template-columns: 60px 1fr; padding: 28px; align-items: start; opacity: 0; transform: translateY(48px); transition: opacity 0.6s ease, transform 0.65s cubic-bezier(0.25,0.9,0.4,1); pointer-events: none; background: #f7f7f5; border-radius: 12px; }
-  .service-row.svc-active { opacity: 1; transform: translateY(0); pointer-events: auto; }
-  .service-row.svc-exit { opacity: 0; transform: translateY(-48px); }
+  .services-intro { font-size: 14px; color: #444; line-height: 1.8; max-width: 480px; margin-bottom: 0; }
+  .services-rows { display: flex; flex-direction: column; gap: 12px; margin-bottom: 0; }
+  .service-row { display: grid; grid-template-columns: 60px 1fr; padding: 20px 24px; align-items: start; background: #f7f7f5; border-radius: 10px; }
+
   .service-n { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #bbb; background: #f0f0ee; border-radius: 8px; padding: 5px 12px; margin-bottom: 12px; }
   .service-name { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--black); margin-bottom: 10px; line-height: 1.2; }
-  .service-outcome { font-size: 13px; color: #bbb; line-height: 1.75; max-width: 680px; }
+  .service-outcome { font-size: 13px; color: #444; line-height: 1.75; max-width: 680px; }
 
   /* ════ WHY US ════ */
   .why-us-section { background: #0d0d0d; padding: 52px 0; border-top: 1px solid #1a1a1a; }
@@ -1259,7 +1258,7 @@
     <li><a href="#services">Services</a></li>
     <li><a href="#why-us">About</a></li>
     <li><a href="/use-cases">Use Cases</a></li>
-<li><a href="nthlayer-inflexion.html" class="nav-cta">Inflexion</a></li>
+<li><a href="/inflexion" class="nav-cta">Inflexion</a></li>
   </ul>
 </nav>
 
@@ -1511,42 +1510,7 @@
   </div>
 </section>
 
-<!-- ═══ SERVICE CAROUSEL ═══ -->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var rows = Array.from(document.querySelectorAll('.service-row'));
-    var current = 0;
-    var timer = null;
-    var started = false;
 
-    function goTo(next) {
-      var prev = current;
-      if (next === prev) return;
-      rows[prev].classList.remove('svc-active');
-      rows[prev].classList.add('svc-exit');
-      setTimeout(function() { rows[prev].classList.remove('svc-exit'); }, 650);
-      rows[next].classList.add('svc-active');
-      current = next;
-    }
-
-    function advance() { goTo((current + 1) % rows.length); }
-
-    function resetTimer() {
-      clearInterval(timer);
-      timer = setInterval(advance, 3500);
-    }
-
-    function start() {
-      if (started) return;
-      started = true;
-      rows[0].classList.add('svc-active');
-      resetTimer();
-    }
-
-    // Start immediately
-    start();
-  });
-</script>
 
 <!-- FOOTER -->
 <footer>
@@ -2074,7 +2038,7 @@
 
   function startFullAssessment() {
     var diagId = window.__diagId;
-    var base = 'https://nthlayer-portal.matthewdewstowe.workers.dev/login';
+    var base = 'https://inflexion.nthlayer.co.uk/login';
     window.location.href = base + (diagId ? '?diagnostic_id=' + diagId : '');
   }
 
