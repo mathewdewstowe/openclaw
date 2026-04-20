@@ -182,7 +182,7 @@ const DELIVERABLES = [
 
 export default function LoginPage() {
   return (
-    <div style={{ minHeight: "100vh", background: "#111", color: "#fff", fontFamily: "-apple-system, 'Helvetica Neue', Arial, sans-serif", display: "flex", flexDirection: "column", WebkitFontSmoothing: "antialiased" }}>
+    <div style={{ minHeight: "100vh", background: "#111", color: "#fff", fontFamily: "-apple-system, 'Helvetica Neue', Arial, sans-serif", WebkitFontSmoothing: "antialiased" }}>
 
       {/* ── NAV ── */}
       <nav style={{
@@ -191,12 +191,13 @@ export default function LoginPage() {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "0 48px",
-        background: "#fff",
+        background: "#ffffff",
         borderBottom: "1px solid #e8e8e8",
-        flexShrink: 0,
-        position: "sticky",
+        position: "fixed",
         top: 0,
-        zIndex: 100,
+        left: 0,
+        right: 0,
+        zIndex: 200,
       }}>
         <a href="/new" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
           <svg viewBox="0 0 80 80" height="30" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -215,7 +216,7 @@ export default function LoginPage() {
       </nav>
 
       {/* ── MAIN TWO-COLUMN ── */}
-      <div style={{ display: "flex", flex: 1 }}>
+      <div style={{ display: "flex", minHeight: "100vh", paddingTop: 64 }}>
 
         {/* ── LEFT: MARKETING PANEL ── */}
         <div style={{
