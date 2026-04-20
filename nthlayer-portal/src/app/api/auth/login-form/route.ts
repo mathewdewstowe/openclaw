@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 <html>
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0;url=/inflexion/overview">
+  <meta http-equiv="refresh" content="0;url=/inflexion/strategy">
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{height:100%;background:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}

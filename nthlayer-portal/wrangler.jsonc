@@ -10,6 +10,14 @@
   "workers_dev": true,
   "routes": [
     {
+      "pattern": "nthlayer.co.uk/*",
+      "zone_id": "3cf7ed9cb60897205144950b4a3be2a5"
+    },
+    {
+      "pattern": "www.nthlayer.co.uk/*",
+      "zone_id": "3cf7ed9cb60897205144950b4a3be2a5"
+    },
+    {
       "pattern": "inflexion.nthlayer.co.uk/*",
       "zone_id": "3cf7ed9cb60897205144950b4a3be2a5"
     }
