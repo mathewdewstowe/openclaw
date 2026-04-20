@@ -49,11 +49,11 @@ function LoginForm() {
     >
       {error && (
         <div style={{
-          background: "rgba(255,60,60,0.08)",
-          border: "1px solid rgba(255,60,60,0.25)",
+          background: "rgba(220,38,38,0.06)",
+          border: "1px solid rgba(220,38,38,0.2)",
           padding: "12px 16px",
           fontSize: 13,
-          color: "#ff6b6b",
+          color: "#dc2626",
           lineHeight: 1.5,
         }}>
           {error}
@@ -61,7 +61,7 @@ function LoginForm() {
       )}
 
       <div>
-        <label htmlFor="email" style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#666", marginBottom: 8 }}>
+        <label htmlFor="email" style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#aaa", marginBottom: 8 }}>
           Email
         </label>
         <input
@@ -73,9 +73,9 @@ function LoginForm() {
           autoComplete="email"
           style={{
             width: "100%",
-            background: "#1a1a1a",
-            border: "1px solid #2a2a2a",
-            color: "#fff",
+            background: "#f4f4f4",
+            border: "1px solid #e4e4e4",
+            color: "#111",
             padding: "13px 16px",
             fontSize: 14,
             fontFamily: "inherit",
@@ -84,17 +84,17 @@ function LoginForm() {
             WebkitAppearance: "none",
             transition: "border-color 0.15s",
           }}
-          onFocus={e => (e.target.style.borderColor = "rgba(57,255,122,0.5)")}
-          onBlur={e => (e.target.style.borderColor = "#2a2a2a")}
+          onFocus={e => (e.target.style.borderColor = "#999")}
+          onBlur={e => (e.target.style.borderColor = "#e4e4e4")}
         />
       </div>
 
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-          <label htmlFor="password" style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#666" }}>
+          <label htmlFor="password" style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#aaa" }}>
             Password
           </label>
-          <Link href="/forgot-password" style={{ fontSize: 11, color: "#555", textDecoration: "none", borderBottom: "1px solid #333", paddingBottom: 1 }}>
+          <Link href="/forgot-password" style={{ fontSize: 11, color: "#aaa", textDecoration: "none", borderBottom: "1px solid #ddd", paddingBottom: 1 }}>
             Forgot password?
           </Link>
         </div>
@@ -107,9 +107,9 @@ function LoginForm() {
           autoComplete="current-password"
           style={{
             width: "100%",
-            background: "#1a1a1a",
-            border: "1px solid #2a2a2a",
-            color: "#fff",
+            background: "#f4f4f4",
+            border: "1px solid #e4e4e4",
+            color: "#111",
             padding: "13px 16px",
             fontSize: 14,
             fontFamily: "inherit",
@@ -118,8 +118,8 @@ function LoginForm() {
             WebkitAppearance: "none",
             transition: "border-color 0.15s",
           }}
-          onFocus={e => (e.target.style.borderColor = "rgba(57,255,122,0.5)")}
-          onBlur={e => (e.target.style.borderColor = "#2a2a2a")}
+          onFocus={e => (e.target.style.borderColor = "#999")}
+          onBlur={e => (e.target.style.borderColor = "#e4e4e4")}
         />
       </div>
 
@@ -147,9 +147,9 @@ function LoginForm() {
         {loading ? "Signing in…" : "Sign In"}
       </button>
 
-      <p style={{ textAlign: "center", fontSize: 12, color: "#444", marginTop: 8 }}>
+      <p style={{ textAlign: "center", fontSize: 12, color: "#aaa", marginTop: 8 }}>
         No account?{" "}
-        <Link href="/register" style={{ color: "#888", textDecoration: "none", borderBottom: "1px solid #333" }}>
+        <Link href="/register" style={{ color: "#555", textDecoration: "none", borderBottom: "1px solid #ddd" }}>
           Register
         </Link>
       </p>
@@ -182,7 +182,7 @@ const DELIVERABLES = [
 
 export default function LoginPage() {
   return (
-    <div style={{ height: "100vh", background: "#111", color: "#fff", fontFamily: "-apple-system, 'Helvetica Neue', Arial, sans-serif", WebkitFontSmoothing: "antialiased", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <div style={{ height: "100vh", background: "#fff", color: "#111", fontFamily: "-apple-system, 'Helvetica Neue', Arial, sans-serif", WebkitFontSmoothing: "antialiased", display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
       {/* ── NAV ── */}
       <nav style={{
@@ -218,8 +218,8 @@ export default function LoginPage() {
         {/* ── LEFT: MARKETING PANEL ── */}
         <div style={{
           flex: "0 0 55%",
-          background: "#0d0d0d",
-          borderRight: "1px solid #1a1a1a",
+          background: "#f7f7f5",
+          borderRight: "1px solid #e8e8e8",
           padding: "64px 64px 64px 72px",
           display: "flex",
           flexDirection: "column",
@@ -227,36 +227,36 @@ export default function LoginPage() {
           overflowY: "auto",
         }}>
           {/* Pill */}
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#39ff7a", border: "1px solid rgba(57,255,122,0.5)", display: "inline-block", padding: "5px 13px", borderRadius: 100, marginBottom: 32, alignSelf: "flex-start" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#111", border: "1px solid #ccc", display: "inline-block", padding: "5px 13px", borderRadius: 100, marginBottom: 32, alignSelf: "flex-start" }}>
             AI Transformation
           </div>
 
           {/* Heading */}
-          <h1 style={{ fontSize: "clamp(36px, 3.5vw, 56px)", fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.0, color: "#fff", marginBottom: 20, textShadow: "0 0 40px rgba(57,255,122,0.15)" }}>
+          <h1 style={{ fontSize: "clamp(36px, 3.5vw, 56px)", fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.0, color: "#111", marginBottom: 20 }}>
             AI transformation,<br/>decided.
           </h1>
 
           {/* Subhead */}
-          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, maxWidth: 520, marginBottom: 20 }}>
+          <p style={{ fontSize: 17, color: "#333", lineHeight: 1.6, maxWidth: 520, marginBottom: 20 }}>
             Inflexion turns &ldquo;we need an AI strategy&rdquo; into a costed, sequenced, board-ready plan &mdash; in hours, not quarters.
           </p>
 
           {/* Body */}
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.32)", lineHeight: 1.85, maxWidth: 500, marginBottom: 44 }}>
+          <p style={{ fontSize: 13, color: "#888", lineHeight: 1.85, maxWidth: 500, marginBottom: 44 }}>
             You answer five stages of questions about your product, your stack, your workflows, and your team. Inflexion goes away, does the research, and returns a ten-section executive report: where you&rsquo;re exposed, where you&rsquo;re wasting, what to do in the next 90 days, and what good looks like in twelve months.
           </p>
 
           {/* Deliverables */}
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#555", marginBottom: 16 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#aaa", marginBottom: 16 }}>
               What you get
             </div>
             {DELIVERABLES.map((d) => (
-              <div key={d.n} style={{ borderTop: "1px solid #1e1e1e", padding: "16px 0", display: "grid", gridTemplateColumns: "32px 1fr", gap: 12 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#39ff7a", paddingTop: 2 }}>{d.n}</span>
+              <div key={d.n} style={{ borderTop: "1px solid #e4e4e4", padding: "16px 0", display: "grid", gridTemplateColumns: "32px 1fr", gap: 12 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#aaa", paddingTop: 2 }}>{d.n}</span>
                 <div>
-                  <span style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#ccc", marginBottom: 3, letterSpacing: "-0.01em" }}>{d.title}</span>
-                  <span style={{ display: "block", fontSize: 12, color: "#555", lineHeight: 1.65 }}>{d.body}</span>
+                  <span style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#111", marginBottom: 3, letterSpacing: "-0.01em" }}>{d.title}</span>
+                  <span style={{ display: "block", fontSize: 12, color: "#888", lineHeight: 1.65 }}>{d.body}</span>
                 </div>
               </div>
             ))}
@@ -270,12 +270,12 @@ export default function LoginPage() {
           alignItems: "center",
           justifyContent: "center",
           padding: "48px 56px",
-          background: "#111",
+          background: "#ffffff",
         }}>
           <div style={{ width: "100%", maxWidth: 360 }}>
             <div style={{ marginBottom: 36 }}>
-              <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", marginBottom: 8 }}>Sign in</h2>
-              <p style={{ fontSize: 13, color: "#555", lineHeight: 1.6 }}>Your board-ready AI transformation report is waiting.</p>
+              <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", color: "#111", marginBottom: 8 }}>Sign in</h2>
+              <p style={{ fontSize: 13, color: "#888", lineHeight: 1.6 }}>Your board-ready AI transformation report is waiting.</p>
             </div>
             <Suspense fallback={null}>
               <LoginForm />
