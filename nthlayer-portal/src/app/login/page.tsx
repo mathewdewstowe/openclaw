@@ -191,9 +191,8 @@ export default function LoginPage() {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "0 48px",
-        background: "rgba(17,17,17,0.96)",
-        backdropFilter: "blur(12px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        background: "#fff",
+        borderBottom: "1px solid #e8e8e8",
         flexShrink: 0,
         position: "sticky",
         top: 0,
@@ -201,12 +200,12 @@ export default function LoginPage() {
       }}>
         <a href="/new" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
           <svg viewBox="0 0 80 80" height="30" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2" y="2" width="76" height="76" stroke="white" strokeWidth="5"/>
-            <rect x="14" y="14" width="52" height="52" stroke="white" strokeWidth="5"/>
-            <rect x="26" y="26" width="28" height="28" stroke="white" strokeWidth="5"/>
-            <rect x="35" y="35" width="10" height="10" fill="white"/>
+            <rect x="2" y="2" width="76" height="76" stroke="#111" strokeWidth="5"/>
+            <rect x="14" y="14" width="52" height="52" stroke="#111" strokeWidth="5"/>
+            <rect x="26" y="26" width="28" height="28" stroke="#111" strokeWidth="5"/>
+            <rect x="35" y="35" width="10" height="10" fill="#111"/>
           </svg>
-          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#fff", lineHeight: 1.25 }}>
+          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#111", lineHeight: 1.25 }}>
             The<br/>Nth Layer
           </span>
         </a>
