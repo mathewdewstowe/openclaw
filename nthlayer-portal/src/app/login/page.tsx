@@ -61,7 +61,7 @@ function LoginForm() {
       )}
 
       <div>
-        <label htmlFor="email" style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#aaa", marginBottom: 8 }}>
+        <label htmlFor="email" style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#555", marginBottom: 8 }}>
           Email
         </label>
         <input
@@ -73,9 +73,9 @@ function LoginForm() {
           autoComplete="email"
           style={{
             width: "100%",
-            background: "#f4f4f4",
-            border: "1px solid #e4e4e4",
-            color: "#111",
+            background: "#1a1a1a",
+            border: "1px solid #2a2a2a",
+            color: "#fff",
             padding: "13px 16px",
             fontSize: 14,
             fontFamily: "inherit",
@@ -84,17 +84,17 @@ function LoginForm() {
             WebkitAppearance: "none",
             transition: "border-color 0.15s",
           }}
-          onFocus={e => (e.target.style.borderColor = "#999")}
-          onBlur={e => (e.target.style.borderColor = "#e4e4e4")}
+          onFocus={e => (e.target.style.borderColor = "#555")}
+          onBlur={e => (e.target.style.borderColor = "#2a2a2a")}
         />
       </div>
 
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-          <label htmlFor="password" style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#aaa" }}>
+          <label htmlFor="password" style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#555" }}>
             Password
           </label>
-          <Link href="/forgot-password" style={{ fontSize: 11, color: "#aaa", textDecoration: "none", borderBottom: "1px solid #ddd", paddingBottom: 1 }}>
+          <Link href="/forgot-password" style={{ fontSize: 11, color: "#444", textDecoration: "none", borderBottom: "1px solid #333", paddingBottom: 1 }}>
             Forgot password?
           </Link>
         </div>
@@ -107,9 +107,9 @@ function LoginForm() {
           autoComplete="current-password"
           style={{
             width: "100%",
-            background: "#f4f4f4",
-            border: "1px solid #e4e4e4",
-            color: "#111",
+            background: "#1a1a1a",
+            border: "1px solid #2a2a2a",
+            color: "#fff",
             padding: "13px 16px",
             fontSize: 14,
             fontFamily: "inherit",
@@ -118,8 +118,8 @@ function LoginForm() {
             WebkitAppearance: "none",
             transition: "border-color 0.15s",
           }}
-          onFocus={e => (e.target.style.borderColor = "#999")}
-          onBlur={e => (e.target.style.borderColor = "#e4e4e4")}
+          onFocus={e => (e.target.style.borderColor = "#555")}
+          onBlur={e => (e.target.style.borderColor = "#2a2a2a")}
         />
       </div>
 
@@ -147,9 +147,9 @@ function LoginForm() {
         {loading ? "Signing in…" : "Sign In"}
       </button>
 
-      <p style={{ textAlign: "center", fontSize: 12, color: "#aaa", marginTop: 8 }}>
+      <p style={{ textAlign: "center", fontSize: 12, color: "#444", marginTop: 8 }}>
         No account?{" "}
-        <Link href="/register" style={{ color: "#555", textDecoration: "none", borderBottom: "1px solid #ddd" }}>
+        <Link href="/register" style={{ color: "#777", textDecoration: "none", borderBottom: "1px solid #333" }}>
           Register
         </Link>
       </p>
@@ -261,7 +261,7 @@ export default function LoginPage() {
               What you get
             </div>
             {DELIVERABLES.map((d) => (
-              <div key={d.n} style={{ borderTop: "1px solid #e4e4e4", padding: "16px 0", display: "grid", gridTemplateColumns: "32px 1fr", gap: 12 }}>
+              <div key={d.n} style={{ borderTop: "1px solid #e4e4e4", padding: "10px 0", display: "grid", gridTemplateColumns: "32px 1fr", gap: 12 }}>
                 <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#aaa", paddingTop: 2 }}>{d.n}</span>
                 <div>
                   <span style={{ display: "block", fontSize: 15, fontWeight: 700, color: "#111", marginBottom: 4, letterSpacing: "-0.01em" }}>{d.title}</span>
@@ -279,12 +279,12 @@ export default function LoginPage() {
           alignItems: "center",
           justifyContent: "center",
           padding: "48px 56px",
-          background: "#ffffff",
+          background: "#111",
         }}>
           <div style={{ width: "100%", maxWidth: 360 }}>
             <div style={{ marginBottom: 36 }}>
-              <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", color: "#111", marginBottom: 8 }}>Sign in</h2>
-              <p style={{ fontSize: 13, color: "#888", lineHeight: 1.6 }}>Your board-ready AI transformation report is waiting.</p>
+              <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", marginBottom: 8 }}>Sign in</h2>
+              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>Your board-ready AI transformation report is waiting.</p>
             </div>
             <Suspense fallback={null}>
               <LoginForm />

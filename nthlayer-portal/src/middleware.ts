@@ -27,7 +27,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Rewrite marketing pages to static HTML
-  if (pathname === "/" || pathname === "/new") {
+  if (pathname === "/new") {
     return NextResponse.rewrite(new URL("/new.html", req.url));
   }
 
