@@ -251,17 +251,17 @@ export default function LoginPage() {
           </p>
 
           {/* Body */}
-          <p style={{ fontSize: 15, color: "#888", lineHeight: 1.85, maxWidth: 500, marginBottom: 44 }}>
+          <p style={{ fontSize: 15, color: "#888", lineHeight: 1.85, maxWidth: 500, marginBottom: 28 }}>
             You answer five stages of questions about your product, your stack, your workflows, and your team. Inflexion goes away, does the research, and returns a ten-section executive report: where you&rsquo;re exposed, where you&rsquo;re wasting, what to do in the next 90 days, and what good looks like in twelve months.
           </p>
 
           {/* Deliverables */}
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#aaa", marginBottom: 16 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#aaa", marginBottom: 10 }}>
               What you get
             </div>
             {DELIVERABLES.map((d) => (
-              <div key={d.n} style={{ borderTop: "1px solid #e4e4e4", padding: "10px 0", display: "grid", gridTemplateColumns: "32px 1fr", gap: 12 }}>
+              <div key={d.n} style={{ borderTop: "1px solid #e4e4e4", padding: "8px 0", display: "grid", gridTemplateColumns: "32px 1fr", gap: 10 }}>
                 <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#aaa", paddingTop: 2 }}>{d.n}</span>
                 <div>
                   <span style={{ display: "block", fontSize: 15, fontWeight: 700, color: "#111", marginBottom: 4, letterSpacing: "-0.01em" }}>{d.title}</span>

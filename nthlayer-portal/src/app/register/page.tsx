@@ -68,9 +68,9 @@ export default function RegisterPage() {
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    background: "#f4f4f4",
-    border: "1px solid #e4e4e4",
-    color: "#111",
+    background: "#1a1a1a",
+    border: "1px solid #2a2a2a",
+    color: "#fff",
     padding: "13px 16px",
     fontSize: 14,
     fontFamily: "inherit",
@@ -86,7 +86,7 @@ export default function RegisterPage() {
     fontWeight: 700,
     letterSpacing: "0.1em",
     textTransform: "uppercase",
-    color: "#aaa",
+    color: "#555",
     marginBottom: 8,
   };
 
@@ -158,11 +158,11 @@ export default function RegisterPage() {
         </div>
 
         {/* RIGHT: FORM */}
-        <div className="register-right" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 56px", background: "#ffffff", overflowY: "auto" }}>
+        <div className="register-right" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 56px", background: "#111", overflowY: "auto" }}>
           <div style={{ width: "100%", maxWidth: 360 }}>
             <div style={{ marginBottom: 32 }}>
-              <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", color: "#111", marginBottom: 8 }}>Create account</h2>
-              <p style={{ fontSize: 13, color: "#888", lineHeight: 1.6 }}>Start your AI transformation roadmap today.</p>
+              <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", color: "#fff", marginBottom: 8 }}>Create account</h2>
+              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>Start your AI transformation roadmap today.</p>
             </div>
 
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -175,32 +175,32 @@ export default function RegisterPage() {
               <div>
                 <label htmlFor="name" style={labelStyle}>Full Name</label>
                 <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" style={inputStyle}
-                  onFocus={e => (e.target.style.borderColor = "#999")} onBlur={e => (e.target.style.borderColor = "#e4e4e4")} />
+                  onFocus={e => (e.target.style.borderColor = "#555")} onBlur={e => (e.target.style.borderColor = "#2a2a2a")} />
               </div>
 
               <div>
                 <label htmlFor="company" style={labelStyle}>Company</label>
                 <input id="company" type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Your company name" style={inputStyle}
-                  onFocus={e => (e.target.style.borderColor = "#999")} onBlur={e => (e.target.style.borderColor = "#e4e4e4")} />
+                  onFocus={e => (e.target.style.borderColor = "#555")} onBlur={e => (e.target.style.borderColor = "#2a2a2a")} />
               </div>
 
               <div>
                 <label htmlFor="jobTitle" style={labelStyle}>Job Title</label>
                 <input id="jobTitle" type="text" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="e.g. CPO, CTO, CEO" style={inputStyle}
-                  onFocus={e => (e.target.style.borderColor = "#999")} onBlur={e => (e.target.style.borderColor = "#e4e4e4")} />
+                  onFocus={e => (e.target.style.borderColor = "#555")} onBlur={e => (e.target.style.borderColor = "#2a2a2a")} />
               </div>
 
               <div>
                 <label htmlFor="email" style={labelStyle}>Email</label>
                 <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" autoComplete="email" style={inputStyle}
-                  onFocus={e => (e.target.style.borderColor = "#999")} onBlur={e => (e.target.style.borderColor = "#e4e4e4")} />
+                  onFocus={e => (e.target.style.borderColor = "#555")} onBlur={e => (e.target.style.borderColor = "#2a2a2a")} />
               </div>
 
               <div>
                 <label htmlFor="password" style={labelStyle}>Password</label>
                 <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" style={inputStyle}
-                  onFocus={e => (e.target.style.borderColor = "#999")} onBlur={e => (e.target.style.borderColor = "#e4e4e4")} />
-                <p style={{ fontSize: 11, color: "#bbb", marginTop: 6 }}>Minimum 8 characters</p>
+                  onFocus={e => (e.target.style.borderColor = "#555")} onBlur={e => (e.target.style.borderColor = "#2a2a2a")} />
+                <p style={{ fontSize: 11, color: "#444", marginTop: 6 }}>Minimum 8 characters</p>
               </div>
 
               <button
@@ -211,9 +211,9 @@ export default function RegisterPage() {
                 {loading ? "Creating account…" : "Create Account"}
               </button>
 
-              <p style={{ textAlign: "center", fontSize: 12, color: "#aaa", marginTop: 8 }}>
+              <p style={{ textAlign: "center", fontSize: 12, color: "#444", marginTop: 8 }}>
                 Already have an account?{" "}
-                <Link href="/login" style={{ color: "#555", textDecoration: "none", borderBottom: "1px solid #ddd" }}>
+                <Link href="/login" style={{ color: "#777", textDecoration: "none", borderBottom: "1px solid #333" }}>
                   Sign in
                 </Link>
               </p>
