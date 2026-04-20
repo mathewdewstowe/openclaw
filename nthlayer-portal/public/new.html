@@ -1186,18 +1186,16 @@
   .service-outcome { font-size: 13px; color: #666; line-height: 1.75; max-width: 680px; }
 
   /* ════ WHY US ════ */
-  .why-us-section { background: #0d0d0d; padding: 0 0; border-top: 1px solid #1a1a1a; }
+  .why-us-section { background: #0d0d0d; padding: 52px 0; border-top: 1px solid #1a1a1a; }
   .why-us-section .section-label { color: #999; }
-  .why-us-inner { display: block; max-width: 720px; padding: 52px 0; }
-  .why-us-left { }
-  .why-us-right { display: none; }
-  .why-us-heading { font-size: clamp(28px,3vw,44px); font-weight: 700; letter-spacing: -0.03em; color: var(--white); line-height: 1.1; margin-bottom: 32px; }
-  .why-us-body { font-size: 14px; color: #aaa; line-height: 1.8; }
-  .outcome-boxes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-bottom: 40px; }
-  .outcome-box { border-left: 1px solid #2a2a2a; padding: 20px 20px 20px 20px; }
-  .outcome-box:first-child { border-left: none; padding-left: 0; }
-  .outcome-label { display: block; font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 8px; letter-spacing: -0.01em; }
-  .outcome-desc { display: block; font-size: 12px; color: #666; line-height: 1.6; }
+  .why-us-heading { font-size: clamp(28px,3vw,44px); font-weight: 700; letter-spacing: -0.03em; color: var(--white); line-height: 1.1; margin-bottom: 0; }
+  .outcomes-stats-section { background: #fff; padding: 64px 0; }
+  .outcomes-stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; }
+  .outcome-stat { padding: 32px 28px; border-left: 1px solid #e8e8e8; }
+  .outcome-stat:first-child { border-left: none; padding-left: 0; }
+  .outcome-stat-num { display: block; font-size: clamp(36px,4vw,56px); font-weight: 800; color: #0d0d0d; letter-spacing: -0.04em; line-height: 1; margin-bottom: 10px; }
+  .outcome-stat-label { display: block; font-size: 13px; font-weight: 700; color: #111; margin-bottom: 8px; }
+  .outcome-stat-desc { display: block; font-size: 12px; color: #888; line-height: 1.65; }
   .differentiators { display: flex; flex-direction: column; }
   .diff-item { padding: 20px 0; border-bottom: 1px solid #e8e8e8; }
   .diff-item:first-child { border-top: 1px solid #e8e8e8; }
@@ -1427,7 +1425,7 @@
       <div class="who-card">
         <div class="who-card-role">CEO / Founder</div>
         <div class="who-card-type">Growth-stage businesses</div>
-        <p class="who-card-body">&pound;5M+ revenue. The board question is live. You need an answer that&rsquo;s operational, not aspirational.</p>
+        <p class="who-card-body">&pound;5M+ revenue. The board question is live. You need an answer that&rsquo;s operational, not aspirational. One that moves in weeks, not quarters.</p>
       </div>
       <div class="who-card">
         <div class="who-card-role">PE Operating Partner</div>
@@ -1450,7 +1448,7 @@
     <div class="why-now-inner">
       <div class="why-now-left">
         <h2 class="why-now-heading">Your competitors aren&rsquo;t waiting.<br>The gap is opening.</h2>
-        <p class="why-now-body">Every quarter a competitor operates at the next maturity stage, they cut costs you can&rsquo;t match, move faster than you can respond, and build an execution advantage that becomes structural. That&rsquo;s not a technology gap. It&rsquo;s an operating gap &mdash; and those don&rsquo;t close quickly or cheaply.</p>
+        <p class="why-now-body">Every quarter a competitor moves faster, cuts costs you can&rsquo;t match, and builds an execution advantage that becomes structural. That&rsquo;s not a technology gap. It&rsquo;s an operating gap &mdash; and those don&rsquo;t close quickly or cheaply.</p>
         <p class="why-now-body" style="margin-top:16px;">74% of AI spend produces no measurable return. Businesses that can&rsquo;t show the numbers lose the budget to try again &mdash; while the businesses that got it right keep compounding the advantage. Inaction isn&rsquo;t neutral. It&rsquo;s a choice to fall behind.</p>
       </div>
       <div class="why-now-right">
@@ -1462,30 +1460,38 @@
 <!-- ═══ WHY THE NTH LAYER ═══ -->
 <section class="why-us-section" id="why-us">
   <div class="container">
-    <div class="why-us-inner">
-      <div class="why-us-left">
-        <span class="section-label" style="color:#555;">Why Us</span>
-        <h2 class="why-us-heading">Built, not just advised on.</h2>
-        <div class="outcome-boxes">
-          <div class="outcome-box">
-            <span class="outcome-label">Agentic workflows</span>
-            <span class="outcome-desc">Not pilots. Not prototypes. Systems running in live products, moving real numbers.</span>
-          </div>
-          <div class="outcome-box">
-            <span class="outcome-label">Revenue moved</span>
-            <span class="outcome-desc">AI that changed conversion, retention, or expansion &mdash; with the unit economics to prove it.</span>
-          </div>
-          <div class="outcome-box">
-            <span class="outcome-label">Cost taken out</span>
-            <span class="outcome-desc">Headcount-equivalent savings through agentic automation. Not efficiency theatre.</span>
-          </div>
-          <div class="outcome-box">
-            <span class="outcome-label">Weeks to production</span>
-            <span class="outcome-desc">From scoped bet to live product in weeks. No 6-month strategy phases before anything ships.</span>
-          </div>
-        </div>
+    <span class="section-label" style="color:#999;">Why Us</span>
+    <h2 class="why-us-heading">Built, not just advised on.</h2>
+  </div>
+</section>
+
+<section class="outcomes-stats-section">
+  <div class="container">
+    <div class="outcomes-stats-grid">
+      <div class="outcome-stat">
+        <span class="outcome-stat-num">8wks</span>
+        <span class="outcome-stat-label">Scoped to live product</span>
+        <span class="outcome-stat-desc">No 6-month strategy phases. A working system, instrumented and in production.</span>
       </div>
-      <div class="why-us-right">
+      <div class="outcome-stat">
+        <span class="outcome-stat-num">40%</span>
+        <span class="outcome-stat-label">Cost taken out</span>
+        <span class="outcome-stat-desc">Headcount-equivalent savings through agentic automation. Not efficiency theatre.</span>
+      </div>
+      <div class="outcome-stat">
+        <span class="outcome-stat-num">3×</span>
+        <span class="outcome-stat-label">Revenue impact</span>
+        <span class="outcome-stat-desc">Conversion, retention, and expansion moved by AI that's natively embedded — with unit economics to prove it.</span>
+      </div>
+      <div class="outcome-stat">
+        <span class="outcome-stat-num">£0</span>
+        <span class="outcome-stat-label">Budget lost to stalled pilots</span>
+        <span class="outcome-stat-desc">Every engagement ends with something running in production. Pilots that don't ship don't start.</span>
+      </div>
+      <div class="outcome-stat">
+        <span class="outcome-stat-num">100%</span>
+        <span class="outcome-stat-label">Shipped, not shelved</span>
+        <span class="outcome-stat-desc">Agentic workflows running in live products, moving real numbers. Not decks. Not prototypes.</span>
       </div>
     </div>
   </div>
