@@ -19,8 +19,8 @@
 
   body {
     font-family: var(--font);
-    background: var(--black);
-    color: var(--white);
+    background: var(--white);
+    color: var(--black);
     -webkit-font-smoothing: antialiased;
   }
 
@@ -34,9 +34,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 48px;
-    background: rgba(17,17,17,0.94);
+    background: rgba(255,255,255,0.96);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid #e8e8e8;
   }
 
   .nav-logo {
@@ -51,7 +51,7 @@
     font-weight: 800;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--white);
+    color: var(--black);
     line-height: 1.25;
   }
 
@@ -72,37 +72,27 @@
 
   .nav-back:hover { color: #999; }
 
-  @keyframes ctaPulse {
-    0%, 100% { box-shadow: 0 0 8px rgba(57,255,122,0.35); border-color: rgba(57,255,122,0.7) !important; }
-    50%       { box-shadow: 0 0 20px rgba(57,255,122,0.75); border-color: rgba(57,255,122,1) !important; }
-  }
-
   .nav-cta {
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--white);
+    color: #111;
     text-decoration: none;
-    border: 1px solid rgba(57,255,122,0.8);
+    border: 1px solid #ccc;
     padding: 9px 20px;
-    box-shadow: 0 0 10px rgba(57,255,122,0.3);
-    animation: ctaPulse 2s ease-in-out infinite;
+    transition: border-color 0.2s, color 0.2s;
   }
 
-  .nav-cta:hover {
-    border-color: rgba(57,255,122,0.95) !important;
-    box-shadow: 0 0 24px rgba(57,255,122,0.8) !important;
-    animation: none;
-  }
+  .nav-cta:hover { border-color: #888; color: #000; }
 
   .container { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
 
   /* ── INDEX ── */
   .page-hero {
     padding: 140px 0 60px;
-    background: var(--black);
-    border-bottom: 1px solid #1a1a1a;
+    background: var(--white);
+    border-bottom: 1px solid #e8e8e8;
   }
 
   .page-hero-label {
@@ -120,21 +110,21 @@
     font-weight: 700;
     letter-spacing: -0.04em;
     line-height: 1.0;
-    color: var(--white);
+    color: var(--black);
     margin-bottom: 20px;
   }
 
   .page-hero-sub {
     font-size: 17px;
-    color: rgba(255,255,255,0.45);
+    color: #888;
     max-width: 560px;
     line-height: 1.7;
   }
 
   /* ── CASE NAV ── */
   .case-nav {
-    background: #0d0d0d;
-    border-bottom: 1px solid #1a1a1a;
+    background: var(--white);
+    border-bottom: 1px solid #e8e8e8;
     padding: 0;
     position: sticky;
     top: 72px;
@@ -155,7 +145,7 @@
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #444;
+    color: #aaa;
     text-decoration: none;
     padding: 18px 28px;
     border-bottom: 2px solid transparent;
@@ -164,13 +154,13 @@
     flex-shrink: 0;
   }
 
-  .case-nav-btn:hover { color: #999; }
-  .case-nav-btn.active { color: var(--green); border-bottom-color: var(--green); }
+  .case-nav-btn:hover { color: #555; }
+  .case-nav-btn.active { color: #111; border-bottom-color: #111; }
 
   /* ── CASE SECTION ── */
   .case-section {
     padding: 80px 0;
-    border-bottom: 1px solid #1a1a1a;
+    border-bottom: 1px solid #e8e8e8;
   }
 
   .case-section:last-child { border-bottom: none; }
@@ -187,15 +177,15 @@
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--green);
+    color: #aaa;
   }
 
   .case-client {
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.06em;
-    color: #555;
-    border: 1px solid #222;
+    color: #888;
+    border: 1px solid #e0e0e0;
     padding: 4px 12px;
   }
 
@@ -204,7 +194,7 @@
     font-weight: 700;
     letter-spacing: -0.03em;
     line-height: 1.05;
-    color: var(--white);
+    color: var(--black);
     margin-bottom: 48px;
     max-width: 760px;
   }
@@ -216,12 +206,11 @@
     margin-bottom: 2px;
   }
 
-  /* Challenge — dark card */
+  /* Challenge card */
   .challenge-card {
-    background: #161616;
-    border-top: 2px solid rgba(57,255,122,0.6);
-    box-shadow: 0 -4px 18px rgba(57,255,122,0.15);
-    padding: 36px 36px 36px 36px;
+    background: #f7f7f5;
+    border-top: 2px solid #111;
+    padding: 36px;
   }
 
   .col-label {
@@ -229,12 +218,12 @@
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: #555;
+    color: #aaa;
     display: block;
     margin-bottom: 24px;
   }
 
-  .challenge-card .col-label { color: rgba(57,255,122,0.6); }
+  .challenge-card .col-label { color: #111; }
 
   .challenge-list {
     list-style: none;
@@ -245,10 +234,10 @@
 
   .challenge-list li {
     font-size: 13px;
-    color: rgba(255,255,255,0.55);
+    color: #444;
     line-height: 1.7;
     padding: 12px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid #e4e4e4;
     padding-left: 16px;
     position: relative;
   }
@@ -261,15 +250,15 @@
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: rgba(57,255,122,0.5);
+    background: #111;
   }
 
   .challenge-list li:last-child { border-bottom: none; }
 
-  /* Approach — mid card */
+  /* Approach card */
   .approach-card {
-    background: #141414;
-    border-top: 2px solid #2a2a2a;
+    background: #f0f0ee;
+    border-top: 2px solid #ddd;
     padding: 36px;
   }
 
@@ -282,10 +271,10 @@
 
   .approach-list li {
     font-size: 13px;
-    color: #888;
+    color: #555;
     line-height: 1.7;
     padding: 12px 0;
-    border-bottom: 1px solid #1e1e1e;
+    border-bottom: 1px solid #e0e0e0;
     padding-left: 16px;
     position: relative;
   }
@@ -298,18 +287,20 @@
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: #333;
+    background: #bbb;
   }
 
   .approach-list li:last-child { border-bottom: none; }
 
   /* Result */
   .result-card {
-    background: #f5f4f1;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-top: 2px solid #e8e8e8;
     padding: 40px 36px;
   }
 
-  .result-card .col-label { color: #999; }
+  .result-card .col-label { color: #aaa; }
 
   .result-card p {
     font-size: 14px;
@@ -338,30 +329,25 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     text-decoration: none;
-    color: var(--green);
-    border: 1px solid rgba(57,255,122,0.45);
+    color: #111;
+    border: 1px solid #ccc;
     padding: 10px 22px;
-    box-shadow: 0 0 10px rgba(57,255,122,0.12);
-    transition: border-color 0.2s, box-shadow 0.2s, color 0.2s;
+    transition: border-color 0.2s, color 0.2s;
   }
 
-  .btn-contact:hover {
-    border-color: rgba(57,255,122,0.9);
-    box-shadow: 0 0 20px rgba(57,255,122,0.35);
-    color: #fff;
-  }
+  .btn-contact:hover { border-color: #555; color: #000; }
 
   /* ── FOOTER ── */
   footer {
-    background: var(--black);
-    border-top: 1px solid #1a1a1a;
+    background: #f7f7f5;
+    border-top: 1px solid #e8e8e8;
     padding: 32px 48px;
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
 
-  footer p { font-size: 11px; color: #2a2a2a; }
+  footer p { font-size: 11px; color: #bbb; }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 860px) {
@@ -390,10 +376,10 @@
 <nav>
   <a href="/new" class="nav-logo">
     <svg viewBox="0 0 80 80" height="34" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="2" width="76" height="76" stroke="white" stroke-width="5"/>
-      <rect x="14" y="14" width="52" height="52" stroke="white" stroke-width="5"/>
-      <rect x="26" y="26" width="28" height="28" stroke="white" stroke-width="5"/>
-      <rect x="35" y="35" width="10" height="10" fill="white"/>
+      <rect x="2" y="2" width="76" height="76" stroke="#111" stroke-width="5"/>
+      <rect x="14" y="14" width="52" height="52" stroke="#111" stroke-width="5"/>
+      <rect x="26" y="26" width="28" height="28" stroke="#111" stroke-width="5"/>
+      <rect x="35" y="35" width="10" height="10" fill="#111"/>
     </svg>
     <span class="nav-logo-text">The<br>Nth Layer</span>
   </a>
