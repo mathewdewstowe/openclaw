@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inflexion — AI transformation, decided.</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:  #111;
+    --white:  #fff;
+    --grey:   #f5f4f1;
+    --green:  #39ff7a;
+    --font:   -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--black);
+    color: var(--white);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    background: rgba(17,17,17,0.94);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .nav-logo-text {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--white);
+    line-height: 1.25;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .nav-back {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: #555;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-back:hover { color: #999; }
+
+  @keyframes ctaPulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(57,255,122,0.35), 0 0 18px rgba(57,255,122,0.15); border-color: rgba(57,255,122,0.7) !important; }
+    50%       { box-shadow: 0 0 20px rgba(57,255,122,0.75), 0 0 40px rgba(57,255,122,0.35); border-color: rgba(57,255,122,1) !important; }
+  }
+
+  .nav-cta {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--white);
+    text-decoration: none;
+    border: 1px solid rgba(57,255,122,0.8);
+    padding: 9px 20px;
+    box-shadow: 0 0 10px rgba(57,255,122,0.3);
+    animation: ctaPulse 2s ease-in-out infinite;
+    transition: box-shadow 0.2s;
+  }
+
+  .nav-cta:hover {
+    border-color: rgba(57,255,122,0.95) !important;
+    box-shadow: 0 0 24px rgba(57,255,122,0.8) !important;
+    animation: none;
+  }
+
+  /* ── SHARED ── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #aaa;
+    display: block;
+    margin-bottom: 24px;
+  }
+
+  /* ════════════════════════════
+     HERO
+  ════════════════════════════ */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 0 80px;
+    background: var(--black);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-pill {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--green);
+    border: 1px solid rgba(57,255,122,0.6);
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 40px;
+  }
+
+  .hero h1 {
+    font-size: clamp(48px, 6.5vw, 96px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1.0;
+    color: var(--white);
+    max-width: 820px;
+    margin-bottom: 32px;
+    text-shadow: 0 0 40px rgba(57,255,122,0.2);
+  }
+
+  .hero-subhead {
+    font-size: clamp(17px, 1.8vw, 22px);
+    color: rgba(255,255,255,0.65);
+    line-height: 1.55;
+    max-width: 640px;
+    margin-bottom: 28px;
+    font-weight: 400;
+  }
+
+  .hero-body {
+    font-size: 15px;
+    color: rgba(255,255,255,0.38);
+    line-height: 1.85;
+    max-width: 600px;
+    margin-bottom: 48px;
+  }
+
+  .hero-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: var(--green);
+    color: #0a1a0d;
+    padding: 16px 32px;
+    box-shadow: 0 0 24px rgba(57,255,122,0.55);
+    transition: box-shadow 0.2s, background 0.2s;
+  }
+
+  @keyframes btn-pulse {
+    0%, 100% { box-shadow: 0 0 18px rgba(57,255,122,0.5); }
+    50%       { box-shadow: 0 0 42px rgba(57,255,122,0.85), 0 0 72px rgba(57,255,122,0.3); }
+  }
+
+  .hero-cta { animation: btn-pulse 2.2s ease-in-out infinite; }
+
+  .hero-cta:hover {
+    background: #5fffaa;
+    box-shadow: 0 0 36px rgba(57,255,122,0.8);
+    animation: none;
+  }
+
+  /* ════════════════════════════
+     WHAT YOU GET
+  ════════════════════════════ */
+  .delivers {
+    background: #0d0d0d;
+    padding: 80px 0;
+    border-top: 1px solid #1a1a1a;
+  }
+
+  .delivers-heading {
+    font-size: clamp(28px, 3vw, 44px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--white);
+    line-height: 1.1;
+    margin-bottom: 48px;
+    max-width: 520px;
+  }
+
+  .delivers-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+  }
+
+  .deliver-card {
+    background: #161616;
+    border-top: 2px solid rgba(57,255,122,0.7);
+    box-shadow: 0 -4px 18px rgba(57,255,122,0.2);
+    padding: 36px 32px;
+    transition: background 0.2s;
+  }
+
+  .deliver-card:hover {
+    background: #1c1c1c;
+  }
+
+  .deliver-n {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--green);
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .deliver-title {
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+
+  .deliver-body {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.75;
+  }
+
+  /* ════════════════════════════
+     HOW IT WORKS
+  ════════════════════════════ */
+  .how {
+    background: #f5f4f1;
+    padding: 80px 0;
+  }
+
+  .how .section-label { color: #bbb; }
+
+  .how-heading {
+    font-size: clamp(28px, 3vw, 44px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #111;
+    line-height: 1.1;
+    margin-bottom: 48px;
+  }
+
+  .how-stages {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+  }
+
+  .how-stage {
+    background: #161616;
+    border-top: 2px solid rgba(57,255,122,0.7);
+    box-shadow: 0 -4px 14px rgba(57,255,122,0.2);
+    padding: 28px 24px;
+    position: relative;
+  }
+
+  .how-stage::after {
+    content: '→';
+    position: absolute;
+    right: -12px;
+    top: 26px;
+    font-size: 13px;
+    color: #555;
+    z-index: 1;
+  }
+
+  .how-stage:last-child::after { display: none; }
+
+  .stage-n {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #666;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .stage-name {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #fff;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .stage-sub {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--green);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .stage-desc {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.65;
+  }
+
+  /* ════════════════════════════
+     CLOSING CTA
+  ════════════════════════════ */
+  .closing {
+    background: var(--black);
+    padding: 120px 0;
+    text-align: center;
+    border-top: 1px solid #1a1a1a;
+  }
+
+  .closing h2 {
+    font-size: clamp(28px, 4vw, 56px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: var(--white);
+    line-height: 1.1;
+    margin-bottom: 20px;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .closing-sub {
+    font-size: 15px;
+    color: #555;
+    margin-bottom: 44px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--black);
+    border-top: 1px solid #1a1a1a;
+    padding: 32px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-logo {
+    display: flex; align-items: center; gap: 12px; text-decoration: none;
+  }
+
+  footer p { font-size: 11px; color: #2a2a2a; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    nav { padding: 0 20px; }
+    .nav-back { display: none; }
+    .container { padding: 0 20px; }
+    .hero { padding: 100px 0 60px; min-height: auto; }
+    .delivers-grid { grid-template-columns: 1fr; }
+    .how-stages { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .how-stage::after { display: none; }
+    footer { flex-direction: column; gap: 16px; padding: 28px 20px; }
+    .closing { padding: 80px 0; }
+  }
+
+  @media (max-width: 540px) {
+    .how-stages { grid-template-columns: 1fr; }
+    .hero h1 { font-size: clamp(36px, 9vw, 56px); }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/new" class="nav-logo">
+    <svg viewBox="0 0 80 80" height="34" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="76" height="76" stroke="white" stroke-width="5"/>
+      <rect x="14" y="14" width="52" height="52" stroke="white" stroke-width="5"/>
+      <rect x="26" y="26" width="28" height="28" stroke="white" stroke-width="5"/>
+      <rect x="35" y="35" width="10" height="10" fill="white"/>
+    </svg>
+    <span class="nav-logo-text">The<br>Nth Layer</span>
+  </a>
+  <div class="nav-right">
+    <a href="/new" class="nav-back">← Back</a>
+    <a href="https://nthlayer-portal.matthewdewstowe.workers.dev/login" class="nav-cta">Get access</a>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-pill">AI Transformation</div>
+    <h1>AI transformation,<br>decided.</h1>
+    <p class="hero-subhead">Inflexion turns &ldquo;we need an AI strategy&rdquo; into a costed, sequenced, board-ready plan &mdash; in hours, not quarters.</p>
+    <p class="hero-body">You answer five stages of questions about your product, your stack, your workflows, and your team. Inflexion goes away, does the research, and returns a ten-section executive report: where you&rsquo;re exposed, where you&rsquo;re wasting, what to do in the next 90 days, and what good looks like in twelve months. Specific enough to present to your chair on Monday.</p>
+    <a href="https://nthlayer-portal.matthewdewstowe.workers.dev/login" class="hero-cta">Start now &rarr;</a>
+  </div>
+</section>
+
+<!-- ═══ WHAT YOU GET ═══ -->
+<section class="delivers">
+  <div class="container">
+    <span class="section-label">What you get</span>
+    <h2 class="delivers-heading">A ten-section report.<br>Specific enough to act on.</h2>
+    <div class="delivers-grid">
+      <div class="deliver-card">
+        <span class="deliver-n">01</span>
+        <h3 class="deliver-title">A costed move portfolio</h3>
+        <p class="deliver-body">Do Now / Do Next / Park / Ignore / Stop &mdash; every move sequenced, owned, with build-buy-partner-wait decided. Not a list of ideas. A set of decisions.</p>
+      </div>
+      <div class="deliver-card">
+        <span class="deliver-n">02</span>
+        <h3 class="deliver-title">Specific tool recommendations</h3>
+        <p class="deliver-body">Named products tied to named moves, with costs. Plus an audit of what you&rsquo;re already paying for and not using. No generic stack advice.</p>
+      </div>
+      <div class="deliver-card">
+        <span class="deliver-n">03</span>
+        <h3 class="deliver-title">A 90-day plan with proof metrics</h3>
+        <p class="deliver-body">Week-numbered actions, named owners, lead and lag indicators the board can track. Not a roadmap. A commitment with accountability built in.</p>
+      </div>
+      <div class="deliver-card">
+        <span class="deliver-n">04</span>
+        <h3 class="deliver-title">The uncomfortable version</h3>
+        <p class="deliver-body">Sector benchmarks, workflow exposure, and contradictions surfaced on the record &mdash; not smoothed for the deck. Where you&rsquo;re behind, it says so.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<section class="how">
+  <div class="container">
+    <span class="section-label">How it works</span>
+    <h2 class="how-heading">Five stages. One executive report.</h2>
+    <div class="how-stages">
+      <div class="how-stage">
+        <span class="stage-n">Stage 01</span>
+        <span class="stage-name">Frame</span>
+        <span class="stage-sub">Define the decision</span>
+        <p class="stage-desc">What&rsquo;s changed, what&rsquo;s at stake, and what winning looks like. Every constraint made explicit before analysis begins.</p>
+      </div>
+      <div class="how-stage">
+        <span class="stage-n">Stage 02</span>
+        <span class="stage-name">Diagnose</span>
+        <span class="stage-sub">Establish what is true</span>
+        <p class="stage-desc">Where do you actually stand? A structured fact base across product, stack, workflows, and team. Every claim sourced and scored.</p>
+      </div>
+      <div class="how-stage">
+        <span class="stage-n">Stage 03</span>
+        <span class="stage-name">Decide</span>
+        <span class="stage-sub">Choose the direction</span>
+        <p class="stage-desc">Real options surfaced &mdash; including doing nothing. Each pressure-tested against what must be true for it to work.</p>
+      </div>
+      <div class="how-stage">
+        <span class="stage-n">Stage 04</span>
+        <span class="stage-name">Position</span>
+        <span class="stage-sub">Define how you win</span>
+        <p class="stage-desc">Who you serve, what you do better, and what makes it defensible. A precise market stance, not a direction statement.</p>
+      </div>
+      <div class="how-stage">
+        <span class="stage-n">Stage 05</span>
+        <span class="stage-name">Commit</span>
+        <span class="stage-sub">Build the execution plan</span>
+        <p class="stage-desc">Costed bets, a 90-day plan with named owners, and kill criteria. The direction becomes a decision with accountability.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CLOSING CTA ═══ -->
+<section class="closing">
+  <div class="container">
+    <h2>Stop debating whether to move.<br>Start knowing which move, in what order, at what cost.</h2>
+    <p class="closing-sub">Board-ready output, in hours.</p>
+    <a href="https://nthlayer-portal.matthewdewstowe.workers.dev/login" class="hero-cta">Get access &rarr;</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="/new" class="footer-logo">
+    <svg viewBox="0 0 80 80" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="76" height="76" stroke="white" stroke-width="5"/>
+      <rect x="14" y="14" width="52" height="52" stroke="white" stroke-width="5"/>
+      <rect x="26" y="26" width="28" height="28" stroke="white" stroke-width="5"/>
+      <rect x="35" y="35" width="10" height="10" fill="white"/>
+    </svg>
+    <span style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#fff;line-height:1.25;">The<br>Nth Layer</span>
+  </a>
+  <p>&copy; 2026 The Nth Layer. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

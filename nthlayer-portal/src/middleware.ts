@@ -22,9 +22,13 @@ const publicExact = ["/", "/inflexion", "/new"];
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Rewrite /new to static HTML
+  // Rewrite marketing pages to static HTML
   if (pathname === "/new") {
     return NextResponse.rewrite(new URL("/new.html", req.url));
+  }
+
+  if (pathname === "/inflexion") {
+    return NextResponse.rewrite(new URL("/inflexion.html", req.url));
   }
 
   // Enforce HTTPS in production (Cloudflare sets x-forwarded-proto)
