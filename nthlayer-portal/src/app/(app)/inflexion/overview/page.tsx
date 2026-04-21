@@ -79,28 +79,50 @@ export default async function OverviewPage() {
   const completedStages = new Set<string>();
   let deckOutputs: Record<string, unknown> = {};
   let knowledgeCounts = { actions: 0, risks: 0, assumptions: 0, metrics: 0 };
+  let isTransformationUser = false;
+  let transformationKnowledgeCounts = { moves: 0, risks: 0, signals: 0, proofPoints: 0, assumptions: 0, blockers: 0, aiTools: 0 };
   if (activeCompany) {
     const completedOutputs = await db.output.findMany({
       where: {
         companyId: activeCompany.id,
-        workflowType: { in: ["frame", "diagnose", "decide", "position", "commit"] },
+        workflowType: { in: ["frame", "diagnose", "decide", "position", "commit", "why_now", "current_state", "future_moves", "mobilise", "embed"] },
       },
       select: { workflowType: true, sections: true, createdAt: true },
       orderBy: { createdAt: "desc" },
     });
     // Deduplicate — keep most recent per stage
     const seen = new Set<string>();
+    const transformationStageIds = new Set(["why_now", "current_state", "future_moves", "mobilise", "embed"]);
     for (const o of completedOutputs) {
       completedStages.add(o.workflowType);
+      if (transformationStageIds.has(o.workflowType)) isTransformationUser = true;
       if (!seen.has(o.workflowType)) {
         seen.add(o.workflowType);
         deckOutputs[o.workflowType] = o.sections;
-        // Tally knowledge items
         const s = o.sections as Record<string, unknown>;
+        // Legacy knowledge counts
         if (Array.isArray(s?.actions)) knowledgeCounts.actions += (s.actions as unknown[]).length;
         if (Array.isArray(s?.risks)) knowledgeCounts.risks += (s.risks as unknown[]).length;
         if (Array.isArray(s?.assumptions)) knowledgeCounts.assumptions += (s.assumptions as unknown[]).length;
         if (Array.isArray(s?.monitoring)) knowledgeCounts.metrics += (s.monitoring as unknown[]).length;
+        // Transformation knowledge counts — extract from agent sub-results
+        if (transformationStageIds.has(o.workflowType)) {
+          if (Array.isArray(s?.recommendations)) transformationKnowledgeCounts.moves += (s.recommendations as unknown[]).length;
+          if (Array.isArray(s?.key_findings)) transformationKnowledgeCounts.assumptions += (s.key_findings as unknown[]).length;
+          // Count from specific agents
+          const exposure = s?.Exposure as Record<string, unknown> | undefined;
+          if (exposure && Array.isArray(exposure.recommendations)) transformationKnowledgeCounts.risks += (exposure.recommendations as unknown[]).length;
+          const conviction = s?.Conviction as Record<string, unknown> | undefined;
+          if (conviction && Array.isArray(conviction.key_findings)) transformationKnowledgeCounts.blockers += (conviction.key_findings as unknown[]).length;
+          const proof = s?.Proof as Record<string, unknown> | undefined;
+          if (proof && Array.isArray(proof.recommendations)) transformationKnowledgeCounts.proofPoints += (proof.recommendations as unknown[]).length;
+          // Signals from Pressure/BenchmarkResearch
+          const pressure = s?.Pressure as Record<string, unknown> | undefined;
+          if (pressure && Array.isArray(pressure.key_findings)) transformationKnowledgeCounts.signals += (pressure.key_findings as unknown[]).length;
+          // AI Tools from SaaSStackResearch/WorkflowAnalysis
+          const saas = s?.SaaSStackResearch as Record<string, unknown> | undefined;
+          if (saas && Array.isArray(saas.recommendations)) transformationKnowledgeCounts.aiTools += (saas.recommendations as unknown[]).length;
+        }
       }
     }
   }
@@ -182,8 +204,8 @@ export default async function OverviewPage() {
         </p>
       </div>
 
-      {/* Knowledge cards — Actions / Risks / Assumptions / Metrics — top of page */}
-      {activeCompany && (
+      {/* Knowledge cards */}
+      {activeCompany && !isTransformationUser && (
         <div data-tour="knowledge-cards" className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
           {[
             { href: "/inflexion/actions", label: "Actions", count: knowledgeCounts.actions, detail: "Prioritised tasks generated from your strategy reports — each tied to an owner, deadline, and priority." },
@@ -214,6 +236,52 @@ export default async function OverviewPage() {
               <p style={{ fontSize: 13, color: "#374151", lineHeight: 1.6, flex: 1 }}>{card.detail}</p>
             </a>
           ))}
+        </div>
+      )}
+
+      {/* Transformation knowledge cards — Moves / Risks / Signals / Proof Points / Assumptions / Blockers / AI Tools */}
+      {activeCompany && isTransformationUser && (
+        <div data-tour="knowledge-cards" className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
+          {[
+            { label: "Moves", count: transformationKnowledgeCounts.moves, color: "#6d28d9", bg: "#f5f3ff", border: "#ddd6fe", detail: "Strategic moves and recommendations across all stages" },
+            { label: "Risks", count: transformationKnowledgeCounts.risks, color: "#991b1b", bg: "#fef2f2", border: "#fecaca", detail: "Exposure risks and threats identified in your current state" },
+            { label: "Signals", count: transformationKnowledgeCounts.signals, color: "#1e40af", bg: "#eff6ff", border: "#bfdbfe", detail: "Market pressure signals and competitive triggers" },
+            { label: "Proof Points", count: transformationKnowledgeCounts.proofPoints, color: "#065f46", bg: "#f0fdf4", border: "#bbf7d0", detail: "Evidence and success criteria for board reporting" },
+            { label: "Assumptions", count: transformationKnowledgeCounts.assumptions, color: "#92400e", bg: "#fffbeb", border: "#fde68a", detail: "Key findings and assumptions underlying your transformation" },
+            { label: "Blockers", count: transformationKnowledgeCounts.blockers, color: "#9f1239", bg: "#fff1f2", border: "#fecdd3", detail: "Leadership and organisational blockers to execution" },
+            { label: "AI Tools", count: transformationKnowledgeCounts.aiTools, color: "#0e7490", bg: "#ecfeff", border: "#a5f3fc", detail: "SaaS and AI tooling recommendations" },
+          ].map((card) => {
+            const isLocked = card.count === 0;
+            return (
+              <div
+                key={card.label}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  padding: "20px 16px",
+                  border: `1px solid ${isLocked ? "#e5e7eb" : card.border}`,
+                  borderRadius: 12,
+                  background: isLocked ? "#f9fafb" : card.bg,
+                  position: "relative",
+                  transition: "border-color 150ms, box-shadow 150ms",
+                }}
+              >
+                {isLocked ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    <p className="text-2xl" style={{ fontWeight: 800, color: "#d1d5db", margin: 0, lineHeight: 1 }}>—</p>
+                  </div>
+                ) : (
+                  <p className="text-2xl sm:text-3xl" style={{ fontWeight: 800, color: card.color, margin: "0 0 8px", lineHeight: 1 }}>{card.count}</p>
+                )}
+                <p style={{ fontSize: 14, fontWeight: 700, color: isLocked ? "#9ca3af" : "#111827", marginBottom: 4 }}>{card.label}</p>
+                <p style={{ fontSize: 11, color: isLocked ? "#9ca3af" : "#6b7280", lineHeight: 1.5, margin: 0 }}>{card.detail}</p>
+              </div>
+            );
+          })}
         </div>
       )}
 
