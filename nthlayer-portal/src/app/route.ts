@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
@@ -15,22 +14,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/inflexion/strategy", req.url));
   }
 
-  // Unauthenticated: serve new.html directly from the Cloudflare ASSETS binding
-  const { env } = await getCloudflareContext({ async: true });
-
-  if (env.ASSETS) {
-    const assetReq = new Request(new URL("/new.html", req.url).toString());
-    const res = await env.ASSETS.fetch(assetReq);
-    if (res.ok) {
-      return new Response(res.body, {
-        headers: {
-          "content-type": "text/html; charset=utf-8",
-          "cache-control": "public, max-age=0, must-revalidate",
-        },
-      });
-    }
-  }
-
-  // Fallback: redirect to /new
-  return NextResponse.redirect(new URL("/new", req.url));
+  // Unauthenticated: redirect to marketing page (history.replaceState in new.html
+  // immediately restores the / URL in the browser bar)
+  return NextResponse.redirect(new URL("/new", req.url), { status: 302 });
 }
