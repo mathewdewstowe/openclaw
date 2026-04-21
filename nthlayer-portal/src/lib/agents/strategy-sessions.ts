@@ -1336,3 +1336,345 @@ export async function checkStrategySession(sessionId: string): Promise<{
     return { status: "pending" };
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// ═══ TRANSFORMATION MULTI-AGENT ORCHESTRATION ═════════════════
+// ═══════════════════════════════════════════════════════════════
+
+const TRANSFORMATION_AGENTS: Record<string, string> = {
+  Pressure:            "agent_011CaDZq9weZ3d4NPBnQP6RQ",
+  BenchmarkResearch:   "agent_011CaDZqC49PNcha4nSrGAfq",
+  ProductDeepDive:     "agent_011CaDZqE9evUa3QNWErEw2G",
+  SaaSStackResearch:   "agent_011CaDZqGxaX5cizyGtdstye",
+  WorkflowAnalysis:    "agent_011CaDZqKAXcBFUrTjiAn6Ua",
+  Exposure:            "agent_011CaDZqM7cMLh5WeEJ9nA6S",
+  Choice:              "agent_011CaDZqNpJX3SFGi79cjZcf",
+  MoveEngine:          "agent_011CaDZqRv5ksyBJJA2kcNhp",
+  LeadershipScan:      "agent_011CaDZqUuRGYPEyRnnVmcEv",
+  Conviction:          "agent_011CaDZqXpYEH6vM2NwX9kfC",
+  Proof:               "agent_011CaDZqZw2tefgNSMnzqMFc",
+  ContradictionEngine: "agent_011CaDZqbzZNrKntpwUDnqWk",
+  ReportBuilder:       "agent_011CaDZqextzFgBHUHYmGU5y",
+  DashboardBuilder:    "agent_011CaDZqgomtCjTERkq78EHS",
+};
+
+interface StageAgentDef {
+  name: string;
+  dependsOn?: string[];
+}
+
+const STAGE_AGENTS: Record<string, { agents: StageAgentDef[] }> = {
+  why_now: {
+    agents: [
+      { name: "Pressure" },
+      { name: "BenchmarkResearch" },
+    ],
+  },
+  current_state: {
+    agents: [
+      { name: "ProductDeepDive" },
+      { name: "SaaSStackResearch" },
+      { name: "WorkflowAnalysis" },
+      { name: "Exposure", dependsOn: ["ProductDeepDive", "SaaSStackResearch", "WorkflowAnalysis"] },
+    ],
+  },
+  future_moves: {
+    agents: [
+      { name: "Choice" },
+      { name: "MoveEngine", dependsOn: ["Choice"] },
+    ],
+  },
+  mobilise: {
+    agents: [
+      { name: "LeadershipScan" },
+      { name: "Conviction", dependsOn: ["LeadershipScan"] },
+    ],
+  },
+  embed: {
+    agents: [
+      { name: "Proof" },
+    ],
+  },
+};
+
+export const TRANSFORMATION_STAGE_IDS = Object.keys(STAGE_AGENTS);
+
+export interface TransformationAgentState {
+  sessionId?: string;
+  status: "waiting" | "running" | "complete" | "failed";
+  result?: Record<string, unknown>;
+}
+
+export interface TransformationJobState {
+  stageId: string;
+  stageName: string;
+  agents: Record<string, TransformationAgentState>;
+}
+
+/**
+ * Create sessions for transformation agents that have no dependencies.
+ * Returns the initial TransformationJobState to store in Job metadata.
+ */
+export async function createTransformationSession(
+  input: StrategySessionInput,
+): Promise<TransformationJobState> {
+  const { stageId, stageName, questions, answers, persona, company, priorReports } = input;
+
+  const stageDef = STAGE_AGENTS[stageId];
+  if (!stageDef) throw new Error(`No transformation agents configured for stage: ${stageId}`);
+
+  const companyBlock = buildCompanyBlock(company);
+  const formattedAnswers = formatAnswers(questions, answers);
+  const personaFraming = buildPersonaFraming(persona);
+  const priorContext = buildPriorStageContext(priorReports ?? []);
+
+  // Build the base message that all agents in this stage receive
+  const baseMessage = [
+    personaFraming,
+    "",
+    `## Transformation Assessment — ${stageName}`,
+    "",
+    companyBlock,
+    priorContext,
+    "",
+    `## ${stageName} — User Inputs`,
+    "",
+    formattedAnswers,
+    "",
+    `Call the produce_transformation_analysis tool with your complete analysis when you are done.`,
+  ].filter((line) => line !== null).join("\n");
+
+  // Initialise agent states
+  const agentStates: Record<string, TransformationAgentState> = {};
+  for (const agentDef of stageDef.agents) {
+    agentStates[agentDef.name] = {
+      status: agentDef.dependsOn && agentDef.dependsOn.length > 0 ? "waiting" : "running",
+    };
+  }
+
+  // Create sessions for agents with no dependencies (run in parallel)
+  const launchPromises: Array<Promise<void>> = [];
+  for (const agentDef of stageDef.agents) {
+    if (agentDef.dependsOn && agentDef.dependsOn.length > 0) continue;
+
+    const agentId = TRANSFORMATION_AGENTS[agentDef.name];
+    if (!agentId) throw new Error(`Unknown transformation agent: ${agentDef.name}`);
+
+    launchPromises.push(
+      (async () => {
+        const session = await client.beta.sessions.create({
+          agent: agentId,
+          environment_id: ENVIRONMENT_ID,
+          title: `${stageName} — ${agentDef.name} — ${company.name}`,
+          metadata: { stageId, agentName: agentDef.name, companyName: company.name },
+        });
+
+        await client.beta.sessions.events.send(session.id, {
+          events: [{ type: "user.message", content: [{ type: "text", text: baseMessage }] }],
+        });
+
+        agentStates[agentDef.name].sessionId = session.id;
+      })()
+    );
+  }
+
+  await Promise.all(launchPromises);
+
+  return { stageId, stageName, agents: agentStates };
+}
+
+/**
+ * Advance a transformation session: check running agents, launch dependent agents when ready.
+ * Called by the status polling endpoint.
+ * Returns updated state + overall status + per-agent progress info.
+ */
+export async function advanceTransformationSession(
+  state: TransformationJobState,
+  company: CompanyContext,
+  questions: Array<{ id: string; question: string; type: string }>,
+  answers: Record<string, string | string[] | { selection: string; freetext: string }>,
+): Promise<{
+  state: TransformationJobState;
+  status: "pending" | "complete" | "failed";
+  agents: Record<string, { status: string; name: string }>;
+  sections?: Record<string, unknown>;
+}> {
+  const stageDef = STAGE_AGENTS[state.stageId];
+  if (!stageDef) return { state, status: "failed", agents: {} };
+
+  const agentProgress: Record<string, { status: string; name: string }> = {};
+
+  // Check all running agents
+  for (const agentDef of stageDef.agents) {
+    const agentState = state.agents[agentDef.name];
+    if (!agentState) continue;
+
+    if (agentState.status === "running" && agentState.sessionId) {
+      const result = await checkStrategySession(agentState.sessionId);
+
+      if (result.status === "complete" && result.sections) {
+        agentState.status = "complete";
+        agentState.result = result.sections;
+      } else if (result.status === "failed") {
+        agentState.status = "failed";
+      }
+      // "pending" — still running, no change
+    }
+
+    agentProgress[agentDef.name] = { status: agentState.status, name: agentDef.name };
+  }
+
+  // Launch dependent agents whose deps are all complete
+  for (const agentDef of stageDef.agents) {
+    const agentState = state.agents[agentDef.name];
+    if (agentState.status !== "waiting") continue;
+    if (!agentDef.dependsOn || agentDef.dependsOn.length === 0) continue;
+
+    const allDepsComplete = agentDef.dependsOn.every(
+      (dep) => state.agents[dep]?.status === "complete"
+    );
+
+    if (!allDepsComplete) continue;
+
+    // All dependencies are done — launch this agent with dep results as context
+    const agentId = TRANSFORMATION_AGENTS[agentDef.name];
+    if (!agentId) {
+      agentState.status = "failed";
+      continue;
+    }
+
+    // Build context from dependency results
+    const depContext = agentDef.dependsOn
+      .map((dep) => {
+        const depResult = state.agents[dep]?.result;
+        if (!depResult) return "";
+        return `### ${dep} Analysis Results\n${JSON.stringify(depResult, null, 2)}`;
+      })
+      .filter(Boolean)
+      .join("\n\n");
+
+    const companyBlock = buildCompanyBlock(company);
+    const formattedAnswers = formatAnswers(questions, answers);
+
+    const message = [
+      `## Transformation Assessment — ${state.stageName}`,
+      "",
+      companyBlock,
+      "",
+      `## ${state.stageName} — User Inputs`,
+      "",
+      formattedAnswers,
+      "",
+      `## Upstream Analysis (from completed agents)`,
+      "",
+      depContext,
+      "",
+      `You are the ${agentDef.name} agent. The above upstream analysis has been completed by other agents. Use their findings as input to your synthesis.`,
+      "",
+      `Call the produce_transformation_analysis tool with your complete analysis when you are done.`,
+    ].join("\n");
+
+    try {
+      const session = await client.beta.sessions.create({
+        agent: agentId,
+        environment_id: ENVIRONMENT_ID,
+        title: `${state.stageName} — ${agentDef.name} — ${company.name}`,
+        metadata: { stageId: state.stageId, agentName: agentDef.name, companyName: company.name },
+      });
+
+      await client.beta.sessions.events.send(session.id, {
+        events: [{ type: "user.message", content: [{ type: "text", text: message }] }],
+      });
+
+      agentState.sessionId = session.id;
+      agentState.status = "running";
+    } catch (err) {
+      console.error(`[transformation] Failed to launch ${agentDef.name}:`, err);
+      agentState.status = "failed";
+    }
+
+    agentProgress[agentDef.name] = { status: agentState.status, name: agentDef.name };
+  }
+
+  // Determine overall status
+  const allAgents = stageDef.agents.map((a) => state.agents[a.name]);
+  const allComplete = allAgents.every((a) => a.status === "complete");
+  const anyFailed = allAgents.some((a) => a.status === "failed");
+
+  if (allComplete) {
+    // Aggregate all agent results into a single sections object
+    const aggregated: Record<string, unknown> = {};
+    for (const agentDef of stageDef.agents) {
+      const agentResult = state.agents[agentDef.name]?.result;
+      if (agentResult) {
+        aggregated[agentDef.name] = agentResult;
+      }
+    }
+
+    // Build a combined executive summary from all agent headlines
+    const headlines = stageDef.agents
+      .map((a) => {
+        const r = state.agents[a.name]?.result as Record<string, unknown> | undefined;
+        return r?.headline ? `**${a.name}**: ${r.headline}` : null;
+      })
+      .filter(Boolean);
+
+    const summaries = stageDef.agents
+      .map((a) => {
+        const r = state.agents[a.name]?.result as Record<string, unknown> | undefined;
+        return r?.summary ? `${r.summary}` : null;
+      })
+      .filter(Boolean);
+
+    aggregated.executive_summary = headlines.join("\n\n") + "\n\n" + summaries.join("\n\n");
+
+    // Collect all recommendations
+    const allRecs: unknown[] = [];
+    for (const agentDef of stageDef.agents) {
+      const r = state.agents[agentDef.name]?.result as Record<string, unknown> | undefined;
+      if (Array.isArray(r?.recommendations)) {
+        allRecs.push(...(r.recommendations as unknown[]));
+      }
+    }
+    if (allRecs.length > 0) aggregated.recommendations = allRecs;
+
+    // Collect all key_findings
+    const allFindings: unknown[] = [];
+    for (const agentDef of stageDef.agents) {
+      const r = state.agents[agentDef.name]?.result as Record<string, unknown> | undefined;
+      if (Array.isArray(r?.key_findings)) {
+        allFindings.push(...(r.key_findings as unknown[]));
+      }
+    }
+    if (allFindings.length > 0) aggregated.key_findings = allFindings;
+
+    // Collect all sources
+    const allSources: unknown[] = [];
+    for (const agentDef of stageDef.agents) {
+      const r = state.agents[agentDef.name]?.result as Record<string, unknown> | undefined;
+      if (Array.isArray(r?.sources)) {
+        allSources.push(...(r.sources as unknown[]));
+      }
+    }
+    if (allSources.length > 0) aggregated.sources = allSources;
+
+    // Average confidence
+    const confidences = stageDef.agents
+      .map((a) => {
+        const r = state.agents[a.name]?.result as Record<string, unknown> | undefined;
+        return typeof r?.confidence === "number" ? r.confidence : null;
+      })
+      .filter((c): c is number => c !== null);
+    if (confidences.length > 0) {
+      aggregated.confidence = { score: confidences.reduce((a, b) => a + b, 0) / confidences.length };
+    }
+
+    return { state, status: "complete", agents: agentProgress, sections: aggregated };
+  }
+
+  if (anyFailed && !allAgents.some((a) => a.status === "running" || a.status === "waiting")) {
+    return { state, status: "failed", agents: agentProgress };
+  }
+
+  return { state, status: "pending", agents: agentProgress };
+}

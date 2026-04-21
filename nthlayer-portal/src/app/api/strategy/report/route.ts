@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getUserCompanies } from "@/lib/entitlements";
-import { createStrategySession, type PriorStageSummary } from "@/lib/agents/strategy-sessions";
+import { createStrategySession, createTransformationSession, TRANSFORMATION_STAGE_IDS, type PriorStageSummary } from "@/lib/agents/strategy-sessions";
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
     }
 
     const VALID_STAGES = ["frame", "diagnose", "decide", "position", "commit"];
-    if (!VALID_STAGES.includes(stageId)) {
+    const isTransformation = TRANSFORMATION_STAGE_IDS.includes(stageId);
+    if (!VALID_STAGES.includes(stageId) && !isTransformation) {
       return NextResponse.json({ error: "Unknown stage" }, { status: 400 });
     }
 
@@ -45,23 +46,60 @@ export async function POST(req: NextRequest) {
       : []
     ).filter((c) => typeof c === "string" && c.trim().length > 0);
 
+    const companyContext = {
+      name: newCompany.name,
+      url: newCompany.url ?? null,
+      sector: newCompany.sector ?? null,
+      location: (newCompany as unknown as { location?: string | null }).location ?? null,
+      territory: typeof companyProfile.territory === "string" ? companyProfile.territory : null,
+      icp1: typeof companyProfile.icp1 === "string" ? companyProfile.icp1 : null,
+      icp2: typeof companyProfile.icp2 === "string" ? companyProfile.icp2 : null,
+      icp3: typeof companyProfile.icp3 === "string" ? companyProfile.icp3 : null,
+      competitors,
+    };
+
+    if (isTransformation) {
+      // ── Transformation multi-agent flow ──
+      const transformationState = await createTransformationSession({
+        stageId,
+        stageName,
+        questions,
+        answers,
+        persona,
+        company: companyContext,
+        priorReports: priorReports ?? [],
+      });
+
+      const companyId = newCompany?.id;
+      let jobId: string | undefined;
+      if (companyId) {
+        try {
+          const job = await db.job.create({
+            data: {
+              companyId,
+              userId: user.id,
+              workflowType: stageId,
+              status: "running",
+              metadata: { transformationState, answers, questions } as object,
+            },
+          });
+          jobId = job.id;
+        } catch {
+          // Non-fatal
+        }
+      }
+
+      return NextResponse.json({ jobId });
+    }
+
+    // ── Legacy single-agent flow ──
     const sessionId = await createStrategySession({
       stageId,
       stageName,
       questions,
       answers,
       persona,
-      company: {
-        name: newCompany.name,
-        url: newCompany.url ?? null,
-        sector: newCompany.sector ?? null,
-        location: (newCompany as unknown as { location?: string | null }).location ?? null,
-        territory: typeof companyProfile.territory === "string" ? companyProfile.territory : null,
-        icp1: typeof companyProfile.icp1 === "string" ? companyProfile.icp1 : null,
-        icp2: typeof companyProfile.icp2 === "string" ? companyProfile.icp2 : null,
-        icp3: typeof companyProfile.icp3 === "string" ? companyProfile.icp3 : null,
-        competitors,
-      },
+      company: companyContext,
       priorReports: priorReports ?? [],
     });
 

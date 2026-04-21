@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { DeckDownloadButton } from "@/components/deck-download-button";
 import { renderWithCitations } from "@/lib/render-citations";
 import { ProductStrategyModal } from "@/components/product-strategy-modal";
+import { TRANSFORMATION_STAGES, TRANSFORMATION_STAGE_HERO } from "@/lib/transformation-stages";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -138,6 +139,7 @@ function extractSubheadings(markdown: string): Array<{ label: string; anchor: st
 }
 
 const STAGE_HERO: Record<string, { tagline: string; description: string; goal: string; deliverables: string[] }> = {
+  ...TRANSFORMATION_STAGE_HERO,
   frame: {
     tagline: "Frame",
     description: "Define what has changed, why this decision matters now, and the boundaries of the strategic question. Frame does not answer the question — it defines it precisely.",
@@ -171,8 +173,10 @@ const STAGE_HERO: Record<string, { tagline: string; description: string; goal: s
 };
 
 const STAGES: Stage[] = [
+  ...TRANSFORMATION_STAGES as Stage[],
   {
     id: "frame",
+    hidden: true,
     name: "Frame",
     purpose: "Define what has changed, why this decision matters now, and the boundaries of the strategic question",
     output: "Strategic moment, winning conditions, competitive landscape overview, decision boundaries, and hypothesis register",
@@ -341,6 +345,7 @@ const STAGES: Stage[] = [
   },
   {
     id: "diagnose",
+    hidden: true,
     name: "Diagnose",
     purpose: "Build a structured fact base on product-market fit, competitive position, growth trajectory, and operating constraints",
     output: "Business assessment, competitive landscape, ICP signal, benchmark gaps, and emerging direction",
@@ -502,6 +507,7 @@ const STAGES: Stage[] = [
   },
   {
     id: "decide",
+    hidden: true,
     name: "Decide",
     purpose: "Surface the real strategic options, pressure-test each, and choose the direction",
     output: "Recommended direction, decision matrix, what must be true, kill criteria, and cost of inaction",
@@ -619,6 +625,7 @@ const STAGES: Stage[] = [
   },
   {
     id: "position",
+    hidden: true,
     name: "Position",
     purpose: "Translate the chosen direction into a precise market stance: who you serve, what you solve better, and what defensibility you are building",
     output: "Positioning statement, target customer, competitive frame, structural defensibility, and narrative gap analysis",
@@ -752,6 +759,7 @@ const STAGES: Stage[] = [
   },
   {
     id: "commit",
+    hidden: true,
     name: "Commit",
     purpose: "Convert the chosen direction and position into a committed plan with strategic bets, sequencing, ownership, milestones, and governance",
     output: "Strategic bet portfolio, anti-portfolio, OKRs, 100-day plan, resource allocation, and governance rhythm",
@@ -887,6 +895,8 @@ const STAGES: Stage[] = [
 ];
 
 const VISIBLE_STAGES = STAGES.filter((s) => !s.hidden);
+
+const TRANSFORMATION_STAGE_IDS = new Set(TRANSFORMATION_STAGES.map((s) => s.id));
 
 const PROGRESS_MESSAGES = [
   "Generating report...",
@@ -3182,7 +3192,7 @@ export function StrategyFlow({
   initialCompletedOutputIds = {},
   allOutputsByStage = {},
 }: {
-  initialRunningJobs?: { stageId: string; sessionId: string }[];
+  initialRunningJobs?: { stageId: string; sessionId: string; jobId?: string }[];
   initialCompletedOutputs?: Record<string, Record<string, unknown>>;
   initialSavedAnswers?: Record<string, Record<string, unknown>>;
   companyName?: string;
@@ -3194,8 +3204,14 @@ export function StrategyFlow({
   function sectionsToMarkdownInit(sections: Record<string, unknown>): string {
     const lines: string[] = [];
     if (sections.executive_summary) lines.push(`## Executive Summary\n\n${sections.executive_summary}`);
+    if (Array.isArray(sections.key_findings) && sections.key_findings.length > 0) {
+      lines.push(`## Key Findings\n\n${(sections.key_findings as string[]).map((f) => `- ${typeof f === "string" ? f : JSON.stringify(f)}`).join("\n")}`);
+    }
     if (sections.what_matters) lines.push(`## What Matters Most\n\n${sections.what_matters}`);
     if (sections.recommendation) lines.push(`## Recommendation\n\n${sections.recommendation}`);
+    if (Array.isArray(sections.recommendations) && sections.recommendations.length > 0) {
+      lines.push(`## Recommendations\n\n${(sections.recommendations as string[]).map((r) => `- ${typeof r === "string" ? r : JSON.stringify(r)}`).join("\n")}`);
+    }
     if (sections.business_implications) lines.push(`## Business Implications\n\n${sections.business_implications}`);
     if (Array.isArray(sections.assumptions) && sections.assumptions.length > 0) {
       lines.push(`## Key Assumptions\n\n${(sections.assumptions as (string | Record<string, unknown>)[]).map((a) => `- ${typeof a === "string" ? a : (a.text as string) ?? JSON.stringify(a)}`).join("\n")}`);
@@ -3406,7 +3422,10 @@ export function StrategyFlow({
     // Resume the most recent running job
     const job = initialRunningJobs[0];
     const resumeStageId = job.stageId;
-    const sessionId = job.sessionId;
+    const isTransformationResume = TRANSFORMATION_STAGE_IDS.has(resumeStageId);
+    const resumePollParam = isTransformationResume && job.jobId
+      ? `jobId=${encodeURIComponent(job.jobId)}`
+      : `sessionId=${encodeURIComponent(job.sessionId)}`;
 
     let progress = 40;
     let msgIdx = 2;
@@ -3418,11 +3437,13 @@ export function StrategyFlow({
       }
     }, 1000);
 
-    progressIntervalRef.current = setInterval(() => {
-      const increment = progress < 70 ? 0.4 : 0.15;
-      progress = Math.min(progress + increment, 85);
-      setProgressValue(Math.round(progress));
-    }, 1000);
+    if (!isTransformationResume) {
+      progressIntervalRef.current = setInterval(() => {
+        const increment = progress < 70 ? 0.4 : 0.15;
+        progress = Math.min(progress + increment, 85);
+        setProgressValue(Math.round(progress));
+      }, 1000);
+    }
 
     messageIntervalRef.current = setInterval(() => {
       msgIdx = (msgIdx + 1) % PROGRESS_MESSAGES.length;
@@ -3438,8 +3459,28 @@ export function StrategyFlow({
 
     pollIntervalRef.current = setInterval(async () => {
       try {
-        const statusRes = await fetch(`/api/strategy/report/status?sessionId=${encodeURIComponent(sessionId)}`);
-        const statusData = await statusRes.json() as { status: "pending" | "complete" | "failed"; sections?: Record<string, unknown> };
+        const statusRes = await fetch(`/api/strategy/report/status?${resumePollParam}`);
+        const statusData = await statusRes.json() as {
+          status: "pending" | "complete" | "failed";
+          sections?: Record<string, unknown>;
+          agents?: Record<string, { status: string; name: string }>;
+        };
+
+        // Update per-agent progress for transformation stages
+        if (statusData.agents && isTransformationResume) {
+          const agentEntries = Object.entries(statusData.agents);
+          const parts = agentEntries.map(([, a]) => {
+            const label = a.name.replace(/([A-Z])/g, " $1").trim();
+            if (a.status === "complete") return `${label} \u2713`;
+            if (a.status === "running") return `${label} \u25CB`;
+            if (a.status === "failed") return `${label} \u2717`;
+            return `${label} \u2022`;
+          });
+          setProgressMessage(parts.join(" \u00B7 "));
+          const completed = agentEntries.filter(([, a]) => a.status === "complete").length;
+          const total = agentEntries.length;
+          if (total > 0) setProgressValue(Math.max(Math.round((completed / total) * 85), 5));
+        }
 
         if (statusData.status === "complete" && statusData.sections) {
           stopPolling();
@@ -3619,23 +3660,34 @@ export function StrategyFlow({
     }, 1000);
 
     // Animate progress bar (slow — agents take 3–15 min with deep research)
+    // For transformation stages, real progress comes from agent status polling
     let progress = 0;
     let msgIdx = 0;
-    progressIntervalRef.current = setInterval(() => {
-      // Very slow ramp toward 85% — can take 15 min now
-      const increment = progress < 40 ? 0.5 : progress < 70 ? 0.2 : 0.08;
-      progress = Math.min(progress + increment, 85);
-      setProgressValue(Math.round(progress));
-    }, 1000);
+    const isTransformationStage = TRANSFORMATION_STAGE_IDS.has(activeStageId);
 
-    messageIntervalRef.current = setInterval(() => {
-      msgIdx = (msgIdx + 1) % PROGRESS_MESSAGES.length;
-      setProgressMessage(PROGRESS_MESSAGES[msgIdx]);
-    }, 4000);
+    if (!isTransformationStage) {
+      progressIntervalRef.current = setInterval(() => {
+        const increment = progress < 40 ? 0.5 : progress < 70 ? 0.2 : 0.08;
+        progress = Math.min(progress + increment, 85);
+        setProgressValue(Math.round(progress));
+      }, 1000);
+    } else {
+      setProgressMessage("Launching agents...");
+    }
 
-    // Extract persona from frame stage answers
-    const frameAnswers = stageStates["frame"]?.answers ?? {};
-    const persona = typeof frameAnswers["persona"] === "string" ? frameAnswers["persona"] : undefined;
+    if (!isTransformationStage) {
+      messageIntervalRef.current = setInterval(() => {
+        msgIdx = (msgIdx + 1) % PROGRESS_MESSAGES.length;
+        setProgressMessage(PROGRESS_MESSAGES[msgIdx]);
+      }, 4000);
+    }
+
+    // Extract persona from frame/why_now stage answers
+    const personaSource = isTransformationStage ? "why_now" : "frame";
+    const personaAnswers = stageStates[personaSource]?.answers ?? {};
+    const persona = typeof personaAnswers["role"] === "string" ? personaAnswers["role"]
+      : typeof personaAnswers["persona"] === "string" ? personaAnswers["persona"]
+      : undefined;
 
     // Build prior stage summaries for cascade context — pass full sections so Commit has complete picture
     const priorReports: { stageId: string; stageName: string; summary: string }[] = [];
@@ -3765,7 +3817,11 @@ export function StrategyFlow({
         return;
       }
 
-      const { sessionId } = await res.json() as { sessionId: string };
+      const responseData = await res.json() as { sessionId?: string; jobId?: string };
+      const isTransformation = TRANSFORMATION_STAGE_IDS.has(activeStageId);
+      const pollParam = isTransformation && responseData.jobId
+        ? `jobId=${encodeURIComponent(responseData.jobId)}`
+        : `sessionId=${encodeURIComponent(responseData.sessionId ?? "")}`;
 
       // Persist bet selections when running the Commit stage
       if (activeStageId === "commit" && activeState.answers) {
@@ -3785,8 +3841,33 @@ export function StrategyFlow({
       // Poll every 3s
       pollIntervalRef.current = setInterval(async () => {
         try {
-          const statusRes = await fetch(`/api/strategy/report/status?sessionId=${encodeURIComponent(sessionId)}`);
-          const statusData = await statusRes.json() as { status: "pending" | "complete" | "failed"; sections?: Record<string, unknown> };
+          const statusRes = await fetch(`/api/strategy/report/status?${pollParam}`);
+          const statusData = await statusRes.json() as {
+            status: "pending" | "complete" | "failed";
+            sections?: Record<string, unknown>;
+            agents?: Record<string, { status: string; name: string }>;
+          };
+
+          // Update progress message with per-agent status for transformation stages
+          if (statusData.agents && isTransformation) {
+            const agentEntries = Object.entries(statusData.agents);
+            const parts = agentEntries.map(([, a]) => {
+              const label = a.name.replace(/([A-Z])/g, " $1").trim();
+              if (a.status === "complete") return `${label} \u2713`;
+              if (a.status === "running") return `${label} \u25CB`;
+              if (a.status === "failed") return `${label} \u2717`;
+              return `${label} \u2022`;
+            });
+            setProgressMessage(parts.join(" \u00B7 "));
+
+            // Update progress based on agent completion
+            const completed = agentEntries.filter(([, a]) => a.status === "complete").length;
+            const total = agentEntries.length;
+            if (total > 0) {
+              const agentPct = Math.round((completed / total) * 85);
+              setProgressValue(Math.max(agentPct, 5));
+            }
+          }
 
           if (statusData.status === "complete" && statusData.sections) {
             stopPolling();

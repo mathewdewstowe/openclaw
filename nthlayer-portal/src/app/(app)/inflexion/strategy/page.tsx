@@ -89,17 +89,23 @@ export default async function StrategyPage() {
   // We deliberately avoid fetching all historical outputs to keep the page payload small
   const runningJobsRaw = await db.job.findMany({
     where: { userId: user.id, status: "running" },
-    select: { workflowType: true, metadata: true },
+    select: { id: true, workflowType: true, metadata: true },
     orderBy: { createdAt: "desc" },
     take: 20,
   });
 
   const initialRunningJobs = runningJobsRaw
-    .map((j) => ({
-      stageId: j.workflowType,
-      sessionId: (j.metadata as Record<string, unknown> | null)?.sessionId as string | undefined,
-    }))
-    .filter((j): j is { stageId: string; sessionId: string } => !!j.sessionId);
+    .map((j) => {
+      const meta = j.metadata as Record<string, unknown> | null;
+      const sessionId = meta?.sessionId as string | undefined;
+      const hasTransformationState = !!meta?.transformationState;
+      return {
+        stageId: j.workflowType,
+        sessionId: sessionId ?? "",
+        jobId: hasTransformationState ? j.id : undefined,
+      };
+    })
+    .filter((j) => !!j.sessionId || !!j.jobId);
 
   // Get the single most-recent completed job per stage (answers + outputId only)
   const completedJobsRaw = await db.job.findMany({

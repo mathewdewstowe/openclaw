@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { checkStrategySession } from "@/lib/agents/strategy-sessions";
+import { checkStrategySession, advanceTransformationSession, TRANSFORMATION_STAGE_IDS, type TransformationJobState, type CompanyContext } from "@/lib/agents/strategy-sessions";
 import { getUserCompanies } from "@/lib/entitlements";
 import { sendReportCompleteNotification } from "@/lib/email";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get("sessionId");
+  const jobId = searchParams.get("jobId");
+
+  // ── Transformation multi-agent polling (by jobId) ──
+  if (jobId) {
+    return handleTransformationStatus(req, jobId);
+  }
 
   if (!sessionId) {
-    return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
+    return NextResponse.json({ error: "Missing sessionId or jobId" }, { status: 400 });
   }
 
   const result = await checkStrategySession(sessionId);
@@ -69,6 +75,11 @@ export async function GET(req: NextRequest) {
         decide:   ["Strategic Options", "Recommended Direction", "What Must Be True", "Kill Criteria"],
         position: ["Target Customer", "Positioning Statement", "Competitive Advantage", "Structural Defensibility"],
         commit:   ["Strategic Bets", "OKRs", "100-Day Plan", "Governance Rhythm", "Resource Allocation"],
+        why_now:        ["Urgency Signals", "Competitive Triggers", "Cost of Inaction", "Sector Benchmarks"],
+        current_state:  ["Process Maturity", "AI Tooling", "Stack Readiness", "Exposure Map"],
+        future_moves:   ["Automation Opportunities", "Build/Buy/Partner", "Move Portfolio"],
+        mobilise:       ["Leadership Alignment", "Sponsor Conviction", "Resistance Map"],
+        embed:          ["Success Criteria", "Measurement Framework", "Board Proof Points"],
       };
       const tags = STAGE_TAGS[workflowType] ?? [];
 
@@ -169,7 +180,9 @@ export async function GET(req: NextRequest) {
 
       (async () => {
         try {
-          const STAGE_ORDER = ["frame", "diagnose", "decide", "position", "commit"];
+          const STAGE_ORDER = TRANSFORMATION_STAGE_IDS.includes(capturedWorkflowType)
+            ? ["why_now", "current_state", "future_moves", "mobilise", "embed"]
+            : ["frame", "diagnose", "decide", "position", "commit"];
           const currentIdx = STAGE_ORDER.indexOf(capturedWorkflowType);
           if (currentIdx <= 0) return; // Frame has no prior stages
 
@@ -283,4 +296,162 @@ Return raw JSON array of short strings only.`,
   }
 
   return NextResponse.json(result);
+}
+
+// ── Transformation multi-agent status handler ──
+
+const TRANSFORMATION_STAGE_TAGS: Record<string, string[]> = {
+  why_now:        ["Urgency Signals", "Competitive Triggers", "Cost of Inaction", "Sector Benchmarks"],
+  current_state:  ["Process Maturity", "AI Tooling", "Stack Readiness", "Exposure Map"],
+  future_moves:   ["Automation Opportunities", "Build/Buy/Partner", "Move Portfolio"],
+  mobilise:       ["Leadership Alignment", "Sponsor Conviction", "Resistance Map"],
+  embed:          ["Success Criteria", "Measurement Framework", "Board Proof Points"],
+};
+
+const STAGE_NAMES: Record<string, string> = {
+  why_now: "Why Now", current_state: "Current State", future_moves: "Future Moves", mobilise: "Mobilise", embed: "Embed",
+};
+
+async function handleTransformationStatus(req: NextRequest, jobId: string) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const job = await db.job.findUnique({
+      where: { id: jobId },
+      select: { id: true, companyId: true, userId: true, workflowType: true, status: true, outputId: true, metadata: true },
+    });
+
+    if (!job || job.userId !== user.id) {
+      return NextResponse.json({ error: "Job not found" }, { status: 404 });
+    }
+
+    // Already completed — return saved sections from the Output record
+    if (job.status === "completed" && job.outputId) {
+      const output = await db.output.findUnique({
+        where: { id: job.outputId },
+        select: { sections: true },
+      });
+      return NextResponse.json({ status: "complete", jobId, sections: output?.sections ?? {} });
+    }
+
+    const metadata = job.metadata as Record<string, unknown> | null;
+    const transformationState = metadata?.transformationState as TransformationJobState | undefined;
+    if (!transformationState) {
+      return NextResponse.json({ error: "Invalid job state" }, { status: 400 });
+    }
+
+    const storedAnswers = (metadata?.answers ?? {}) as Record<string, string | string[] | { selection: string; freetext: string }>;
+    const storedQuestions = (metadata?.questions ?? []) as Array<{ id: string; question: string; type: string }>;
+
+    // Fetch company context
+    const companyAccess = await getUserCompanies(user.id);
+    const newCompany = companyAccess[0]?.company ?? null;
+    const companyProfile = (newCompany as unknown as { profile?: Record<string, unknown> | null })?.profile ?? {};
+    const competitors = (Array.isArray(companyProfile.competitors) ? (companyProfile.competitors as string[]) : [])
+      .filter((c) => typeof c === "string" && c.trim().length > 0);
+
+    const companyContext: CompanyContext = {
+      name: newCompany?.name ?? "Unknown",
+      url: newCompany?.url ?? null,
+      sector: newCompany?.sector ?? null,
+      location: (newCompany as unknown as { location?: string | null })?.location ?? null,
+      territory: typeof companyProfile.territory === "string" ? companyProfile.territory : null,
+      icp1: typeof companyProfile.icp1 === "string" ? companyProfile.icp1 : null,
+      icp2: typeof companyProfile.icp2 === "string" ? companyProfile.icp2 : null,
+      icp3: typeof companyProfile.icp3 === "string" ? companyProfile.icp3 : null,
+      competitors,
+    };
+
+    // Advance the transformation session
+    const result = await advanceTransformationSession(
+      transformationState,
+      companyContext,
+      storedQuestions,
+      storedAnswers,
+    );
+
+    // Update job metadata with new state
+    await db.job.update({
+      where: { id: jobId },
+      data: {
+        metadata: { ...metadata, transformationState: result.state } as object,
+      },
+    }).catch(() => {});
+
+    // If complete, persist output
+    if (result.status === "complete" && result.sections) {
+      const workflowType = job.workflowType;
+      const tags = TRANSFORMATION_STAGE_TAGS[workflowType] ?? [];
+      const sections = result.sections;
+      const confidence =
+        typeof sections.confidence === "object" &&
+        sections.confidence !== null &&
+        "score" in (sections.confidence as Record<string, unknown>)
+          ? Number((sections.confidence as { score: number }).score)
+          : null;
+
+      const stageName = STAGE_NAMES[workflowType] ?? workflowType;
+
+      const output = await db.output.create({
+        data: {
+          companyId: job.companyId,
+          workflowType,
+          outputType: `${workflowType}_report`,
+          title: `${stageName} Report`,
+          sections: sections as object,
+          confidence,
+          sources: [],
+          tags,
+          version: 1,
+        },
+      });
+
+      await db.job.update({
+        where: { id: jobId },
+        data: {
+          status: "completed",
+          outputId: output.id,
+          completedAt: new Date(),
+          progress: 100,
+        },
+      });
+
+      // Send notification
+      const company = await db.company.findUnique({
+        where: { id: job.companyId },
+        select: { name: true },
+      }).catch(() => null);
+
+      const allFindings = Array.isArray(sections.key_findings) ? (sections.key_findings as unknown[]).length : 0;
+      const allRecs = Array.isArray(sections.recommendations) ? (sections.recommendations as unknown[]).length : 0;
+
+      sendReportCompleteNotification({
+        userName: user.name ?? user.email,
+        userEmail: user.email,
+        companyName: company?.name ?? "your company",
+        workflowType,
+        counts: { actions: allRecs, risks: 0, assumptions: allFindings, metrics: 0 },
+      });
+    }
+
+    if (result.status === "failed") {
+      await db.job.update({
+        where: { id: jobId },
+        data: { status: "failed" },
+      }).catch(() => {});
+    }
+
+    return NextResponse.json({
+      status: result.status,
+      agents: result.agents,
+      sections: result.sections,
+      jobId,
+    });
+  } catch (err) {
+    console.error("[transformation-status] Error:", err);
+    return NextResponse.json({ error: "Status check failed" }, { status: 500 });
+  }
 }
