@@ -154,6 +154,7 @@ export function sendNewUserNotification({
 
 const STAGE_NAMES: Record<string, string> = {
   why_now: "Why Now", current_state: "Current State", future_moves: "Future Moves", mobilise: "Mobilise", embed: "Embed",
+  synthesis: "Transformation Report",
   frame: "Frame", diagnose: "Diagnose", decide: "Decide", position: "Position", bet: "Bet", commit: "Commit",
 };
 

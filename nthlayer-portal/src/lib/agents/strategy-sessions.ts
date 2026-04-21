@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { db } from "@/lib/db";
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY ?? "",
@@ -1395,6 +1396,13 @@ const STAGE_AGENTS: Record<string, { agents: StageAgentDef[] }> = {
       { name: "Proof" },
     ],
   },
+  synthesis: {
+    agents: [
+      { name: "ContradictionEngine" },
+      { name: "ReportBuilder", dependsOn: ["ContradictionEngine"] },
+      { name: "DashboardBuilder", dependsOn: ["ReportBuilder"] },
+    ],
+  },
 };
 
 export const TRANSFORMATION_STAGE_IDS = Object.keys(STAGE_AGENTS);
@@ -1677,4 +1685,181 @@ export async function advanceTransformationSession(
   }
 
   return { state, status: "pending", agents: agentProgress };
+}
+
+// ─── Synthesis helpers ────────────────────────────────────────────────────────
+
+const SYNTHESIS_STAGES = ["why_now", "current_state", "future_moves", "mobilise", "embed"] as const;
+
+/**
+ * Extract structured summaries from the 5 completed stage outputs.
+ * Budget: ~20K tokens. Emphasizes Exposure + Conviction sub-results for ContradictionEngine.
+ */
+function buildSynthesisContext(
+  outputs: Array<{ workflowType: string; sections: Record<string, unknown> }>,
+): PriorStageSummary[] {
+  const stageNames: Record<string, string> = {
+    why_now: "Why Now",
+    current_state: "Current State",
+    future_moves: "Future Moves",
+    mobilise: "Mobilise",
+    embed: "Embed",
+  };
+
+  return outputs.map((output) => {
+    const s = output.sections;
+    const parts: string[] = [];
+
+    // Executive summary
+    if (typeof s.executive_summary === "string") {
+      parts.push(`### Executive Summary\n${s.executive_summary}`);
+    }
+
+    // Recommendations
+    if (Array.isArray(s.recommendations) && s.recommendations.length > 0) {
+      const recs = (s.recommendations as Array<Record<string, unknown>>)
+        .slice(0, 10)
+        .map((r) => `- **${r.title ?? r.recommendation ?? ""}**: ${r.rationale ?? r.description ?? ""}`)
+        .join("\n");
+      parts.push(`### Recommendations\n${recs}`);
+    }
+
+    // Key findings
+    if (Array.isArray(s.key_findings) && s.key_findings.length > 0) {
+      const findings = (s.key_findings as Array<Record<string, unknown>>)
+        .slice(0, 10)
+        .map((f) => `- ${f.finding ?? f.title ?? JSON.stringify(f)}`)
+        .join("\n");
+      parts.push(`### Key Findings\n${findings}`);
+    }
+
+    // Confidence
+    if (s.confidence && typeof s.confidence === "object" && "score" in (s.confidence as Record<string, unknown>)) {
+      parts.push(`### Confidence: ${(s.confidence as { score: number }).score}/100`);
+    }
+
+    // Exposure sub-result (current_state) — emphasised for ContradictionEngine
+    if (output.workflowType === "current_state" && s.Exposure && typeof s.Exposure === "object") {
+      const exp = s.Exposure as Record<string, unknown>;
+      parts.push(`### ⚠ Exposure Analysis (highlighted for contradiction detection)\n${exp.headline ?? ""}\n${exp.summary ?? ""}`);
+      if (Array.isArray(exp.recommendations)) {
+        const expRecs = (exp.recommendations as Array<Record<string, unknown>>)
+          .slice(0, 5)
+          .map((r) => `- ${r.title ?? r.recommendation ?? JSON.stringify(r)}`)
+          .join("\n");
+        parts.push(expRecs);
+      }
+    }
+
+    // Conviction sub-result (mobilise) — emphasised for ContradictionEngine
+    if (output.workflowType === "mobilise" && s.Conviction && typeof s.Conviction === "object") {
+      const conv = s.Conviction as Record<string, unknown>;
+      parts.push(`### ⚠ Conviction Analysis (highlighted for contradiction detection)\n${conv.headline ?? ""}\n${conv.summary ?? ""}`);
+      if (Array.isArray(conv.recommendations)) {
+        const convRecs = (conv.recommendations as Array<Record<string, unknown>>)
+          .slice(0, 5)
+          .map((r) => `- ${r.title ?? r.recommendation ?? JSON.stringify(r)}`)
+          .join("\n");
+        parts.push(convRecs);
+      }
+    }
+
+    return {
+      stageId: output.workflowType,
+      stageName: stageNames[output.workflowType] ?? output.workflowType,
+      summary: parts.join("\n\n"),
+    };
+  });
+}
+
+/**
+ * Create a synthesis transformation session from the 5 completed stage outputs.
+ * Returns the initial TransformationJobState + the created Job ID.
+ */
+export async function createSynthesisSession(
+  companyId: string,
+  userId: string,
+  company: CompanyContext,
+): Promise<{ transformationState: TransformationJobState; jobId: string }> {
+  // Fetch the 5 most recent completed outputs for each stage
+  const outputs = await db.output.findMany({
+    where: {
+      companyId,
+      workflowType: { in: [...SYNTHESIS_STAGES] },
+    },
+    orderBy: { createdAt: "desc" },
+    select: { workflowType: true, sections: true },
+  });
+
+  // Deduplicate — keep only the most recent per stage
+  const seenStages = new Set<string>();
+  const uniqueOutputs = outputs.filter((o) => {
+    if (seenStages.has(o.workflowType)) return false;
+    seenStages.add(o.workflowType);
+    return true;
+  });
+
+  const priorReports = buildSynthesisContext(
+    uniqueOutputs.map((o) => ({
+      workflowType: o.workflowType,
+      sections: o.sections as Record<string, unknown>,
+    })),
+  );
+
+  const transformationState = await createTransformationSession({
+    stageId: "synthesis",
+    stageName: "Final Synthesis",
+    questions: [],
+    answers: {},
+    company,
+    priorReports,
+  });
+
+  const job = await db.job.create({
+    data: {
+      companyId,
+      userId,
+      workflowType: "synthesis",
+      status: "running",
+      metadata: { transformationState, answers: {}, questions: [] } as object,
+    },
+  });
+
+  return { transformationState, jobId: job.id };
+}
+
+/**
+ * Auto-trigger synthesis if all 5 transformation stages are complete
+ * and no synthesis Job is already running.
+ * Returns the jobId if synthesis was triggered, null otherwise.
+ */
+export async function triggerSynthesisIfReady(
+  companyId: string,
+  userId: string,
+  company: CompanyContext,
+): Promise<string | null> {
+  // Check all 5 stages have at least one completed Output
+  const completedStages = await db.output.groupBy({
+    by: ["workflowType"],
+    where: {
+      companyId,
+      workflowType: { in: [...SYNTHESIS_STAGES] },
+    },
+  });
+
+  if (completedStages.length < 5) return null;
+
+  // Check no synthesis Job is already running
+  const existingSynthesisJob = await db.job.findFirst({
+    where: {
+      companyId,
+      workflowType: "synthesis",
+      status: "running",
+    },
+  });
+
+  if (existingSynthesisJob) return null;
+
+  const { jobId } = await createSynthesisSession(companyId, userId, company);
+  return jobId;
 }

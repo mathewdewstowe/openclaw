@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { DeckDownloadButton } from "@/components/deck-download-button";
 import { renderWithCitations } from "@/lib/render-citations";
 import { ProductStrategyModal } from "@/components/product-strategy-modal";
-import { TRANSFORMATION_STAGES, TRANSFORMATION_STAGE_HERO } from "@/lib/transformation-stages";
+import { TRANSFORMATION_STAGES, TRANSFORMATION_STAGE_HERO, SYNTHESIS_STAGE } from "@/lib/transformation-stages";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -896,7 +896,7 @@ const STAGES: Stage[] = [
 
 const VISIBLE_STAGES = STAGES.filter((s) => !s.hidden);
 
-const TRANSFORMATION_STAGE_IDS = new Set(TRANSFORMATION_STAGES.map((s) => s.id));
+const TRANSFORMATION_STAGE_IDS = new Set([...TRANSFORMATION_STAGES.map((s) => s.id), "synthesis"]);
 
 const PROGRESS_MESSAGES = [
   "Generating report...",
@@ -3031,6 +3031,7 @@ const STAGE_DEFAULT_TAGS: Record<string, string[]> = {
   future_moves:   ["Automation Opportunities", "Build/Buy/Partner", "Move Portfolio"],
   mobilise:       ["Leadership Alignment", "Sponsor Conviction", "Resistance Map"],
   embed:          ["Success Criteria", "Measurement Framework", "Board Proof Points"],
+  synthesis:      ["Cross-Stage Contradictions", "Board Report", "Readiness Dashboard", "Knowledge Cards"],
   frame:    ["Strategic Problem", "Market Context", "Winning Conditions", "Decision Boundaries", "Core Strategic Question"],
   diagnose: ["Business Assessment", "Product-Market Fit", "Competitive Landscape", "Emerging Direction", "Benchmark Gaps"],
   decide:   ["Strategic Options", "Recommended Direction", "What Must Be True", "Kill Criteria"],
@@ -3342,6 +3343,20 @@ export function StrategyFlow({
     };
   });
 
+  // Synthesis stage state (not a regular STAGES entry — no questions)
+  {
+    const synthRunningJob = initialRunningJobs.find((j) => j.stageId === "synthesis");
+    const synthCompleted = initialCompletedOutputs["synthesis"];
+    initialState["synthesis"] = {
+      status: "active",
+      answers: {},
+      currentQuestion: 0,
+      reportStatus: synthRunningJob ? "generating" : synthCompleted ? "complete" : "none",
+      report: synthCompleted ? sectionsToMarkdownInit(synthCompleted) : null,
+      reportSections: synthCompleted,
+    };
+  }
+
   const [stageStates, setStageStates] = useState<Record<string, StageState>>(initialState);
   const isMobile = useIsMobile();
   // Priority: running job stage → first completed stage → first visible stage
@@ -3530,11 +3545,80 @@ export function StrategyFlow({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const activeStage = STAGES.find((s) => s.id === activeStageId)!;
+  // Auto-detect synthesis job after the 5th stage completes
+  const synthPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    const allFiveDone = VISIBLE_STAGES.every((s) => stageStates[s.id]?.reportStatus === "complete");
+    const synthState = stageStates["synthesis"];
+    if (!allFiveDone || synthState?.reportStatus === "complete" || synthState?.reportStatus === "generating") return;
+    if (synthPollRef.current) return; // already polling
+
+    // Wait 2s for the backend to auto-create the synthesis job, then start looking for it
+    const delay = setTimeout(async () => {
+      try {
+        // Check for a running synthesis job via a lightweight endpoint
+        const res = await fetch("/api/strategy/report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ stageId: "synthesis", stageName: "Final Synthesis", questions: [], answers: {} }),
+        });
+        const data = await res.json() as { jobId?: string };
+        if (!data.jobId) return;
+
+        setStageStates((prev) => ({
+          ...prev,
+          synthesis: { ...prev.synthesis, reportStatus: "generating", report: null, reportSections: undefined },
+        }));
+
+        synthPollRef.current = setInterval(async () => {
+          try {
+            const statusRes = await fetch(`/api/strategy/report/status?jobId=${encodeURIComponent(data.jobId!)}`);
+            const statusData = await statusRes.json() as { status: string; sections?: Record<string, unknown>; agents?: Record<string, { status: string; name: string }> };
+
+            if (statusData.agents) {
+              const parts = Object.values(statusData.agents).map((a) => {
+                const label = a.name.replace(/([A-Z])/g, " $1").trim();
+                if (a.status === "complete") return `${label} \u2713`;
+                if (a.status === "running") return `${label} \u25CB`;
+                if (a.status === "failed") return `${label} \u2717`;
+                return `${label} \u2022`;
+              });
+              setProgressMessage(parts.join(" \u00B7 "));
+              const completed = Object.values(statusData.agents).filter((a) => a.status === "complete").length;
+              const total = Object.values(statusData.agents).length;
+              if (total > 0) setProgressValue(Math.max(Math.round((completed / total) * 85), 5));
+            }
+
+            if (statusData.status === "complete" && statusData.sections) {
+              if (synthPollRef.current) clearInterval(synthPollRef.current);
+              synthPollRef.current = null;
+              setStageStates((prev) => ({
+                ...prev,
+                synthesis: { ...prev.synthesis, reportStatus: "complete", report: sectionsToMarkdown(statusData.sections!), reportSections: statusData.sections },
+              }));
+              showToast("Synthesis report ready");
+            } else if (statusData.status === "failed") {
+              if (synthPollRef.current) clearInterval(synthPollRef.current);
+              synthPollRef.current = null;
+              setStageStates((prev) => ({ ...prev, synthesis: { ...prev.synthesis, reportStatus: "none" } }));
+            }
+          } catch { /* retry next interval */ }
+        }, 3000);
+      } catch { /* non-fatal */ }
+    }, 2000);
+
+    return () => {
+      clearTimeout(delay);
+      if (synthPollRef.current) { clearInterval(synthPollRef.current); synthPollRef.current = null; }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stageStates]);
+
+  const activeStage = STAGES.find((s) => s.id === activeStageId) ?? SYNTHESIS_STAGE as Stage;
   const activeState = stageStates[activeStageId];
-  const currentQ = activeStage.questions[activeState.currentQuestion];
-  const currentAnswer = activeState.answers[currentQ?.id];
-  const allAnswered = activeState.currentQuestion >= activeStage.questions.length;
+  const currentQ = activeStage.questions[activeState?.currentQuestion];
+  const currentAnswer = activeState?.answers[currentQ?.id];
+  const allAnswered = activeState?.currentQuestion >= activeStage.questions.length;
 
   function updateStage(stageId: string, update: Partial<StageState>) {
     setStageStates((prev) => ({
@@ -4232,48 +4316,91 @@ export function StrategyFlow({
           );
         })}
 
-        {/* Unlock button — far right */}
+        {/* Synthesis tab — far right, shown when all 5 stages are complete */}
         {(() => {
-          const allComplete = Object.values(stageStates).filter((s) => s.reportStatus === "complete").length === 5;
-          return (
-        <>
-          <style>{`
-            @keyframes unlockBounce {
-              0%, 100% { transform: scale(1) translateY(0); background: rgba(163,230,53,0.12); border-color: rgba(163,230,53,0.4); box-shadow: 0 0 0 0 rgba(163,230,53,0); }
-              30% { transform: scale(1.1) translateY(-5px); background: rgba(163,230,53,0.28); border-color: rgba(163,230,53,1); box-shadow: 0 8px 24px 0 rgba(163,230,53,0.35); }
-              50% { transform: scale(1.05) translateY(-2px); background: rgba(163,230,53,0.2); border-color: rgba(163,230,53,0.8); box-shadow: 0 4px 16px 0 rgba(163,230,53,0.2); }
-              70% { transform: scale(1.1) translateY(-5px); background: rgba(163,230,53,0.28); border-color: rgba(163,230,53,1); box-shadow: 0 8px 24px 0 rgba(163,230,53,0.35); }
-            }
-          `}</style>
-          <button
-            onClick={() => setDeckModalOpen(true)}
-            className={allComplete ? "unlock-ready" : undefined}
-            style={{
-              marginLeft: "auto",
-              display: "flex",
-              alignItems: "center",
-              gap: 7,
-              background: "rgba(163,230,53,0.12)",
-              border: "1.5px solid rgba(163,230,53,0.4)",
-              borderRadius: 8,
-              padding: "9px 18px",
-              fontSize: 14,
-              fontWeight: 800,
-              color: "#a3e635",
-              cursor: "pointer",
-              flexShrink: 0,
-              fontFamily: "inherit",
-              whiteSpace: "nowrap",
-              animation: "unlockBounce 2.8s ease-in-out infinite",
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a3e635" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-            </svg>
-            Unlock
-          </button>
-        </>
-          );
+          const synthState = stageStates["synthesis"];
+          const isSynthActive = activeStageId === "synthesis";
+          const isSynthComplete = synthState?.reportStatus === "complete";
+          const isSynthGenerating = synthState?.reportStatus === "generating";
+          const isSynthStale = (synthState?.reportSections as Record<string, unknown> | null)?._stale === true;
+          return allStagesComplete ? (
+            <>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ margin: "0 2px", flexShrink: 0 }}>
+                <path d="M6 4l4 4-4 4" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <style>{`
+                @keyframes synthPulse {
+                  0%, 100% { box-shadow: 0 0 0 0 rgba(163,230,53,0); }
+                  50% { box-shadow: 0 0 12px 2px rgba(163,230,53,0.3); }
+                }
+              `}</style>
+              <button
+                onClick={() => setActiveStageId("synthesis")}
+                style={{
+                  marginLeft: 4,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: isSynthActive ? "rgba(163,230,53,0.12)" : "none",
+                  border: isSynthActive ? "1.5px solid rgba(163,230,53,0.4)" : "1.5px solid transparent",
+                  borderBottom: isSynthActive ? "2px solid #a3e635" : "2px solid transparent",
+                  borderRadius: 8,
+                  padding: "9px 18px",
+                  fontSize: 14,
+                  fontWeight: 800,
+                  color: isSynthActive ? "#a3e635" : "#6b7280",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                  fontFamily: "inherit",
+                  whiteSpace: "nowrap",
+                  height: isMobile ? 64 : 84,
+                  animation: isSynthGenerating ? "synthPulse 2s ease-in-out infinite" : "none",
+                }}
+              >
+                <span
+                  style={{
+                    width: isMobile ? 38 : 52,
+                    height: isMobile ? 38 : 52,
+                    borderRadius: "50%",
+                    background: isSynthComplete ? "#111827" : isSynthActive ? "#111827" : "#f3f4f6",
+                    color: isSynthComplete ? "#a3e635" : isSynthActive ? "#a3e635" : "#9ca3af",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: isMobile ? 13 : 15,
+                    fontWeight: 700,
+                    flexShrink: 0,
+                  }}
+                >
+                  {isSynthComplete ? (
+                    <svg width="16" height="13" viewBox="0 0 12 10" fill="none">
+                      <path d="M1 5l3.5 3.5L11 1" stroke="#a3e635" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : isSynthGenerating ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}>
+                      <path d="M12 2v4m0 12v4m-7.07-3.93l2.83-2.83m8.49-8.49l2.83-2.83M2 12h4m12 0h4m-3.93 7.07l-2.83-2.83M7.76 7.76L4.93 4.93" />
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
+                    </svg>
+                  )}
+                </span>
+                {!isMobile && (
+                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 17, fontWeight: isSynthActive ? 800 : 600, color: isSynthActive ? "#111827" : "#374151" }}>
+                      Synthesis
+                    </span>
+                    {isSynthStale && !isSynthActive && (
+                      <span style={{ fontSize: 9, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "#c2410c", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 10, padding: "1px 6px", flexShrink: 0 }}>
+                        Stale
+                      </span>
+                    )}
+                  </span>
+                )}
+              </button>
+            </>
+          ) : null;
         })()}
       </div>
 
@@ -4366,6 +4493,7 @@ export function StrategyFlow({
                   future_moves:   { bg: "#f5f3ff", text: "#6d28d9", border: "#ddd6fe" },
                   mobilise:       { bg: "#f0fdf4", text: "#065f46", border: "#bbf7d0" },
                   embed:          { bg: "#fffbeb", text: "#92400e", border: "#fde68a" },
+                  synthesis:      { bg: "#f7fee7", text: "#365314", border: "#bef264" },
                   frame:    { bg: "#f9fafb",  text: "#374151", border: "#d1d5db" },
                   diagnose: { bg: "#eff6ff",  text: "#1e40af", border: "#bfdbfe" },
                   decide:   { bg: "#f5f3ff",  text: "#6d28d9", border: "#ddd6fe" },
@@ -4822,7 +4950,7 @@ export function StrategyFlow({
           <div style={{ flex: 1, display: "flex", flexDirection: isMobile ? "column" : "row", minHeight: 0, overflow: "hidden" }}>
 
             {/* LEFT INFO PANEL — stage definition + report sections nav */}
-            {!isMobile && (
+            {!isMobile && activeStageId !== "synthesis" && (
               <div style={{ width: 220, borderRight: "1px solid #e5e7eb", overflowY: "auto", padding: "24px 16px 40px 12px", flexShrink: 0, background: "#fff" }}>
                 {/* Stage badge + name */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
@@ -4867,7 +4995,7 @@ export function StrategyFlow({
             {/* MAIN CONTENT */}
             <div style={{ flex: 1, overflowY: "auto", padding: isMobile ? "16px 16px 80px" : "24px 32px 80px" }}>
               {/* Mobile-only stage header */}
-              {isMobile && (
+              {isMobile && activeStageId !== "synthesis" && (
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 20 }}>
                   <span style={{ width: 28, height: 28, borderRadius: "50%", background: "#111827", color: "#a3e635", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, flexShrink: 0 }}>
                     {currentStageIdx + 1}
@@ -4879,7 +5007,123 @@ export function StrategyFlow({
                 </div>
               )}
 
+              {/* ── Synthesis stage content ── */}
+              {activeStageId === "synthesis" && (() => {
+                const synthState = stageStates["synthesis"];
+                const isSynthGenerating = synthState?.reportStatus === "generating";
+                const isSynthComplete = synthState?.reportStatus === "complete";
+                const synthSections = synthState?.reportSections as Record<string, unknown> | null;
+                const isSynthStale = synthSections?._stale === true;
+                const staledBy = synthSections?._staledBy as string | undefined;
 
+                return (
+                  <div>
+                    {/* Header */}
+                    <div style={{ marginBottom: 24 }}>
+                      <h1 style={{ fontSize: 24, fontWeight: 800, color: "#111827", margin: "0 0 6px" }}>Final Synthesis</h1>
+                      <p style={{ fontSize: 14, color: "#6b7280", margin: 0, lineHeight: 1.5 }}>
+                        Cross-stage contradiction analysis, board-ready transformation report, and readiness dashboard.
+                      </p>
+                    </div>
+
+                    {/* Stale banner */}
+                    {isSynthStale && isSynthComplete && (
+                      <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 8, padding: "12px 16px", marginBottom: 16 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c2410c" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: "#c2410c", margin: 0 }}>
+                            This synthesis is stale{staledBy ? ` — the ${staledBy.replace(/_/g, " ")} stage was re-run` : ""}
+                          </p>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            try {
+                              const res = await fetch("/api/strategy/report", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ stageId: "synthesis", stageName: "Final Synthesis", questions: [], answers: {} }),
+                              });
+                              const data = await res.json() as { jobId?: string };
+                              if (data.jobId) {
+                                setStageStates((prev) => ({
+                                  ...prev,
+                                  synthesis: { ...prev.synthesis, reportStatus: "generating", report: null, reportSections: undefined },
+                                }));
+                                // Start polling for the new synthesis job
+                                const pollSynthesis = setInterval(async () => {
+                                  try {
+                                    const statusRes = await fetch(`/api/strategy/report/status?jobId=${encodeURIComponent(data.jobId!)}`);
+                                    const statusData = await statusRes.json() as { status: string; sections?: Record<string, unknown>; agents?: Record<string, { status: string; name: string }> };
+                                    if (statusData.agents) {
+                                      const parts = Object.values(statusData.agents).map((a) => {
+                                        const label = a.name.replace(/([A-Z])/g, " $1").trim();
+                                        if (a.status === "complete") return `${label} \u2713`;
+                                        if (a.status === "running") return `${label} \u25CB`;
+                                        if (a.status === "failed") return `${label} \u2717`;
+                                        return `${label} \u2022`;
+                                      });
+                                      setProgressMessage(parts.join(" \u00B7 "));
+                                    }
+                                    if (statusData.status === "complete" && statusData.sections) {
+                                      clearInterval(pollSynthesis);
+                                      setStageStates((prev) => ({
+                                        ...prev,
+                                        synthesis: { ...prev.synthesis, reportStatus: "complete", report: sectionsToMarkdown(statusData.sections!), reportSections: statusData.sections },
+                                      }));
+                                      showToast("Synthesis report ready");
+                                    } else if (statusData.status === "failed") {
+                                      clearInterval(pollSynthesis);
+                                      setStageStates((prev) => ({ ...prev, synthesis: { ...prev.synthesis, reportStatus: "none" } }));
+                                    }
+                                  } catch { /* retry next interval */ }
+                                }, 3000);
+                              }
+                            } catch { /* non-fatal */ }
+                          }}
+                          style={{ marginTop: 8, fontSize: 13, fontWeight: 700, color: "#111827", background: "#a3e635", border: "none", borderRadius: 8, padding: "8px 18px", cursor: "pointer", fontFamily: "inherit" }}
+                        >
+                          Regenerate Synthesis
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Generating state */}
+                    {isSynthGenerating && (
+                      <div style={{ background: "#000", borderRadius: 10, padding: "16px 24px", marginBottom: 28 }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: "#fff", margin: 0 }}>Generating Final Synthesis...</p>
+                          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", margin: 0 }}>{progressMessage}</p>
+                        </div>
+                        <div style={{ height: 4, background: "rgba(255,255,255,0.2)", borderRadius: 2, overflow: "hidden" }}>
+                          <div style={{ height: "100%", background: "#a3e635", borderRadius: 2, width: `${progressValue}%`, transition: "width 300ms ease-out" }} />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Complete — render report */}
+                    {isSynthComplete && synthState?.report && (
+                      <div>
+                        <button
+                          onClick={() => setReportModalOpen(true)}
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left", width: "100%", fontFamily: "inherit" }}
+                        >
+                          {renderReport(synthState.report, synthSections ?? undefined)}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Not started — waiting */}
+                    {!isSynthGenerating && !isSynthComplete && (
+                      <div style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 10, padding: "24px 20px", textAlign: "center" }}>
+                        <p style={{ fontSize: 14, color: "#6b7280", margin: "0 0 4px" }}>Synthesis will be generated automatically when all five stages are complete.</p>
+                        <p style={{ fontSize: 12, color: "#9ca3af", margin: 0 }}>The backend will trigger ContradictionEngine, ReportBuilder, and DashboardBuilder in sequence.</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {activeStageId !== "synthesis" && <>
                   {/* Definition — mobile only (desktop shows it in left info panel) */}
                   {isMobile && (
                     <div style={{ marginBottom: 24 }}>
@@ -5292,10 +5536,11 @@ export function StrategyFlow({
                     </div>
                   )}
 
+              </>}
             </div>
 
             {/* RIGHT SIDEBAR — hidden on mobile */}
-            {!isMobile && (
+            {!isMobile && activeStageId !== "synthesis" && (
               <div style={{ width: 550, borderLeft: "1px solid #e5e7eb", flexShrink: 0, display: "flex", flexDirection: "row" }}>
 
                 {/* LEFT SUB-COLUMN: KNOWLEDGE BASE */}

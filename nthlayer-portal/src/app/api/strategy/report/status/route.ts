@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { checkStrategySession, advanceTransformationSession, TRANSFORMATION_STAGE_IDS, type TransformationJobState, type CompanyContext } from "@/lib/agents/strategy-sessions";
+import { checkStrategySession, advanceTransformationSession, triggerSynthesisIfReady, TRANSFORMATION_STAGE_IDS, type TransformationJobState, type CompanyContext } from "@/lib/agents/strategy-sessions";
 import { getUserCompanies } from "@/lib/entitlements";
 import { sendReportCompleteNotification } from "@/lib/email";
 
@@ -306,10 +306,11 @@ const TRANSFORMATION_STAGE_TAGS: Record<string, string[]> = {
   future_moves:   ["Automation Opportunities", "Build/Buy/Partner", "Move Portfolio"],
   mobilise:       ["Leadership Alignment", "Sponsor Conviction", "Resistance Map"],
   embed:          ["Success Criteria", "Measurement Framework", "Board Proof Points"],
+  synthesis:      ["Cross-Stage Contradictions", "Board Report", "Readiness Dashboard", "Knowledge Cards"],
 };
 
 const STAGE_NAMES: Record<string, string> = {
-  why_now: "Why Now", current_state: "Current State", future_moves: "Future Moves", mobilise: "Mobilise", embed: "Embed",
+  why_now: "Why Now", current_state: "Current State", future_moves: "Future Moves", mobilise: "Mobilise", embed: "Embed", synthesis: "Final Synthesis",
 };
 
 async function handleTransformationStatus(req: NextRequest, jobId: string) {
@@ -435,6 +436,14 @@ async function handleTransformationStatus(req: NextRequest, jobId: string) {
         workflowType,
         counts: { actions: allRecs, risks: 0, assumptions: allFindings, metrics: 0 },
       });
+
+      // Auto-trigger synthesis after the 5th stage completes
+      const SYNTHESIS_TRIGGER_STAGES = ["why_now", "current_state", "future_moves", "mobilise", "embed"];
+      if (SYNTHESIS_TRIGGER_STAGES.includes(workflowType)) {
+        triggerSynthesisIfReady(job.companyId, user.id, companyContext).catch((err) =>
+          console.error("[synthesis] Auto-trigger failed:", err),
+        );
+      }
     }
 
     if (result.status === "failed") {

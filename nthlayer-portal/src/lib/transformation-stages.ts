@@ -1403,6 +1403,15 @@ const EMBED: Stage = {
   ],
 };
 
+const SYNTHESIS: Stage = {
+  id: "synthesis",
+  name: "Final Synthesis",
+  purpose: "Cross-stage contradiction analysis, board-ready transformation report, and live readiness dashboard.",
+  output: "Contradictions report, full transformation plan, readiness radar, move portfolio, knowledge cards",
+  runButtonLabel: "",
+  questions: [],
+};
+
 // ─── Exports ─────────────────────────────────────────────────────────────────
 
 export const TRANSFORMATION_STAGES: Stage[] = [
@@ -1412,6 +1421,8 @@ export const TRANSFORMATION_STAGES: Stage[] = [
   MOBILISE,
   EMBED,
 ];
+
+export const SYNTHESIS_STAGE: Stage = SYNTHESIS;
 
 export const TRANSFORMATION_STAGE_HERO: Record<
   string,
@@ -1477,6 +1488,18 @@ export const TRANSFORMATION_STAGE_HERO: Record<
       "Measurement Framework",
       "Baseline Evidence",
       "Board Proof Points",
+    ],
+  },
+  synthesis: {
+    tagline: "Final Synthesis",
+    description:
+      "Synthesise all five stages into a board-ready transformation report with cross-stage contradiction analysis and readiness dashboard.",
+    goal: "Synthesise all five stages into a board-ready transformation report",
+    deliverables: [
+      "Cross-Stage Contradictions",
+      "Board Report",
+      "Readiness Dashboard",
+      "Knowledge Cards",
     ],
   },
 };

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getUserCompanies } from "@/lib/entitlements";
-import { createStrategySession, createTransformationSession, TRANSFORMATION_STAGE_IDS, type PriorStageSummary } from "@/lib/agents/strategy-sessions";
+import { createStrategySession, createTransformationSession, createSynthesisSession, TRANSFORMATION_STAGE_IDS, type PriorStageSummary } from "@/lib/agents/strategy-sessions";
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,7 +27,8 @@ export async function POST(req: NextRequest) {
 
     const VALID_STAGES = ["frame", "diagnose", "decide", "position", "commit"];
     const isTransformation = TRANSFORMATION_STAGE_IDS.includes(stageId);
-    if (!VALID_STAGES.includes(stageId) && !isTransformation) {
+    const isSynthesis = stageId === "synthesis";
+    if (!VALID_STAGES.includes(stageId) && !isTransformation && !isSynthesis) {
       return NextResponse.json({ error: "Unknown stage" }, { status: 400 });
     }
 
@@ -58,6 +59,24 @@ export async function POST(req: NextRequest) {
       competitors,
     };
 
+    if (isSynthesis) {
+      // ── Synthesis trigger (or return existing running job) ──
+      const companyId = newCompany?.id;
+      if (!companyId) {
+        return NextResponse.json({ error: "Company not found" }, { status: 404 });
+      }
+      // Check for an already-running synthesis job
+      const existingJob = await db.job.findFirst({
+        where: { companyId, workflowType: "synthesis", status: "running" },
+        select: { id: true },
+      });
+      if (existingJob) {
+        return NextResponse.json({ jobId: existingJob.id });
+      }
+      const { jobId } = await createSynthesisSession(companyId, user.id, companyContext);
+      return NextResponse.json({ jobId });
+    }
+
     if (isTransformation) {
       // ── Transformation multi-agent flow ──
       const transformationState = await createTransformationSession({
@@ -84,6 +103,24 @@ export async function POST(req: NextRequest) {
             },
           });
           jobId = job.id;
+
+          // Mark any existing synthesis Output as stale when a prior stage is re-run
+          const existingSynthesis = await db.output.findFirst({
+            where: { companyId, workflowType: "synthesis" },
+            orderBy: { createdAt: "desc" },
+          });
+          if (existingSynthesis) {
+            await db.output.update({
+              where: { id: existingSynthesis.id },
+              data: {
+                sections: {
+                  ...(existingSynthesis.sections as object),
+                  _stale: true,
+                  _staledBy: stageId,
+                } as object,
+              },
+            });
+          }
         } catch {
           // Non-fatal
         }
