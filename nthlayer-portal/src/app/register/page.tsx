@@ -57,7 +57,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/transformation");
+      router.push("/inflexion/overview");
       router.refresh();
     } catch {
       setError("Something went wrong");

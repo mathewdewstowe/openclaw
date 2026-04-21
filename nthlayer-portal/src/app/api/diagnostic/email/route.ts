@@ -3,7 +3,7 @@ import { db as prisma } from '@/lib/db';
 import { sendEmail } from '@/lib/email';
 import { DiagnosticScores } from '@/lib/diagnostic/scoring';
 
-const BASE_URL = 'https://inflexion.nthlayer.co.uk';
+const BASE_URL = process.env.WORKER_URL || 'https://nthlayer-portal.matthewdewstowe.workers.dev';
 
 function scoreBar(score: number): string {
   const filled = Math.round(score / 2);

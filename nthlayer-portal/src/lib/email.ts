@@ -1,6 +1,6 @@
 const ADMIN_EMAIL = "matthew@nthlayer.co.uk";
 const FROM = "Nth Layer <noreply@nthlayer.co.uk>";
-const BASE_URL = "https://inflexion.nthlayer.co.uk";
+const BASE_URL = process.env.WORKER_URL || "https://nthlayer-portal.matthewdewstowe.workers.dev";
 
 /**
  * Send email via Resend API (raw fetch — works on Cloudflare Workers).
@@ -106,7 +106,7 @@ export function sendNewUserNotification({
   company?: string;
   jobTitle?: string;
 }) {
-  const appUrl = `${BASE_URL}/transformation/inflexion/overview`;
+  const appUrl = `${BASE_URL}/inflexion/overview`;
 
   // Welcome email to new user
   const welcomeHtml = baseTemplate(`
