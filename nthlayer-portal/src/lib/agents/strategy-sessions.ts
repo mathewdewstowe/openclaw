@@ -1275,6 +1275,9 @@ export async function checkStrategySession(sessionId: string): Promise<{
     });
     const events = (eventsPage as { data?: unknown[] }).data ?? [];
 
+    const eventTypes = events.map((e) => (e as Record<string, unknown>).type);
+    console.log(`[checkSession] ${sessionId.slice(-8)} | status=${session.status} | events=${events.length} | types=${JSON.stringify(eventTypes.slice(-5))}`);
+
     // ── Check for agent.custom_tool_use (agent complete) ──
     const toolEvent = events.find(
       (e) => (e as Record<string, unknown>).type === "agent.custom_tool_use"
@@ -1287,11 +1290,13 @@ export async function checkStrategySession(sessionId: string): Promise<{
       // Archive session to keep Console tidy
       await client.beta.sessions.archive(sessionId).catch(() => {});
 
+      console.log(`[checkSession] ${sessionId.slice(-8)} → COMPLETE (keys: ${Object.keys(sections).join(", ")})`);
       return { status: "complete", sections };
     }
 
     // ── Session terminated without output ──
     if (session.status === "terminated") {
+      console.error(`[checkSession] ${sessionId.slice(-8)} → TERMINATED`);
       return { status: "failed" };
     }
 
@@ -1304,10 +1309,13 @@ export async function checkStrategySession(sessionId: string): Promise<{
         ? ((lastIdleEvent as Record<string, unknown>).stop_reason as Record<string, unknown> | undefined)
         : undefined;
 
+      console.log(`[checkSession] ${sessionId.slice(-8)} idle | stopReason=${stopReason?.type ?? "none"}`);
+
       if (stopReason?.type === "requires_action") {
         const pendingIds = (stopReason.event_ids as string[]) ?? [];
 
         if (pendingIds.length > 0) {
+          console.log(`[checkSession] ${sessionId.slice(-8)} auto-approving ${pendingIds.length} tool calls`);
           await client.beta.sessions.events.send(sessionId, {
             events: pendingIds.map((id) => ({
               type: "user.tool_confirmation" as const,
@@ -1319,7 +1327,7 @@ export async function checkStrategySession(sessionId: string): Promise<{
       } else if (stopReason?.type === "end_turn" || (!stopReason && events.length > 0)) {
         // Agent finished its turn without calling the custom tool — it returned text instead.
         // This is a failure condition: the agent must always call produce_strategic_diagnosis.
-        console.error("[checkStrategySession] Session idle with end_turn but no tool event — agent did not call tool");
+        console.error(`[checkSession] ${sessionId.slice(-8)} → FAILED: idle with end_turn but no tool event`);
         return { status: "failed" };
       }
     }
@@ -1329,11 +1337,11 @@ export async function checkStrategySession(sessionId: string): Promise<{
     const errMsg = String(err);
     // If session not found (archived/expired), treat as failed not pending
     if (errMsg.includes("404") || errMsg.includes("not found") || errMsg.includes("not_found")) {
-      console.error("[checkStrategySession] Session not found (archived/expired):", sessionId);
+      console.error("[checkSession] Session not found (archived/expired):", sessionId);
       return { status: "failed" };
     }
     // Non-fatal — next poll will retry
-    console.error("[checkStrategySession] Error:", err);
+    console.error("[checkSession] Error checking session:", sessionId, err);
     return { status: "pending" };
   }
 }
@@ -1449,7 +1457,7 @@ export async function createTransformationSession(
     "",
     formattedAnswers,
     "",
-    `Call the produce_transformation_analysis tool with your complete analysis when you are done.`,
+    `Call the produce_strategic_diagnosis tool with your complete analysis when you are done.`,
   ].filter((line) => line !== null).join("\n");
 
   // Initialise agent states
@@ -1470,18 +1478,25 @@ export async function createTransformationSession(
 
     launchPromises.push(
       (async () => {
-        const session = await client.beta.sessions.create({
-          agent: agentId,
-          environment_id: ENVIRONMENT_ID,
-          title: `${stageName} — ${agentDef.name} — ${company.name}`,
-          metadata: { stageId, agentName: agentDef.name, companyName: company.name },
-        });
+        try {
+          const session = await client.beta.sessions.create({
+            agent: agentId,
+            environment_id: ENVIRONMENT_ID,
+            title: `${stageName} — ${agentDef.name} — ${company.name}`,
+            metadata: { stageId, agentName: agentDef.name, companyName: company.name },
+          });
 
-        await client.beta.sessions.events.send(session.id, {
-          events: [{ type: "user.message", content: [{ type: "text", text: baseMessage }] }],
-        });
+          console.log(`[transformation] Launched ${agentDef.name} → session ${session.id}`);
 
-        agentStates[agentDef.name].sessionId = session.id;
+          await client.beta.sessions.events.send(session.id, {
+            events: [{ type: "user.message", content: [{ type: "text", text: baseMessage }] }],
+          });
+
+          agentStates[agentDef.name].sessionId = session.id;
+        } catch (err) {
+          console.error(`[transformation] Failed to launch ${agentDef.name}:`, err);
+          agentStates[agentDef.name].status = "failed";
+        }
       })()
     );
   }
@@ -1511,6 +1526,9 @@ export async function advanceTransformationSession(
   if (!stageDef) return { state, status: "failed", agents: {} };
 
   const agentProgress: Record<string, { status: string; name: string }> = {};
+
+  const agentSummary = stageDef.agents.map((a) => `${a.name}=${state.agents[a.name]?.status ?? "?"}`).join(", ");
+  console.log(`[advance] ${state.stageId} | ${agentSummary}`);
 
   // Check all running agents
   for (const agentDef of stageDef.agents) {
@@ -1579,7 +1597,7 @@ export async function advanceTransformationSession(
       "",
       `You are the ${agentDef.name} agent. The above upstream analysis has been completed by other agents. Use their findings as input to your synthesis.`,
       "",
-      `Call the produce_transformation_analysis tool with your complete analysis when you are done.`,
+      `Call the produce_strategic_diagnosis tool with your complete analysis when you are done.`,
     ].join("\n");
 
     try {
