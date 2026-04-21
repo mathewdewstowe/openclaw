@@ -16,6 +16,7 @@ const publicPaths = [
   "/api/diagnostic/verdict",
   "/api/diagnostic/save",
   "/api/diagnostic/email",
+  "/api/diagnostic/lead",
   "/onboarding",
   "/one-pager",
 ];

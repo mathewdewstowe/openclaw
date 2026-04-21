@@ -503,6 +503,25 @@ model StrategicBetSelection {
   @@map("strategic_bet_selections")
 }
 
+// ─── Quick Diagnostic ─────────────────────────────────────────
+
+model Diagnostic {
+  id           String   @id @default(cuid())
+  workspaceId  String?
+  productScore Int
+  peopleScore  Int
+  processScore Int
+  answers      Json
+  verdict      Json
+  email        String?
+  sessionId    String   @default("")
+  createdAt    DateTime @default(now())
+
+  @@index([email])
+  @@index([sessionId])
+  @@map("diagnostics")
+}
+
 // ─── Inflexion Waitlist ───────────────────────────────────────
 
 model WaitlistEntry {

@@ -57,7 +57,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/inflexion/strategy");
+      router.push("/transformation");
       router.refresh();
     } catch {
       setError("Something went wrong");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 /* ─── Nth Layer Marketing One-Pager — nthlayer.co.uk branding ──────────── */
 /* Palette: white bg, #0d2b3e navy, Playfair Display headings, Inter body  */
@@ -9,6 +9,24 @@ type WaitlistState = "idle" | "loading" | "success" | "error";
 
 export default function OnePagerPage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const typewriterTarget = "built in hours — not months";
+  const [typed, setTyped] = useState("");
+  const [typingDone, setTypingDone] = useState(false);
+  useEffect(() => {
+    let i = 0;
+    const delay = setTimeout(() => {
+      const interval = setInterval(() => {
+        i++;
+        setTyped(typewriterTarget.slice(0, i));
+        if (i >= typewriterTarget.length) {
+          clearInterval(interval);
+          setTypingDone(true);
+        }
+      }, 45);
+      return () => clearInterval(interval);
+    }, 600);
+    return () => clearTimeout(delay);
+  }, []);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", company: "", role: "" });
   const [waitlistState, setWaitlistState] = useState<WaitlistState>("idle");
@@ -111,7 +129,7 @@ export default function OnePagerPage() {
                     className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold mb-4"
                     style={{ background: "#f0fdf4", color: "#16a34a" }}
                   >
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#a3e635", display: "inline-block" }} />
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#ff7a2f", display: "inline-block" }} />
                     Early Waitlist
                   </div>
                   <h3
@@ -247,36 +265,53 @@ export default function OnePagerPage() {
         </nav>
 
         {/* ── HERO ───────────────────────────────────────────────────────── */}
-        <section className="py-14 sm:py-20">
+        <section className="py-14 sm:py-20" style={{ background: "#1a3d1e" }}>
           <div className="mx-auto max-w-7xl px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
               {/* Left */}
               <div>
                 <div
                   className="inline-flex items-center rounded-full border px-4 py-1.5 text-xs font-medium tracking-wide uppercase mb-5"
-                  style={{ borderColor: "#0d2b3e", color: "#0d2b3e" }}
+                  style={{ borderColor: "rgba(255,255,255,0.35)", color: "rgba(255,255,255,0.8)" }}
                 >
                   Inflexion
                 </div>
                 <h1
                   className="text-4xl sm:text-5xl lg:text-[3.5rem] leading-[1.15] mb-6"
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#0d2b3e", fontWeight: 400 }}
+                  style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#ffffff", fontWeight: 400 }}
                 >
-                  Board-ready Product Strategy, built in hours — not months
+                  Board-ready Product Strategy,{" "}
+                  <span className="block" style={{ color: "#ff7a2f" }}>
+                    {typed}
+                    {!typingDone && (
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: "2px",
+                          height: "0.85em",
+                          background: "#ff7a2f",
+                          marginLeft: 2,
+                          verticalAlign: "middle",
+                          animation: "blink 0.8s step-end infinite",
+                        }}
+                      />
+                    )}
+                  </span>
                 </h1>
+                <style>{`@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }`}</style>
               </div>
               {/* Right */}
               <div className="pt-4 lg:pt-16">
-                <p className="text-lg leading-relaxed mb-8" style={{ color: "#4a4a4a" }}>
+                <p className="text-lg leading-relaxed mb-8" style={{ color: "rgba(255,255,255,0.72)" }}>
                   Markets shift. Competitors move. Technology rewrites the rules.{" "}
                   Inflexion takes you from &ldquo;something changed&rdquo; to a committed direction, strategic bets, and a 100-day execution plan &mdash; backed by live evidence, not gut feel.
                 </p>
                 <button
                   onClick={openWaitlist}
                   className="inline-flex items-center gap-2 px-8 py-3.5 text-sm font-semibold text-white"
-                  style={{ background: "#0d2b3e", borderRadius: 8 }}
+                  style={{ background: "#ff7a2f", borderRadius: 8 }}
                 >
-                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#a3e635", display: "inline-block" }} />
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#ffffff", display: "inline-block" }} />
                   Waitlist
                 </button>
               </div>
@@ -403,7 +438,7 @@ export default function OnePagerPage() {
         </section>
 
         {/* ── HOW IT WORKS ───────────────────────────────────────────────── */}
-        <section className="py-12 sm:py-16" style={{ background: "#0d2b3e" }}>
+        <section className="py-12 sm:py-16" style={{ background: "#1a3d1e" }}>
           <div className="mx-auto max-w-7xl px-6">
             <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>
               How It Works
@@ -536,7 +571,7 @@ export default function OnePagerPage() {
               className="inline-flex items-center gap-2 px-10 py-4 text-base font-semibold rounded-lg"
               style={{ background: "#ffffff", color: "#0d2b3e" }}
             >
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#a3e635", display: "inline-block" }} />
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#ff7a2f", display: "inline-block" }} />
               Waitlist
             </button>
           </div>

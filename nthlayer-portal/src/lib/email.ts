@@ -106,18 +106,18 @@ export function sendNewUserNotification({
   company?: string;
   jobTitle?: string;
 }) {
-  const appUrl = `${BASE_URL}/inflexion/overview`;
+  const appUrl = `${BASE_URL}/transformation/inflexion/overview`;
 
   // Welcome email to new user
   const welcomeHtml = baseTemplate(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px">Welcome to Inflexion, ${name}</h2>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px">Your account is set up and ready. Inflexion runs your strategy end-to-end — from framing the problem to committing to a plan.</p>
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px">Your account is set up and ready. Inflexion turns "we need an AI strategy" into a costed, sequenced, board-ready transformation plan.</p>
 
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-left:4px solid #a3e635;border-radius:8px;padding:16px 20px;margin-bottom:24px">
       <p style="font-size:13px;font-weight:600;color:#111827;margin:0 0 6px">Get started in 3 steps</p>
       <p style="font-size:13px;color:#6b7280;margin:0 0 4px">1. Complete your company profile</p>
-      <p style="font-size:13px;color:#6b7280;margin:0 0 4px">2. Run the Frame stage to define the strategic problem</p>
-      <p style="font-size:13px;color:#6b7280;margin:0">3. Work through each stage to build your full strategy</p>
+      <p style="font-size:13px;color:#6b7280;margin:0 0 4px">2. Run the Why Now stage to establish urgency and triggers</p>
+      <p style="font-size:13px;color:#6b7280;margin:0">3. Work through each stage to get your final transformation report</p>
     </div>
 
     <a href="${appUrl}" style="display:inline-block;background:#111827;color:#fff;font-size:14px;font-weight:600;padding:12px 24px;border-radius:8px;text-decoration:none">Open Inflexion →</a>
@@ -153,6 +153,7 @@ export function sendNewUserNotification({
 }
 
 const STAGE_NAMES: Record<string, string> = {
+  why_now: "Why Now", current_state: "Current State", future_moves: "Future Moves", mobilise: "Mobilise", embed: "Embed",
   frame: "Frame", diagnose: "Diagnose", decide: "Decide", position: "Position", bet: "Bet", commit: "Commit",
 };
 

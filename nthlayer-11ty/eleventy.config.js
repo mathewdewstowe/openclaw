@@ -1,12 +1,11 @@
 export default function (eleventyConfig) {
-  eleventyConfig.addPassthroughCopy({ "mirror/nthlayer.co.uk/wp-content": "wp-content" });
-  eleventyConfig.addPassthroughCopy({ "mirror/nthlayer.co.uk/wp-includes": "wp-includes" });
-  eleventyConfig.addPassthroughCopy({ "mirror/nthlayer.co.uk/wp-json": "wp-json" });
-  eleventyConfig.addPassthroughCopy({ "mirror/nthlayer.co.uk/robots.txt": "robots.txt" });
+  eleventyConfig.addPassthroughCopy({ "src/assets": "assets" });
 
   return {
     dir: {
-      input: "mirror/nthlayer.co.uk",
+      input: "src",
+      includes: "_includes",
+      data: "_data",
       output: "_site"
     }
   };

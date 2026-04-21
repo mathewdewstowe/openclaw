@@ -1172,7 +1172,7 @@
   /* ── HERO SUBTEXT ── */
   .hero-subtext {
     font-size: 20px;
-    color: rgba(255,255,255,0.45);
+    color: rgba(255,255,255,0.95);
     line-height: 1.75;
     max-width: 780px;
     margin-top: 20px;
@@ -1461,20 +1461,6 @@
       <a href="#contact" class="btn-diag">Get in touch &rarr;</a>
     </div>
   </div>
-  <div class="hero-right">
-    <div class="hero-card">
-      <div class="hero-card-label">Quick Diagnostic</div>
-      <h2 class="hero-card-heading">Find out where you stand in 10 minutes</h2>
-      <p class="hero-card-body">Answer five questions about your product, stack, and team. We return a board-ready view of your exposure, your options, and what to do next.</p>
-      <div class="hero-card-points">
-        <div class="hero-card-point">Where AI creates real advantage in your market</div>
-        <div class="hero-card-point">What's blocking you before you spend another pound</div>
-        <div class="hero-card-point">The two or three bets worth funding — and what to cut</div>
-        <div class="hero-card-point">A 90-day action plan your board can track</div>
-      </div>
-      <a href="#diagnostic" class="hero-card-cta">Start the Diagnostic &rarr;</a>
-    </div>
-  </div>
 </section>
 
 <!-- ═══ OUTCOMES STRIP ═══ -->
@@ -1584,43 +1570,43 @@
           <div class="service-row">
             <span class="service-n">01</span>
             <div>
-              <h3 class="service-name">AI Strategy &amp; Portfolio Design</h3>
-              <p class="service-outcome">You leave with two or three funded bets, explicit kill criteria, and a clear owner for each. Everything else is explicitly deprioritised. That&rsquo;s the value.</p>
+              <h3 class="service-name">AI Transformation Strategy</h3>
+              <p class="service-outcome">Where to play, what to fund, what to stop. Two or three costed bets with clear owners and explicit kill criteria &mdash; not a roadmap that hedges everything.</p>
             </div>
           </div>
           <div class="service-row">
             <span class="service-n">02</span>
             <div>
-              <h3 class="service-name">Agentic Infrastructure Audit &amp; Build</h3>
-              <p class="service-outcome">Identifies what&rsquo;s blocking your AI before you spend another pound on tooling. CRM, ERP, ATS &mdash; assessed and mapped. Buy, build, or rent specified for each component.</p>
+              <h3 class="service-name">Operating Model Redesign</h3>
+              <p class="service-outcome">The workflows that have to change before AI can work. Rebuilt from first principles &mdash; not automation layered on broken infrastructure.</p>
             </div>
           </div>
           <div class="service-row">
             <span class="service-n">03</span>
             <div>
-              <h3 class="service-name">Product Operating Model Redesign</h3>
-              <p class="service-outcome">AI embedded in product isn&rsquo;t a feature &mdash; it&rsquo;s a different contract with your users. The operating model gets redesigned around non-deterministic outputs: new QA loops, human-in-the-loop design, confidence thresholds, and the accountability structures that make it shippable.</p>
+              <h3 class="service-name">Agentic Product Build</h3>
+              <p class="service-outcome">From validated bet to working product. The minimum version scoped, built, and instrumented &mdash; so the next stage is funded on evidence, not assumption.</p>
             </div>
           </div>
           <div class="service-row">
             <span class="service-n">04</span>
             <div>
-              <h3 class="service-name">AI Governance &amp; Risk Framework</h3>
-              <p class="service-outcome">Policies, accountability structures, and audit trails that satisfy boards, regulators, and acquirers. AI governance built for companies that will be scrutinised at exit.</p>
+              <h3 class="service-name">Infrastructure &amp; Stack Audit</h3>
+              <p class="service-outcome">What&rsquo;s blocking your AI before you spend another pound on tooling. CRM, ERP, ATS assessed and mapped. Build, buy, or rent specified per component.</p>
             </div>
           </div>
           <div class="service-row">
             <span class="service-n">05</span>
             <div>
-              <h3 class="service-name">Workflow &amp; Commercial Transformation</h3>
-              <p class="service-outcome">Revenue-generating and cost-removing workflows get redesigned from first principles. Every change is tied to a commercial outcome &mdash; not AI for its own sake, but AI that moves the number the board is watching.</p>
+              <h3 class="service-name">Commercial AI Deployment</h3>
+              <p class="service-outcome">Revenue-generating and cost-removing workflows deployed against specific board-level targets. AI that moves the number &mdash; not AI for its own sake.</p>
             </div>
           </div>
           <div class="service-row">
             <span class="service-n">06</span>
             <div>
-              <h3 class="service-name">AI MVP Build</h3>
-              <p class="service-outcome">From validated bet to working product in weeks, not quarters. The minimum version gets scoped, built, and instrumented to prove the unit economics &mdash; so you fund the next stage on evidence, not assumption.</p>
+              <h3 class="service-name">Governance &amp; Risk Framework</h3>
+              <p class="service-outcome">Policies, accountability structures, and audit trails that satisfy boards, regulators, and acquirers. Built for companies that will be scrutinised at exit.</p>
             </div>
           </div>
         </div>
@@ -1767,8 +1753,7 @@
     var phrases = [
       'How does AI change our Product?',
       'How does AI change our Processes?',
-      'How does AI change our People?',
-      'What does the business look like in 3 years?'
+      'How does AI change our People?'
     ];
     var cursor = document.createElement('span');
     cursor.className = 'tw-cursor';
@@ -1851,15 +1836,20 @@
   <div style="background:#f5f4f1; border-radius:12px; max-width:480px; margin:80px auto 40px; padding:44px 40px; position:relative; font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;">
     <button onclick="closeDiagIntro()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#999;font-size:20px;cursor:pointer;line-height:1;">✕</button>
     <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#111;border:1px solid #ccc;display:inline-block;padding:5px 13px;border-radius:100px;margin-bottom:28px;">Quick Diagnostic</div>
-    <h2 style="font-size:clamp(22px,2.5vw,30px);font-weight:700;letter-spacing:-0.03em;line-height:1.15;color:#111;margin-bottom:16px;">Find out where you stand in 10 minutes</h2>
-    <p style="font-size:15px;color:#666;line-height:1.75;margin-bottom:32px;">Answer five questions about your product, stack, and team. We return a board-ready view of your exposure, your options, and what to do next.</p>
+    <h2 style="font-size:clamp(22px,2.5vw,30px);font-weight:700;letter-spacing:-0.03em;line-height:1.15;color:#111;margin-bottom:16px;">Find out where you stand in 2 minutes</h2>
+    <p style="font-size:15px;color:#666;line-height:1.75;margin-bottom:32px;">Answer six questions about your product, stack, and team. We return a board-ready view of your exposure, your options, and what to do next.</p>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:32px;">
       <div style="display:flex;align-items:flex-start;gap:12px;font-size:14px;color:#333;line-height:1.5;"><span style="color:#39ff7a;font-weight:700;flex-shrink:0;margin-top:1px;">→</span>Where AI creates real advantage in your market</div>
       <div style="display:flex;align-items:flex-start;gap:12px;font-size:14px;color:#333;line-height:1.5;"><span style="color:#39ff7a;font-weight:700;flex-shrink:0;margin-top:1px;">→</span>What's blocking you before you spend another pound</div>
       <div style="display:flex;align-items:flex-start;gap:12px;font-size:14px;color:#333;line-height:1.5;"><span style="color:#39ff7a;font-weight:700;flex-shrink:0;margin-top:1px;">→</span>The two or three bets worth funding — and what to cut</div>
       <div style="display:flex;align-items:flex-start;gap:12px;font-size:14px;color:#333;line-height:1.5;"><span style="color:#39ff7a;font-weight:700;flex-shrink:0;margin-top:1px;">→</span>A 90-day action plan your board can track</div>
     </div>
-    <button onclick="openDiagFromIntro()" style="display:block;width:100%;background:#39ff7a;border:none;color:#0a1a0d;padding:16px 24px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;text-align:center;font-family:inherit;box-shadow:0 0 18px rgba(57,255,122,0.35);border-radius:4px;cursor:pointer;">Start the Diagnostic →</button>
+    <div style="margin-bottom:16px;">
+      <label for="diagIntroEmail" style="display:block;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:8px;">Email address <span style="color:#e53e3e;">*</span></label>
+      <input id="diagIntroEmail" type="email" placeholder="you@company.com" style="width:100%;background:#fff;border:1px solid #d8d8d4;color:#111;padding:13px 16px;font-size:14px;font-family:inherit;outline:none;border-radius:4px;transition:border-color 0.15s;box-sizing:border-box;" onfocus="this.style.borderColor='#999'" onblur="this.style.borderColor='#d8d8d4'" />
+      <div id="diagIntroEmailError" style="display:none;font-size:12px;color:#e53e3e;margin-top:6px;"></div>
+    </div>
+    <button id="diagIntroSubmitBtn" onclick="submitDiagIntro()" style="display:block;width:100%;background:#39ff7a;border:none;color:#0a1a0d;padding:16px 24px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;text-align:center;font-family:inherit;box-shadow:0 0 18px rgba(57,255,122,0.35);border-radius:4px;cursor:pointer;transition:opacity 0.2s;">Start the Diagnostic →</button>
   </div>
 </div>
 
@@ -2017,6 +2007,7 @@
   window.__diagId = null;
   window.__diagScores = null;
   window.__diagVerdict = null;
+  window.__diagEmail = null;
 
   function openDiag(e) {
     if (e) e.preventDefault();
@@ -2030,14 +2021,48 @@
     document.body.style.overflow = '';
   }
 
-  function openDiagFromIntro() {
-    closeDiagIntro();
-    openDiagQuestions();
+  async function submitDiagIntro() {
+    var emailInput = document.getElementById('diagIntroEmail');
+    var errorEl = document.getElementById('diagIntroEmailError');
+    var btn = document.getElementById('diagIntroSubmitBtn');
+    var email = emailInput.value.trim();
+
+    // Reset error
+    errorEl.style.display = 'none';
+    emailInput.style.borderColor = '#d8d8d4';
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errorEl.textContent = 'Please enter a valid email address.';
+      errorEl.style.display = 'block';
+      emailInput.style.borderColor = 'rgba(229,62,62,0.6)';
+      emailInput.focus();
+      return;
+    }
+
+    // Capture lead (fire-and-forget — don't block the user)
+    btn.textContent = 'Starting…';
+    btn.style.opacity = '0.7';
+    btn.style.cursor = 'default';
+    try {
+      fetch('/api/diagnostic/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email }),
+      }).catch(function() {});
+    } catch(e) {}
+
+    openDiagFromIntro(email);
   }
 
-  function openDiagQuestions() {
+  function openDiagFromIntro(email) {
+    closeDiagIntro();
+    openDiagQuestions(email);
+  }
+
+  function openDiagQuestions(email) {
     diagIndex = 0; diagSelections = [];
-    window.__diagId = null; window.__diagScores = null; window.__dialogVerdict = null;
+    window.__diagId = null; window.__diagScores = null; window.__diagVerdict = null;
+    window.__diagEmail = email || null;
     document.getElementById('diagLoading').style.display = 'none';
     document.getElementById('diagResult').style.display = 'none';
     document.getElementById('diagQuestion').style.display = 'block';
@@ -2055,7 +2080,7 @@
     document.getElementById('diagQuestion').style.display = 'block';
     document.getElementById('diagAnswers').style.display = 'flex';
     diagIndex = 0; diagSelections = [];
-    window.__diagId = null; window.__diagScores = null; window.__diagVerdict = null;
+    window.__diagId = null; window.__diagScores = null; window.__diagVerdict = null; window.__diagEmail = null;
   }
 
   function renderDiagQ() {
@@ -2245,6 +2270,11 @@
     window.__diagVerdict = verdict;
 
     document.getElementById('diagLoading').style.display = 'none';
+    // Pre-fill email from intro if available
+    if (window.__diagEmail) {
+      var emailInput = document.getElementById('diagEmailResultInput');
+      if (emailInput) emailInput.value = window.__diagEmail;
+    }
     showDiagResult(scores, verdict);
   }
 

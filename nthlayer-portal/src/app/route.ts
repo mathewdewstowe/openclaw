@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (user) {
-    return NextResponse.redirect(new URL("/inflexion/strategy", req.url));
+    return NextResponse.redirect(new URL("/transformation", req.url));
   }
 
   // Unauthenticated: redirect to marketing page (history.replaceState in new.html

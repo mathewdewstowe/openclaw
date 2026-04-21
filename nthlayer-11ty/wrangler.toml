@@ -1,3 +1,10 @@
-name = "nthlayer-site"
+name = "nthlayer-website-new"
 compatibility_date = "2026-03-18"
-pages_build_output_dir = "_site"
+compatibility_flags = ["nodejs_compat"]
+main = "worker.js"
+
+[assets]
+directory = "./_site"
+binding = "ASSETS"
+
+# Routes moved to nthlayer-portal worker
