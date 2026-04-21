@@ -229,10 +229,10 @@ export default function LoginPage() {
           flex: "0 0 55%",
           background: "#f7f7f5",
           borderRight: "1px solid #e8e8e8",
-          padding: "64px 64px 64px 72px",
+          padding: "48px 64px 48px 72px",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
+          justifyContent: "flex-start",
           overflowY: "auto",
         }}>
           {/* Pill */}
