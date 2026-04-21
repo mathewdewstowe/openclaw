@@ -30,7 +30,9 @@ export async function middleware(req: NextRequest) {
 
   // Rewrite marketing pages to static HTML
   if (pathname === "/" || pathname === "/new") {
-    return NextResponse.rewrite(new URL("/new.html", req.url));
+    const res = NextResponse.rewrite(new URL("/new.html", req.url));
+    res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    return res;
   }
 
   if (pathname === "/inflexion") {
