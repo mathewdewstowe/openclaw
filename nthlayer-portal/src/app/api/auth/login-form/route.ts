@@ -38,9 +38,10 @@ export async function POST(req: NextRequest) {
 
     const token = await createToken(user.id);
 
-    // Redirect to the strategy page after login.
+    // Redirect to the transformation app after login.
+    // Domain=.nthlayer.co.uk covers both the portal and inflexion subdomain.
     const res = NextResponse.redirect(
-      new URL("/inflexion/overview", req.url),
+      "https://inflexion.nthlayer.co.uk/transformation/inflexion/overview",
       { status: 302 }
     );
     res.cookies.set("token", token, {
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
+      domain: ".nthlayer.co.uk",
     });
     return res;
   } catch (error) {

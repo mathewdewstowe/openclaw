@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function TransformationPage() {
-  redirect("/inflexion/overview");
+  redirect("https://inflexion.nthlayer.co.uk/transformation/inflexion/overview");
 }

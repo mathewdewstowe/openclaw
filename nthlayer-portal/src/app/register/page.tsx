@@ -57,7 +57,7 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/inflexion/overview");
+      router.push("https://inflexion.nthlayer.co.uk/transformation/inflexion/overview");
       router.refresh();
     } catch {
       setError("Something went wrong");
