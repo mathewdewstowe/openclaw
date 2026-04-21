@@ -29,7 +29,8 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Rewrite marketing pages to static HTML
-  if (pathname === "/" || pathname === "/new") {
+  // "/" is handled by src/app/route.ts (route handler with no-store headers)
+  if (pathname === "/new") {
     const res = NextResponse.rewrite(new URL("/new.html", req.url));
     res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
     return res;

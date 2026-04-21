@@ -136,6 +136,8 @@
     justify-content: center;
     padding: 120px 64px 80px 72px;
     max-width: 860px;
+    position: relative;
+    z-index: 2;
   }
   .hero-right { display: none; }
 
@@ -1172,7 +1174,7 @@
   /* ── HERO SUBTEXT ── */
   .hero-subtext {
     font-size: 20px;
-    color: rgba(255,255,255,0.45);
+    color: rgba(255,255,255,0.95);
     line-height: 1.75;
     max-width: 780px;
     margin-top: 20px;
@@ -1401,6 +1403,25 @@
   }
 
   @keyframes diagSpin { to { transform: rotate(360deg); } }
+
+  /* ── NEURAL NETWORK HERO BACKGROUND ── */
+  .hero-bg-neural {
+    position: absolute;
+    top: 0; right: 0;
+    width: 55%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  #canvas-neural { width: 100%; height: 100%; display: block; }
+
+  .hero-fade {
+    position: absolute;
+    top: 0; left: 35%; width: 22%; height: 100%;
+    background: linear-gradient(to right, var(--black) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
 </style>
 </head>
 <body>
@@ -1452,6 +1473,12 @@
 
 <!-- ═══ SECTION 1: HERO ═══ -->
 <section class="hero" id="hero">
+  <!-- Neural network background -->
+  <div class="hero-bg-neural">
+    <canvas id="canvas-neural"></canvas>
+  </div>
+  <div class="hero-fade"></div>
+
   <div class="hero-left">
     <div class="hero-pill">Every board is asking</div>
     <h1><span class="hero-line" id="twTarget"></span></h1>
@@ -1570,43 +1597,43 @@
           <div class="service-row">
             <span class="service-n">01</span>
             <div>
-              <h3 class="service-name">AI Strategy &amp; Portfolio Design</h3>
-              <p class="service-outcome">You leave with two or three funded bets, explicit kill criteria, and a clear owner for each. Everything else is explicitly deprioritised. That&rsquo;s the value.</p>
+              <h3 class="service-name">AI Transformation Strategy</h3>
+              <p class="service-outcome">Where to play, what to fund, what to stop. Two or three costed bets with clear owners and explicit kill criteria &mdash; not a roadmap that hedges everything.</p>
             </div>
           </div>
           <div class="service-row">
             <span class="service-n">02</span>
             <div>
-              <h3 class="service-name">Agentic Infrastructure Audit &amp; Build</h3>
-              <p class="service-outcome">Identifies what&rsquo;s blocking your AI before you spend another pound on tooling. CRM, ERP, ATS &mdash; assessed and mapped. Buy, build, or rent specified for each component.</p>
+              <h3 class="service-name">Operating Model Redesign</h3>
+              <p class="service-outcome">The workflows that have to change before AI can work. Rebuilt from first principles &mdash; not automation layered on broken infrastructure.</p>
             </div>
           </div>
           <div class="service-row">
             <span class="service-n">03</span>
             <div>
-              <h3 class="service-name">Product Operating Model Redesign</h3>
-              <p class="service-outcome">AI embedded in product isn&rsquo;t a feature &mdash; it&rsquo;s a different contract with your users. The operating model gets redesigned around non-deterministic outputs: new QA loops, human-in-the-loop design, confidence thresholds, and the accountability structures that make it shippable.</p>
+              <h3 class="service-name">Agentic Product Build</h3>
+              <p class="service-outcome">From validated bet to working product. The minimum version scoped, built, and instrumented &mdash; so the next stage is funded on evidence, not assumption.</p>
             </div>
           </div>
           <div class="service-row">
             <span class="service-n">04</span>
             <div>
-              <h3 class="service-name">AI Governance &amp; Risk Framework</h3>
-              <p class="service-outcome">Policies, accountability structures, and audit trails that satisfy boards, regulators, and acquirers. AI governance built for companies that will be scrutinised at exit.</p>
+              <h3 class="service-name">Infrastructure &amp; Stack Audit</h3>
+              <p class="service-outcome">What&rsquo;s blocking your AI before you spend another pound on tooling. CRM, ERP, ATS assessed and mapped. Build, buy, or rent specified per component.</p>
             </div>
           </div>
           <div class="service-row">
             <span class="service-n">05</span>
             <div>
-              <h3 class="service-name">Workflow &amp; Commercial Transformation</h3>
-              <p class="service-outcome">Revenue-generating and cost-removing workflows get redesigned from first principles. Every change is tied to a commercial outcome &mdash; not AI for its own sake, but AI that moves the number the board is watching.</p>
+              <h3 class="service-name">Commercial AI Deployment</h3>
+              <p class="service-outcome">Revenue-generating and cost-removing workflows deployed against specific board-level targets. AI that moves the number &mdash; not AI for its own sake.</p>
             </div>
           </div>
           <div class="service-row">
             <span class="service-n">06</span>
             <div>
-              <h3 class="service-name">AI MVP Build</h3>
-              <p class="service-outcome">From validated bet to working product in weeks, not quarters. The minimum version gets scoped, built, and instrumented to prove the unit economics &mdash; so you fund the next stage on evidence, not assumption.</p>
+              <h3 class="service-name">Governance &amp; Risk Framework</h3>
+              <p class="service-outcome">Policies, accountability structures, and audit trails that satisfy boards, regulators, and acquirers. Built for companies that will be scrutinised at exit.</p>
             </div>
           </div>
         </div>
@@ -1708,8 +1735,6 @@
 
 <!-- ═══ ARROW KEY NAVIGATION ═══ -->
 <script>
-  // Canonical URL: if arriving via redirect from /, silently restore /
-  if (location.pathname === '/new') { history.replaceState(null, '', '/'); }
 </script>
 <script>
   (function() {
@@ -1753,8 +1778,7 @@
     var phrases = [
       'How does AI change our Product?',
       'How does AI change our Processes?',
-      'How does AI change our People?',
-      'What does the business look like in 3 years?'
+      'How does AI change our People?'
     ];
     var cursor = document.createElement('span');
     cursor.className = 'tw-cursor';
@@ -1845,7 +1869,12 @@
       <div style="display:flex;align-items:flex-start;gap:12px;font-size:14px;color:#333;line-height:1.5;"><span style="color:#39ff7a;font-weight:700;flex-shrink:0;margin-top:1px;">→</span>The two or three bets worth funding — and what to cut</div>
       <div style="display:flex;align-items:flex-start;gap:12px;font-size:14px;color:#333;line-height:1.5;"><span style="color:#39ff7a;font-weight:700;flex-shrink:0;margin-top:1px;">→</span>A 90-day action plan your board can track</div>
     </div>
-    <button onclick="openDiagFromIntro()" style="display:block;width:100%;background:#39ff7a;border:none;color:#0a1a0d;padding:16px 24px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;text-align:center;font-family:inherit;box-shadow:0 0 18px rgba(57,255,122,0.35);border-radius:4px;cursor:pointer;">Start the Diagnostic →</button>
+    <div style="margin-bottom:16px;">
+      <label for="diagIntroEmail" style="display:block;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:8px;">Email address <span style="color:#e53e3e;">*</span></label>
+      <input id="diagIntroEmail" type="email" placeholder="you@company.com" style="width:100%;background:#fff;border:1px solid #d8d8d4;color:#111;padding:13px 16px;font-size:14px;font-family:inherit;outline:none;border-radius:4px;transition:border-color 0.15s;box-sizing:border-box;" onfocus="this.style.borderColor='#999'" onblur="this.style.borderColor='#d8d8d4'" />
+      <div id="diagIntroEmailError" style="display:none;font-size:12px;color:#e53e3e;margin-top:6px;"></div>
+    </div>
+    <button id="diagIntroSubmitBtn" onclick="submitDiagIntro()" style="display:block;width:100%;background:#39ff7a;border:none;color:#0a1a0d;padding:16px 24px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;text-align:center;font-family:inherit;box-shadow:0 0 18px rgba(57,255,122,0.35);border-radius:4px;cursor:pointer;transition:opacity 0.2s;">Start the Diagnostic →</button>
   </div>
 </div>
 
@@ -2003,6 +2032,7 @@
   window.__diagId = null;
   window.__diagScores = null;
   window.__diagVerdict = null;
+  window.__diagEmail = null;
 
   function openDiag(e) {
     if (e) e.preventDefault();
@@ -2016,14 +2046,48 @@
     document.body.style.overflow = '';
   }
 
-  function openDiagFromIntro() {
-    closeDiagIntro();
-    openDiagQuestions();
+  async function submitDiagIntro() {
+    var emailInput = document.getElementById('diagIntroEmail');
+    var errorEl = document.getElementById('diagIntroEmailError');
+    var btn = document.getElementById('diagIntroSubmitBtn');
+    var email = emailInput.value.trim();
+
+    // Reset error
+    errorEl.style.display = 'none';
+    emailInput.style.borderColor = '#d8d8d4';
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errorEl.textContent = 'Please enter a valid email address.';
+      errorEl.style.display = 'block';
+      emailInput.style.borderColor = 'rgba(229,62,62,0.6)';
+      emailInput.focus();
+      return;
+    }
+
+    // Capture lead (fire-and-forget — don't block the user)
+    btn.textContent = 'Starting…';
+    btn.style.opacity = '0.7';
+    btn.style.cursor = 'default';
+    try {
+      fetch('/api/diagnostic/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email }),
+      }).catch(function() {});
+    } catch(e) {}
+
+    openDiagFromIntro(email);
   }
 
-  function openDiagQuestions() {
+  function openDiagFromIntro(email) {
+    closeDiagIntro();
+    openDiagQuestions(email);
+  }
+
+  function openDiagQuestions(email) {
     diagIndex = 0; diagSelections = [];
-    window.__diagId = null; window.__diagScores = null; window.__dialogVerdict = null;
+    window.__diagId = null; window.__diagScores = null; window.__diagVerdict = null;
+    window.__diagEmail = email || null;
     document.getElementById('diagLoading').style.display = 'none';
     document.getElementById('diagResult').style.display = 'none';
     document.getElementById('diagQuestion').style.display = 'block';
@@ -2041,7 +2105,7 @@
     document.getElementById('diagQuestion').style.display = 'block';
     document.getElementById('diagAnswers').style.display = 'flex';
     diagIndex = 0; diagSelections = [];
-    window.__diagId = null; window.__diagScores = null; window.__diagVerdict = null;
+    window.__diagId = null; window.__diagScores = null; window.__diagVerdict = null; window.__diagEmail = null;
   }
 
   function renderDiagQ() {
@@ -2231,6 +2295,11 @@
     window.__diagVerdict = verdict;
 
     document.getElementById('diagLoading').style.display = 'none';
+    // Pre-fill email from intro if available
+    if (window.__diagEmail) {
+      var emailInput = document.getElementById('diagEmailResultInput');
+      if (emailInput) emailInput.value = window.__diagEmail;
+    }
     showDiagResult(scores, verdict);
   }
 
@@ -2436,6 +2505,83 @@
       if (el) observer.observe(el);
     });
   });
+</script>
+
+<!-- ═══ NEURAL NETWORK ANIMATION ═══ -->
+<script>
+(function initNeural() {
+  var canvas = document.getElementById('canvas-neural');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var nodes = [];
+  var NODE_COUNT = 55;
+  var MAX_DIST = 160;
+  var GREEN = '57,255,122';
+
+  function resize() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+
+  function initNodes() {
+    nodes = [];
+    for (var i = 0; i < NODE_COUNT; i++) {
+      nodes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        r: Math.random() * 2.5 + 1,
+        pulse: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    nodes.forEach(function(n) {
+      n.x += n.vx; n.y += n.vy; n.pulse += 0.02;
+      if (n.x < 0 || n.x > canvas.width)  n.vx *= -1;
+      if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
+    });
+    for (var i = 0; i < nodes.length; i++) {
+      for (var j = i + 1; j < nodes.length; j++) {
+        var dx = nodes[i].x - nodes[j].x;
+        var dy = nodes[i].y - nodes[j].y;
+        var d = Math.sqrt(dx*dx + dy*dy);
+        if (d < MAX_DIST) {
+          var alpha = (1 - d / MAX_DIST) * 0.4;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = 'rgba(' + GREEN + ',' + alpha + ')';
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+    nodes.forEach(function(n) {
+      var glow = 0.6 + 0.4 * Math.sin(n.pulse);
+      var grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 5);
+      grad.addColorStop(0, 'rgba(' + GREEN + ',' + (0.3 * glow) + ')');
+      grad.addColorStop(1, 'rgba(' + GREEN + ',0)');
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r * 5, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(' + GREEN + ',' + (0.7 * glow) + ')';
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+
+  if (window.ResizeObserver) {
+    new ResizeObserver(function() { resize(); initNodes(); }).observe(canvas.parentElement);
+  }
+  resize(); initNodes(); draw();
+})();
 </script>
 
 <!-- ═══ MOBILE NAV ═══ -->
