@@ -27,14 +27,6 @@ const publicExact = ["/", "/inflexion", "/new", "/use-cases", "/new.html", "/inf
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Serve homepage at / (unauthenticated users see new.html; authenticated fall through to page.tsx → /inflexion/strategy)
-  if (pathname === "/") {
-    const hasToken = !!req.cookies.get("token")?.value;
-    if (!hasToken) {
-      return NextResponse.rewrite(new URL("/new.html", req.url));
-    }
-  }
-
   // Rewrite marketing pages to static HTML
   if (pathname === "/new") {
     return NextResponse.rewrite(new URL("/new.html", req.url));
