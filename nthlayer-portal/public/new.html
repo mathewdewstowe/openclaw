@@ -114,10 +114,8 @@
   .hero {
     min-height: 100vh;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding-top: 72px;
-    padding-bottom: 72px;
+    flex-direction: row;
+    align-items: stretch;
     background: var(--black);
     position: relative;
     overflow-y: hidden;
@@ -132,11 +130,17 @@
   }
 
   .hero-left {
-    padding: 0 48px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 64px 80px 72px;
+    max-width: 860px;
   }
+  .hero-right { display: none; }
 
   .hero-pill {
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -185,7 +189,86 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .hero-right { display: none; }
+  .hero-right {
+    flex: 1;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 56px 80px;
+  }
+  .hero-card {
+    width: 100%;
+    max-width: 420px;
+    background: #f5f4f1;
+    border-radius: 12px;
+    padding: 44px 40px;
+  }
+  .hero-card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #111;
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 5px 13px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+  }
+  .hero-card-heading {
+    font-size: clamp(22px, 2vw, 28px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: #111;
+    margin-bottom: 16px;
+  }
+  .hero-card-body {
+    font-size: 15px;
+    color: #666;
+    line-height: 1.75;
+    margin-bottom: 32px;
+  }
+  .hero-card-points {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .hero-card-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+  }
+  .hero-card-point::before {
+    content: "→";
+    color: #39ff7a;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .hero-card-cta {
+    display: block;
+    width: 100%;
+    background: #39ff7a;
+    border: none;
+    color: #0a1a0d;
+    padding: 14px 24px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    text-decoration: none;
+    font-family: inherit;
+    box-shadow: 0 0 18px rgba(57,255,122,0.3);
+    border-radius: 4px;
+    cursor: pointer;
+  }
   .hero-ctas { display: none; }
 
   .hero-diag {
@@ -1004,8 +1087,9 @@
     .nav-links { display: none; }
     .container { padding: 0 20px; }
 
-    .hero { min-height: auto; padding: 100px 0 48px; }
-    .hero-left { padding: 0 20px; }
+    .hero { min-height: auto; flex-direction: column; }
+    .hero-left { padding: 80px 20px 48px; }
+    .hero-right { display: none; }
 
     .who-section { padding: 64px 0; }
     .who-slot-item { font-size: clamp(32px, 9vw, 48px); }
@@ -1232,8 +1316,7 @@
   @media (max-width: 540px) {
     .framework-stages { grid-template-columns: 1fr; }
     .hero-left h1 .hero-line { font-size: clamp(22px, 7vw, 36px); white-space: normal; }
-    .hero-left { padding: 0 16px; }
-    .hero { padding-top: 80px; padding-bottom: 40px; }
+    .hero-left { padding: 72px 16px 40px; }
     .container { padding: 0 16px; }
     .hero-pill { font-size: 11px; padding: 8px 16px; }
     .problem-cols { grid-template-columns: 1fr; }
@@ -1338,7 +1421,7 @@
     <li><a href="#services">Services</a></li>
     <li><a href="#why-us">About</a></li>
     <li><a href="/use-cases">Use Cases</a></li>
-    <li><a href="/inflexion" class="nav-cta">Inflexion</a></li>
+    <li><a href="/login" class="nav-cta">Inflexion</a></li>
   </ul>
   <button class="nav-hamburger" id="navHamburger" aria-label="Open menu">
     <span></span><span></span><span></span>
@@ -1353,7 +1436,7 @@
     <li><a href="#services" class="mobile-nav-link">Services</a></li>
     <li><a href="#why-us" class="mobile-nav-link">About</a></li>
     <li><a href="/use-cases" class="mobile-nav-link">Use Cases</a></li>
-    <li><a href="/inflexion" class="mobile-nav-link mobile-nav-cta">Inflexion →</a></li>
+    <li><a href="/login" class="mobile-nav-link mobile-nav-cta">Inflexion →</a></li>
   </ul>
 </div>
 
@@ -1376,6 +1459,20 @@
     <div class="hero-diag" style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
       <a href="#diagnostic" class="btn-diag">Quick Diagnostic &rarr;</a>
       <a href="#contact" class="btn-diag">Get in touch &rarr;</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-card">
+      <div class="hero-card-label">Quick Diagnostic</div>
+      <h2 class="hero-card-heading">Find out where you stand in 10 minutes</h2>
+      <p class="hero-card-body">Answer five questions about your product, stack, and team. We return a board-ready view of your exposure, your options, and what to do next.</p>
+      <div class="hero-card-points">
+        <div class="hero-card-point">Where AI creates real advantage in your market</div>
+        <div class="hero-card-point">What's blocking you before you spend another pound</div>
+        <div class="hero-card-point">The two or three bets worth funding — and what to cut</div>
+        <div class="hero-card-point">A 90-day action plan your board can track</div>
+      </div>
+      <a href="#diagnostic" class="hero-card-cta">Start the Diagnostic &rarr;</a>
     </div>
   </div>
 </section>
@@ -1479,13 +1576,15 @@
         <span class="section-label">The Service</span>
         <h2 class="services-heading">Product. Process. People.</h2>
         <p class="services-intro">AI transformation fails when it touches only one of these. The work spans all three &mdash; the product bets worth funding, the processes that have to change before AI can work, and the people and ownership structures that make it stick.</p>
+        <p class="services-intro" style="margin-top:20px;">Most AI programmes stall because they try to run a new technology on old infrastructure and old thinking. We don&rsquo;t layer AI onto broken systems &mdash; we fix what has to change first.</p>
+        <p class="services-intro" style="margin-top:20px;">Every engagement ends with clear owners, a costed roadmap, and a team that can run without us. No ongoing dependency. No bloated frameworks. Work that holds up in the board deck and in the build.</p>
       </div>
       <div class="services-right">
         <div class="services-rows">
           <div class="service-row">
             <span class="service-n">01</span>
             <div>
-              <h3 class="service-name">AI Operating Model Design</h3>
+              <h3 class="service-name">AI Strategy &amp; Portfolio Design</h3>
               <p class="service-outcome">You leave with two or three funded bets, explicit kill criteria, and a clear owner for each. Everything else is explicitly deprioritised. That&rsquo;s the value.</p>
             </div>
           </div>
@@ -1513,8 +1612,8 @@
           <div class="service-row">
             <span class="service-n">05</span>
             <div>
-              <h3 class="service-name">AI Product Strategy</h3>
-              <p class="service-outcome">Where does AI create durable product advantage &mdash; and where does it commoditise your differentiation? The AI product bets worth making get defined: the build vs. buy vs. partner call for each, and the roadmap sequencing that protects margin as models get cheaper.</p>
+              <h3 class="service-name">Workflow &amp; Commercial Transformation</h3>
+              <p class="service-outcome">Revenue-generating and cost-removing workflows get redesigned from first principles. Every change is tied to a commercial outcome &mdash; not AI for its own sake, but AI that moves the number the board is watching.</p>
             </div>
           </div>
           <div class="service-row">
@@ -1662,9 +1761,9 @@
   (function() {
     var target = document.getElementById('twTarget');
     var phrases = [
-      'How does AI change our product?',
-      'How does AI change our processes?',
-      'How does AI change our people?',
+      'How does AI change our Product?',
+      'How does AI change our Processes?',
+      'How does AI change our People?',
       'What does the business look like in 3 years?'
     ];
     var cursor = document.createElement('span');
@@ -1742,6 +1841,23 @@
 </script>
 
 <!-- ═══ CONTACT FORM ═══ -->
+
+<!-- ═══ DIAGNOSTIC INTRO MODAL ═══ -->
+<div id="diagIntroModal" style="display:none; position:fixed; inset:0; z-index:900; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); overflow-y:auto; padding:40px 20px;">
+  <div style="background:#f5f4f1; border-radius:12px; max-width:480px; margin:80px auto 40px; padding:44px 40px; position:relative; font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;">
+    <button onclick="closeDiagIntro()" style="position:absolute;top:16px;right:20px;background:none;border:none;color:#999;font-size:20px;cursor:pointer;line-height:1;">✕</button>
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#111;border:1px solid #ccc;display:inline-block;padding:5px 13px;border-radius:100px;margin-bottom:28px;">Quick Diagnostic</div>
+    <h2 style="font-size:clamp(22px,2.5vw,30px);font-weight:700;letter-spacing:-0.03em;line-height:1.15;color:#111;margin-bottom:16px;">Find out where you stand in 10 minutes</h2>
+    <p style="font-size:15px;color:#666;line-height:1.75;margin-bottom:32px;">Answer five questions about your product, stack, and team. We return a board-ready view of your exposure, your options, and what to do next.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:32px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;font-size:14px;color:#333;line-height:1.5;"><span style="color:#39ff7a;font-weight:700;flex-shrink:0;margin-top:1px;">→</span>Where AI creates real advantage in your market</div>
+      <div style="display:flex;align-items:flex-start;gap:12px;font-size:14px;color:#333;line-height:1.5;"><span style="color:#39ff7a;font-weight:700;flex-shrink:0;margin-top:1px;">→</span>What's blocking you before you spend another pound</div>
+      <div style="display:flex;align-items:flex-start;gap:12px;font-size:14px;color:#333;line-height:1.5;"><span style="color:#39ff7a;font-weight:700;flex-shrink:0;margin-top:1px;">→</span>The two or three bets worth funding — and what to cut</div>
+      <div style="display:flex;align-items:flex-start;gap:12px;font-size:14px;color:#333;line-height:1.5;"><span style="color:#39ff7a;font-weight:700;flex-shrink:0;margin-top:1px;">→</span>A 90-day action plan your board can track</div>
+    </div>
+    <button onclick="openDiagFromIntro()" style="display:block;width:100%;background:#39ff7a;border:none;color:#0a1a0d;padding:16px 24px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;text-align:center;font-family:inherit;box-shadow:0 0 18px rgba(57,255,122,0.35);border-radius:4px;cursor:pointer;">Start the Diagnostic →</button>
+  </div>
+</div>
 
 <!-- ═══ DIAGNOSTIC MODAL ═══ -->
 <div id="diagModal" style="display:none; position:fixed; inset:0; z-index:900; background:rgba(0,0,0,0.82); backdrop-filter:blur(6px); overflow-y:auto; padding:40px 20px;">
@@ -1900,8 +2016,24 @@
 
   function openDiag(e) {
     if (e) e.preventDefault();
+    // Show intro card first
+    document.getElementById('diagIntroModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDiagIntro() {
+    document.getElementById('diagIntroModal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function openDiagFromIntro() {
+    closeDiagIntro();
+    openDiagQuestions();
+  }
+
+  function openDiagQuestions() {
     diagIndex = 0; diagSelections = [];
-    window.__diagId = null; window.__diagScores = null; window.__diagVerdict = null;
+    window.__diagId = null; window.__diagScores = null; window.__dialogVerdict = null;
     document.getElementById('diagLoading').style.display = 'none';
     document.getElementById('diagResult').style.display = 'none';
     document.getElementById('diagQuestion').style.display = 'block';
@@ -2189,6 +2321,10 @@
 
   document.getElementById('diagModal').addEventListener('click', function(e) {
     if (e.target === this) closeDiag();
+  });
+
+  document.getElementById('diagIntroModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDiagIntro();
   });
 </script>
 
