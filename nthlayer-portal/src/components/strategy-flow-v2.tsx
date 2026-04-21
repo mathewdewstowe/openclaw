@@ -3026,6 +3026,11 @@ function Toast({ message, visible }: { message: string; visible: boolean }) {
 // ─── PDF Generation ───────────────────────────────────────────────────────────
 
 const STAGE_DEFAULT_TAGS: Record<string, string[]> = {
+  why_now:        ["Urgency Signals", "Competitive Triggers", "Cost of Inaction", "Sector Benchmarks"],
+  current_state:  ["Process Maturity", "AI Tooling", "Stack Readiness", "Exposure Map"],
+  future_moves:   ["Automation Opportunities", "Build/Buy/Partner", "Move Portfolio"],
+  mobilise:       ["Leadership Alignment", "Sponsor Conviction", "Resistance Map"],
+  embed:          ["Success Criteria", "Measurement Framework", "Board Proof Points"],
   frame:    ["Strategic Problem", "Market Context", "Winning Conditions", "Decision Boundaries", "Core Strategic Question"],
   diagnose: ["Business Assessment", "Product-Market Fit", "Competitive Landscape", "Emerging Direction", "Benchmark Gaps"],
   decide:   ["Strategic Options", "Recommended Direction", "What Must Be True", "Kill Criteria"],
@@ -3339,10 +3344,11 @@ export function StrategyFlow({
 
   const [stageStates, setStageStates] = useState<Record<string, StageState>>(initialState);
   const isMobile = useIsMobile();
-  // Priority: running job stage → first completed stage → frame
+  // Priority: running job stage → first completed stage → first visible stage
   const firstRunningStage = initialRunningJobs[0]?.stageId
     ?? Object.keys(initialCompletedOutputs)[0]
-    ?? "frame";
+    ?? VISIBLE_STAGES[0]?.id
+    ?? "why_now";
   const [activeStageId, setActiveStageId] = useState<string>(firstRunningStage);
   const [progressValue, setProgressValue] = useState(initialRunningJobs.length > 0 ? 40 : 0);
   const [progressMessage, setProgressMessage] = useState(PROGRESS_MESSAGES[0]);
@@ -4355,6 +4361,11 @@ export function StrategyFlow({
                 const tags = rawTags.length > 0 ? rawTags : (STAGE_DEFAULT_TAGS[activeStageId] ?? []);
                 if (!tags.length) return null;
                 const STAGE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+                  why_now:        { bg: "#fef2f2", text: "#991b1b", border: "#fecaca" },
+                  current_state:  { bg: "#eff6ff", text: "#1e40af", border: "#bfdbfe" },
+                  future_moves:   { bg: "#f5f3ff", text: "#6d28d9", border: "#ddd6fe" },
+                  mobilise:       { bg: "#f0fdf4", text: "#065f46", border: "#bbf7d0" },
+                  embed:          { bg: "#fffbeb", text: "#92400e", border: "#fde68a" },
                   frame:    { bg: "#f9fafb",  text: "#374151", border: "#d1d5db" },
                   diagnose: { bg: "#eff6ff",  text: "#1e40af", border: "#bfdbfe" },
                   decide:   { bg: "#f5f3ff",  text: "#6d28d9", border: "#ddd6fe" },
