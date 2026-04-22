@@ -1324,6 +1324,10 @@ export async function checkStrategySession(sessionId: string): Promise<{
             })),
           }).catch(() => {});
         }
+      } else if (stopReason?.type === "retries_exhausted") {
+        // Agent hit rate limits or other transient errors and exhausted retries
+        console.error(`[checkSession] ${sessionId.slice(-8)} → FAILED: retries_exhausted (rate limited)`);
+        return { status: "failed" };
       } else if (stopReason?.type === "end_turn" || (!stopReason && events.length > 0)) {
         // Agent finished its turn without calling the custom tool — it returned text instead.
         // This is a failure condition: the agent must always call produce_strategic_diagnosis.
@@ -1417,8 +1421,9 @@ export const TRANSFORMATION_STAGE_IDS = Object.keys(STAGE_AGENTS);
 
 export interface TransformationAgentState {
   sessionId?: string;
-  status: "waiting" | "running" | "complete" | "failed";
+  status: "waiting" | "running" | "complete" | "failed" | "waiting_retry";
   result?: Record<string, unknown>;
+  retries?: number;
 }
 
 export interface TransformationJobState {
@@ -1468,40 +1473,41 @@ export async function createTransformationSession(
     };
   }
 
-  // Create sessions for agents with no dependencies (run in parallel)
-  const launchPromises: Array<Promise<void>> = [];
-  for (const agentDef of stageDef.agents) {
-    if (agentDef.dependsOn && agentDef.dependsOn.length > 0) continue;
+  // Create sessions for agents with no dependencies (staggered to avoid rate limits)
+  const toLaunch = stageDef.agents.filter(
+    (a) => !a.dependsOn || a.dependsOn.length === 0
+  );
 
+  for (let i = 0; i < toLaunch.length; i++) {
+    const agentDef = toLaunch[i];
     const agentId = TRANSFORMATION_AGENTS[agentDef.name];
     if (!agentId) throw new Error(`Unknown transformation agent: ${agentDef.name}`);
 
-    launchPromises.push(
-      (async () => {
-        try {
-          const session = await client.beta.sessions.create({
-            agent: agentId,
-            environment_id: ENVIRONMENT_ID,
-            title: `${stageName} — ${agentDef.name} — ${company.name}`,
-            metadata: { stageId, agentName: agentDef.name, companyName: company.name },
-          });
+    try {
+      const session = await client.beta.sessions.create({
+        agent: agentId,
+        environment_id: ENVIRONMENT_ID,
+        title: `${stageName} — ${agentDef.name} — ${company.name}`,
+        metadata: { stageId, agentName: agentDef.name, companyName: company.name },
+      });
 
-          console.log(`[transformation] Launched ${agentDef.name} → session ${session.id}`);
+      console.log(`[transformation] Launched ${agentDef.name} → session ${session.id}`);
 
-          await client.beta.sessions.events.send(session.id, {
-            events: [{ type: "user.message", content: [{ type: "text", text: baseMessage }] }],
-          });
+      await client.beta.sessions.events.send(session.id, {
+        events: [{ type: "user.message", content: [{ type: "text", text: baseMessage }] }],
+      });
 
-          agentStates[agentDef.name].sessionId = session.id;
-        } catch (err) {
-          console.error(`[transformation] Failed to launch ${agentDef.name}:`, err);
-          agentStates[agentDef.name].status = "failed";
-        }
-      })()
-    );
+      agentStates[agentDef.name].sessionId = session.id;
+    } catch (err) {
+      console.error(`[transformation] Failed to launch ${agentDef.name}:`, err);
+      agentStates[agentDef.name].status = "failed";
+    }
+
+    // Brief pause between launches to avoid rate limiting
+    if (i < toLaunch.length - 1) {
+      await new Promise((r) => setTimeout(r, 2000));
+    }
   }
-
-  await Promise.all(launchPromises);
 
   return { stageId, stageName, agents: agentStates };
 }
@@ -1542,11 +1548,57 @@ export async function advanceTransformationSession(
         agentState.status = "complete";
         agentState.result = result.sections;
       } else if (result.status === "failed") {
-        agentState.status = "failed";
+        // Retry up to 2 times for transient failures (rate limiting etc.)
+        const retries = agentState.retries ?? 0;
+        if (retries < 2) {
+          console.log(`[advance] ${agentDef.name} failed, retrying (attempt ${retries + 1}/2)`);
+          agentState.retries = retries + 1;
+          agentState.status = "waiting_retry";
+        } else {
+          agentState.status = "failed";
+        }
       }
       // "pending" — still running, no change
     }
 
+    agentProgress[agentDef.name] = { status: agentState.status, name: agentDef.name };
+  }
+
+  // Retry failed agents (rate limiting, transient errors)
+  for (const agentDef of stageDef.agents) {
+    const agentState = state.agents[agentDef.name];
+    if (agentState.status !== "waiting_retry") continue;
+
+    const agentId = TRANSFORMATION_AGENTS[agentDef.name];
+    if (!agentId) { agentState.status = "failed"; continue; }
+
+    const companyBlock = buildCompanyBlock(company);
+    const formattedAnswers = formatAnswers(questions, answers);
+    const retryMessage = [
+      `## Transformation Assessment — ${state.stageName}`,
+      "", companyBlock, "",
+      `## ${state.stageName} — User Inputs`,
+      "", formattedAnswers, "",
+      `Call the produce_strategic_diagnosis tool with your complete analysis when you are done.`,
+    ].join("\n");
+
+    try {
+      const session = await client.beta.sessions.create({
+        agent: agentId,
+        environment_id: ENVIRONMENT_ID,
+        title: `${state.stageName} — ${agentDef.name} (retry) — ${company.name}`,
+        metadata: { stageId: state.stageId, agentName: agentDef.name, retry: "true" },
+      });
+      await client.beta.sessions.events.send(session.id, {
+        events: [{ type: "user.message", content: [{ type: "text", text: retryMessage }] }],
+      });
+      agentState.sessionId = session.id;
+      agentState.status = "running";
+      console.log(`[advance] ${agentDef.name} retrying → session ${session.id}`);
+    } catch (err) {
+      console.error(`[advance] ${agentDef.name} retry launch failed:`, err);
+      agentState.status = "failed";
+    }
     agentProgress[agentDef.name] = { status: agentState.status, name: agentDef.name };
   }
 

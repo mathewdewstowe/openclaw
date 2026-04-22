@@ -26,76 +26,94 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Hero banner */}
-      <div
-        className="relative h-24 sm:h-28 w-full bg-cover bg-center border-b-2 border-gray-900"
-        style={{ backgroundImage: "url(/images/hero-tree.jpg)" }}
-      >
-        <div className="absolute inset-0 bg-black/10" />
-        <div className="relative flex items-center gap-3 px-6 py-5">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-900 shadow-lg">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-              <rect x="1" y="1" width="22" height="22" stroke="white" strokeWidth="1.8" />
-              <rect x="4.5" y="4.5" width="15" height="15" stroke="white" strokeWidth="1.5" />
-              <rect x="7.5" y="7.5" width="9" height="9" stroke="white" strokeWidth="1.3" />
-              <rect x="10" y="10" width="4" height="4" stroke="white" strokeWidth="1.1" />
-            </svg>
-          </div>
-          <span className="text-xl font-bold tracking-tight text-white drop-shadow">Nth Layer</span>
-        </div>
-      </div>
+    <div style={{ minHeight: "100vh", background: "#e8e8e8", display: "flex", flexDirection: "column", fontFamily: "-apple-system, 'Helvetica Neue', Arial, sans-serif", WebkitFontSmoothing: "antialiased" as const }}>
 
-      <div className="flex flex-1 items-center justify-center px-4">
-        <div className="w-full max-w-md space-y-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight">Reset your password</h1>
-            <p className="mt-3 text-base text-[var(--muted-foreground)] max-w-sm mx-auto leading-relaxed">
-              Enter your email and we&apos;ll send you a link to reset your password.
-            </p>
-          </div>
+      {/* NAV */}
+      <nav style={{ height: 64, minHeight: 64, flexShrink: 0, display: "flex", alignItems: "center", padding: "0 32px", background: "#e8e8e8" }}>
+        <a href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
+          <svg viewBox="0 0 80 80" height="28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="2" width="76" height="76" stroke="#111" strokeWidth="5"/>
+            <rect x="14" y="14" width="52" height="52" stroke="#111" strokeWidth="5"/>
+            <rect x="26" y="26" width="28" height="28" stroke="#111" strokeWidth="5"/>
+            <rect x="35" y="35" width="10" height="10" fill="#111"/>
+          </svg>
+          <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#111", lineHeight: 1.25 }}>
+            The<br/>Nth Layer
+          </span>
+        </a>
+      </nav>
+
+      {/* MAIN */}
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+        <div style={{ width: "100%", maxWidth: 420, background: "#d4d4d4", borderRadius: 20, padding: "48px 44px" }}>
 
           {done ? (
-            <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] p-5 text-center">
-              <p className="text-sm text-[var(--foreground)]">
+            <>
+              <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", color: "#111", marginBottom: 12 }}>Check your inbox</h2>
+              <p style={{ fontSize: 14, color: "#555", lineHeight: 1.65, marginBottom: 8 }}>
                 If an account exists for <strong>{email}</strong>, a reset link has been sent.
               </p>
-              <p className="mt-3 text-xs text-[var(--muted-foreground)]">
-                Check your inbox (and spam folder). The link expires in 1 hour.
+              <p style={{ fontSize: 13, color: "#888", lineHeight: 1.6, marginBottom: 32 }}>
+                Check your spam folder if you don&apos;t see it. The link expires in 1 hour.
               </p>
-              <Link
-                href="/login"
-                className="inline-block mt-4 text-sm text-[var(--primary)] hover:underline"
-              >
+              <Link href="/login" style={{ fontSize: 13, color: "#1a9e40", textDecoration: "none", fontWeight: 600 }}>
                 ← Back to sign in
               </Link>
-            </div>
+            </>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium mb-1.5">Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  placeholder="you@company.com"
-                  className="w-full rounded-md border border-[var(--border)] bg-[var(--input)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-md bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-[var(--primary-foreground)] hover:opacity-90 disabled:opacity-50 transition-opacity"
-              >
-                {loading ? "Sending..." : "Send reset link"}
-              </button>
-              <p className="text-center text-sm text-[var(--muted-foreground)]">
-                Remember your password?{" "}
-                <Link href="/login" className="text-[var(--primary)] hover:underline">Sign in</Link>
+            <>
+              <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em", color: "#111", marginBottom: 8 }}>Reset your password</h2>
+              <p style={{ fontSize: 13, color: "#666", lineHeight: 1.6, marginBottom: 32 }}>
+                Enter your email and we&apos;ll send you a link to reset it.
               </p>
-            </form>
+
+              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div>
+                  <label htmlFor="email" style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const, color: "#666", marginBottom: 8 }}>
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="you@company.com"
+                    style={{
+                      width: "100%", padding: "13px 16px", fontSize: 14,
+                      background: "#fff", border: "1px solid #c8c8c8",
+                      borderRadius: 8, outline: "none", fontFamily: "inherit",
+                      color: "#111", boxSizing: "border-box" as const,
+                      transition: "border-color 0.15s",
+                    }}
+                    onFocus={e => (e.target.style.borderColor = "#39ff7a")}
+                    onBlur={e => (e.target.style.borderColor = "#c8c8c8")}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    width: "100%", padding: "14px 24px", fontSize: 12, fontWeight: 700,
+                    letterSpacing: "0.08em", textTransform: "uppercase" as const,
+                    background: "#39ff7a", color: "#0a1a0d", border: "none",
+                    borderRadius: 8, cursor: loading ? "default" : "pointer",
+                    fontFamily: "inherit", opacity: loading ? 0.6 : 1,
+                    boxShadow: "0 0 18px rgba(57,255,122,0.4)",
+                  }}
+                >
+                  {loading ? "Sending…" : "Send reset link"}
+                </button>
+
+                <p style={{ textAlign: "center", fontSize: 13, color: "#666", margin: 0 }}>
+                  Remember your password?{" "}
+                  <Link href="/login" style={{ color: "#1a9e40", textDecoration: "none", fontWeight: 600 }}>
+                    Sign in
+                  </Link>
+                </p>
+              </form>
+            </>
           )}
         </div>
       </div>

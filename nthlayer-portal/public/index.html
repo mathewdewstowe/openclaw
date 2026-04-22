@@ -456,7 +456,7 @@
     font-weight: 700;
     letter-spacing: -0.03em;
     color: var(--black);
-    margin-bottom: 12px;
+    margin-bottom: 20px;
     line-height: 1.1;
   }
 
@@ -502,7 +502,7 @@
     text-transform: uppercase;
     color: #999;
     display: block;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
   }
 
   .fw-name {
@@ -1089,8 +1089,8 @@
     .nav-links { display: none; }
     .container { padding: 0 20px; }
 
-    .hero { min-height: auto; flex-direction: column; }
-    .hero-left { padding: 80px 20px 48px; }
+    .hero { min-height: 100dvh; flex-direction: column; display: flex; }
+    .hero-left { padding: 72px 20px 32px; display: flex; flex-direction: column; justify-content: center; flex: 1; }
     .hero-right { display: none; }
 
     .who-section { padding: 64px 0; }
@@ -1172,13 +1172,14 @@
   }
 
   /* ── HERO SUBTEXT ── */
+  .hero-subtext-2 { font-size: 20px; color: rgba(255,255,255,0.95); line-height: 1.75; max-width: 780px; margin-top: 0; margin-bottom: 36px; }
   .hero-subtext {
     font-size: 20px;
     color: rgba(255,255,255,0.95);
     line-height: 1.75;
     max-width: 780px;
     margin-top: 20px;
-    margin-bottom: 36px;
+    margin-bottom: 20px;
   }
 
   /* ════ OUTCOMES STRIP ════ */
@@ -1190,6 +1191,7 @@
   .outcome-col:last-child { border-right: none; }
   .outcome-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: #111; margin-bottom: 8px; }
   .outcome-desc { font-size: 14px; color: #444; line-height: 1.65; }
+  @media (max-width: 860px) { .hero-bg-neural, .hero-fade { display: none; } }
   @media (max-width: 700px) { .outcomes-cols { grid-template-columns: 1fr; gap: 28px; } .outcome-col { padding: 0; border-right: none; } }
 
   /* ════ TENSION ════ */
@@ -1270,7 +1272,7 @@
   .services-rows { display: flex; flex-direction: column; gap: 12px; margin-bottom: 0; }
   .service-row { display: grid; grid-template-columns: 60px 1fr; padding: 20px 24px; align-items: start; background: #f7f7f5; border-radius: 10px; }
 
-  .service-n { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #bbb; background: #f0f0ee; border-radius: 8px; padding: 5px 12px; margin-bottom: 12px; }
+  .service-n { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #bbb; background: #f0f0ee; border-radius: 8px; padding: 5px 12px; margin-bottom: 20px; }
   .service-name { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--black); margin-bottom: 10px; line-height: 1.2; }
   .service-outcome { font-size: 13px; color: #444; line-height: 1.75; max-width: 680px; }
 
@@ -1279,12 +1281,12 @@
   .why-us-section .section-label { color: #999; }
   .why-us-heading { font-size: clamp(28px,3vw,44px); font-weight: 700; letter-spacing: -0.03em; color: var(--white); line-height: 1.1; margin-bottom: 0; }
   .outcomes-stats-section { background: #fff; padding: 64px 0; }
-  .outcomes-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
-  .outcome-stat { padding: 32px 28px; border-left: 1px solid #e8e8e8; }
+  .outcomes-stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; }
+  .outcome-stat { padding: 28px 20px; border-left: 1px solid #e8e8e8; }
   .outcome-stat:first-child { border-left: none; padding-left: 0; }
-  .outcome-stat-num { display: block; font-size: clamp(36px,4vw,56px); font-weight: 800; color: #0d0d0d; letter-spacing: -0.04em; line-height: 1; margin-bottom: 10px; }
-  .outcome-stat-label { display: block; font-size: 13px; font-weight: 700; color: #111; margin-bottom: 8px; }
-  .outcome-stat-desc { display: block; font-size: 12px; color: #ccc; line-height: 1.65; }
+  .outcome-stat-num { display: block; font-size: clamp(28px,3vw,44px); font-weight: 800; color: #0d0d0d; letter-spacing: -0.04em; line-height: 1.05; margin-bottom: 8px; }
+  .outcome-stat-label { display: block; font-size: 15px; font-weight: 700; color: #111; margin-bottom: 6px; }
+  .outcome-stat-desc { display: block; font-size: 12px; color: #555; line-height: 1.65; }
   .differentiators { display: flex; flex-direction: column; }
   .diff-item { padding: 20px 0; border-bottom: 1px solid #e8e8e8; }
   .diff-item:first-child { border-top: 1px solid #e8e8e8; }
@@ -1317,7 +1319,7 @@
 
   @media (max-width: 540px) {
     .framework-stages { grid-template-columns: 1fr; }
-    .hero-left h1 .hero-line { font-size: clamp(22px, 7vw, 36px); white-space: normal; }
+    .hero-left h1 { min-height: 1.4em; overflow: hidden; margin-bottom: 8px; } .hero-left h1 .hero-line { font-size: clamp(18px, 5vw, 28px); white-space: nowrap; overflow: hidden; } .hero-subtext { font-size: 14px !important; line-height: 1.55 !important; margin-top: 8px !important; margin-bottom: 8px !important; } .hero-diag { margin-top: 20px; } .btn-diag { font-size: 11px; padding: 10px 16px; }
     .hero-left { padding: 72px 16px 40px; }
     .container { padding: 0 16px; }
     .hero-pill { font-size: 11px; padding: 8px 16px; }
@@ -1405,7 +1407,9 @@
   @keyframes diagSpin { to { transform: rotate(360deg); } }
 
   /* ── NEURAL NETWORK HERO BACKGROUND ── */
-  .hero-bg-neural {
+  .hero-bg-neural { display: none; }
+  .hero-fade { display: none; }
+  .hero-bg-neural-hidden {
     position: absolute;
     top: 0; right: 0;
     width: 55%;
@@ -1441,8 +1445,8 @@
     <li><a href="#why-now">Why Now</a></li>
     <li><a href="#services">Services</a></li>
     <li><a href="#why-us">About</a></li>
-    <li><a href="/use-cases">Use Cases</a></li>
-    <li><a href="/login" class="nav-cta">Inflexion</a></li>
+
+
   </ul>
   <button class="nav-hamburger" id="navHamburger" aria-label="Open menu">
     <span></span><span></span><span></span>
@@ -1456,8 +1460,6 @@
     <li><a href="#why-now" class="mobile-nav-link">Why Now</a></li>
     <li><a href="#services" class="mobile-nav-link">Services</a></li>
     <li><a href="#why-us" class="mobile-nav-link">About</a></li>
-    <li><a href="/use-cases" class="mobile-nav-link">Use Cases</a></li>
-    <li><a href="/login" class="mobile-nav-link mobile-nav-cta">Inflexion →</a></li>
   </ul>
 </div>
 
@@ -1482,7 +1484,8 @@
   <div class="hero-left">
     <div class="hero-pill">Every board is asking</div>
     <h1><span class="hero-line" id="twTarget"></span></h1>
-    <p class="hero-subtext">Agentic workflows that transform how your business operates. AI natively embedded into your product. Strategy and operating model redesigned around commercial outcomes — value creation and growth.</p>
+    <p class="hero-subtext">A new operating model for a non-deterministic world. Agentic workflows in operations. AI embedded natively into product. Built to compound, not pilot.</p>
+    <p class="hero-subtext-2">Where your AI strategy meets execution — we build it, you own it.</p>
     <div class="hero-diag" style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
       <a href="#diagnostic" class="btn-diag">Quick Diagnostic &rarr;</a>
       <a href="#contact" class="btn-diag">Get in touch &rarr;</a>
@@ -1693,6 +1696,11 @@
 <section class="outcomes-stats-section">
   <div class="container">
     <div class="outcomes-stats-grid">
+      <div class="outcome-stat">
+        <span class="outcome-stat-num">1x Exit</span>
+        <span class="outcome-stat-label">B2B SaaS exit to Bullhorn</span>
+        <span class="outcome-stat-desc">AI-native product transformation leading to strategic exit. Built to be bought.</span>
+      </div>
       <div class="outcome-stat">
         <span class="outcome-stat-num">~80%</span>
         <span class="outcome-stat-label">Faster to market</span>
@@ -1941,8 +1949,7 @@
         <div id="diagCtaHook" style="font-size:13px;font-style:italic;color:#aaa;line-height:1.65;"></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <button onclick="startFullAssessment()" style="background:var(--orange);border:none;color:#0a1a0d;padding:14px 28px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;box-shadow:0 0 20px rgba(57,255,122,0.4);transition:box-shadow 0.2s;text-align:center;">Start the full assessment →</button>
-        <button id="diagEmailCaptureBtn" onclick="showDiagEmailCapture()" style="background:none;border:1px solid #2a2a2a;color:#bbb;padding:12px 28px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:border-color 0.15s,color 0.15s;" onmouseover="this.style.borderColor='#444';this.style.color='#aaa'" onmouseout="this.style.borderColor='#2a2a2a';this.style.color='#666'">Email me the result</button>
+<button id="diagEmailCaptureBtn" onclick="showDiagEmailCapture()" style="background:none;border:1px solid #2a2a2a;color:#bbb;padding:12px 28px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:border-color 0.15s,color 0.15s;" onmouseover="this.style.borderColor='#444';this.style.color='#aaa'" onmouseout="this.style.borderColor='#2a2a2a';this.style.color='#666'">Email me the result</button>
         <div id="diagEmailCaptureForm" style="display:none;flex-direction:column;gap:10px;">
           <input id="diagEmailResultInput" type="email" placeholder="your@email.com" style="background:#1a1a1a;border:1px solid #2a2a2a;color:#fff;padding:13px 16px;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='rgba(57,255,122,0.5)'" onblur="this.style.borderColor='#2a2a2a'">
           <button onclick="submitDiagEmailCapture()" style="background:none;border:1px solid rgba(57,255,122,0.4);color:var(--orange);padding:12px 20px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;">Send me the results →</button>
