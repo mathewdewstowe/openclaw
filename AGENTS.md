@@ -45,6 +45,24 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - When you make a mistake → document it so future-you doesn't repeat it
 - **Text > Brain** 📝
 
+### 📌 Capture Every Task - Nothing Falls Through!
+
+Matthew (ADHD) drops tasks into chat and Claude Code and then forgets them. **Your job is to catch every one at the moment it's mentioned** so it can't vanish.
+
+**The rule:** the instant something is raised and left undone or deferred — "later", "remind me", "I should…", "we need to…", "can you…", "don't let me forget…", or you agree to do something and don't finish it this session — register it immediately:
+
+```bash
+bash scripts/capture-task.sh "the task, in Matthew's words" [priority] [category]
+# priority: high | urgent | medium | low   (default medium)
+```
+
+- Do it **silently and by default** — don't ask "should I add this?". Capture first; he can delete from the board later.
+- It's dedup-safe, so capturing the same thing twice is harmless.
+- It lands on the dashboard task board (Triage), and the **daily 8 AM reminder** (see `HEARTBEAT.md`) reads it back to him.
+- When a captured task actually gets done, mark it done (`PATCH /api/tasks/:id` `{done:1}`, or via the dashboard) so it drops off the reminder.
+
+**If in doubt, capture it.** A stray task on the board costs nothing; a forgotten one costs Matthew.
+
 ## Safety
 
 - Don't exfiltrate private data. Ever.
