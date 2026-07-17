@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Call Copilot</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot" id="statusDot"></span>
+      <h1>Call&nbsp;Copilot</h1>
+    </div>
+    <div class="topbar-actions">
+      <span id="whisperState" class="pill pill-muted">checking…</span>
+      <button id="settingsBtn" class="btn btn-ghost" title="Settings">⚙︎ Settings</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left: setup + controls -->
+    <section class="col col-left">
+      <div class="card">
+        <label class="field-label" for="goal">Your goal for this call</label>
+        <textarea id="goal" rows="3"
+          placeholder="e.g. Find out if they can commit to a March go-live and who owns integration."></textarea>
+        <p class="hint">The copilot listens with this goal in mind and nudges you toward it.</p>
+      </div>
+
+      <div class="card">
+        <label class="field-label" for="planned">Questions you want to ask <span class="muted">(one per line)</span></label>
+        <textarea id="planned" rows="5"
+          placeholder="What's your realistic go-live date?&#10;Who owns the integration work?&#10;What could blow the budget?"></textarea>
+        <p class="hint">The copilot ticks these off as they get answered and reminds you of the ones still open.</p>
+      </div>
+
+      <div class="card">
+        <div class="controls">
+          <button id="startBtn" class="btn btn-primary">● Start listening</button>
+          <button id="stopBtn" class="btn" disabled>■ Stop</button>
+        </div>
+        <div class="capture-row">
+          <label class="chk"><input type="checkbox" id="capSystem" checked /> Their audio (share Teams window/screen + audio)</label>
+          <label class="chk"><input type="checkbox" id="capMic" checked /> My microphone</label>
+        </div>
+        <div class="hearing">
+          <span class="ear" id="earThem"><span class="ear-dot"></span> Them</span>
+          <span class="ear" id="earYou"><span class="ear-dot"></span> You</span>
+          <span id="timer" class="timer">00:00</span>
+        </div>
+      </div>
+
+      <div class="card summarise-card">
+        <button id="summariseBtn" class="btn btn-accent btn-block" disabled>Summarise the call ▸</button>
+        <p class="hint">Press when the call is wrapping up. Gives you a debrief and how best to summarise it.</p>
+      </div>
+    </section>
+
+    <!-- Middle: live question prompts -->
+    <section class="col col-mid">
+      <div class="card ask-next-card">
+        <div class="card-head">
+          <h2>Ask next</h2>
+          <span id="suggestState" class="pill pill-muted">idle</span>
+        </div>
+        <div id="askNext" class="ask-next">
+          <div class="empty">Your single best next question shows up here, live.</div>
+        </div>
+      </div>
+
+      <div class="card planned-card">
+        <div class="card-head"><h2>Your questions</h2><span id="plannedCount" class="pill pill-muted">0 / 0</span></div>
+        <div id="plannedList" class="planned-list">
+          <div class="empty">Add questions on the left and they'll be tracked here.</div>
+        </div>
+      </div>
+
+      <div class="card card-fill">
+        <div class="card-head"><h2>Follow-up ideas</h2></div>
+        <div id="questions" class="questions">
+          <div class="empty">Fresh follow-ups based on what's said will appear here.</div>
+        </div>
+        <div id="qNote" class="q-note hidden"></div>
+      </div>
+    </section>
+
+    <!-- Right: transcript -->
+    <section class="col col-right">
+      <div class="card card-fill">
+        <div class="card-head">
+          <h2>Live transcript</h2>
+          <button id="clearBtn" class="btn btn-ghost btn-sm">Clear</button>
+        </div>
+        <div id="transcript" class="transcript">
+          <div class="empty">Nothing yet.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Settings modal -->
+  <div id="settingsModal" class="modal hidden">
+    <div class="modal-box">
+      <h2>Settings</h2>
+      <label class="field-label" for="apiKey">Anthropic API key</label>
+      <input type="password" id="apiKey" placeholder="sk-ant-…" />
+      <p class="hint">Stored locally in <code>config.local.json</code>. Get one at console.anthropic.com.</p>
+
+      <label class="field-label" for="whisperModel">Whisper model</label>
+      <select id="whisperModel">
+        <option value="tiny.en">tiny.en — fastest, roughest</option>
+        <option value="base.en" selected>base.en — good balance</option>
+        <option value="small.en">small.en — more accurate, slower</option>
+        <option value="medium.en">medium.en — most accurate, heaviest</option>
+      </select>
+      <p class="hint">Changing this re-downloads the model on next transcription.</p>
+
+      <div class="modal-actions">
+        <button id="settingsCancel" class="btn btn-ghost">Cancel</button>
+        <button id="settingsSave" class="btn btn-primary">Save</button>
+      </div>
+      <div id="settingsMsg" class="settings-msg"></div>
+    </div>
+  </div>
+
+  <!-- Summary modal -->
+  <div id="summaryModal" class="modal hidden">
+    <div class="modal-box modal-wide">
+      <div class="card-head">
+        <h2>Call summary</h2>
+        <div>
+          <button id="copySummary" class="btn btn-ghost btn-sm">Copy</button>
+          <button id="summaryClose" class="btn btn-ghost btn-sm">Close</button>
+        </div>
+      </div>
+      <div id="summaryBody" class="summary-body">Working…</div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
