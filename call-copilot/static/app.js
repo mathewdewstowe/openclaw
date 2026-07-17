@@ -1,12 +1,12 @@
 /* Call Copilot — frontend logic
  *
  * Flow:
- *   1. Capture call audio (getDisplayMedia + audio) and/or mic (getUserMedia),
- *      mix them into one stream.
- *   2. Record it in short, independently-decodable segments and POST each to
- *      /api/transcribe (local Whisper).
- *   3. Append text to the rolling transcript. Periodically POST goal+transcript
- *      to /api/suggest and render the questions.
+ *   1. Capture the OTHER side (getDisplayMedia + audio) and YOUR side (mic) as
+ *      TWO separate streams so we always hear both and can label who spoke.
+ *   2. Record each in short, independently-decodable segments, POST to
+ *      /api/transcribe (local Whisper), and tag each line "You" / "Them".
+ *   3. Periodically POST goal + planned questions + labelled transcript to
+ *      /api/suggest -> a single "ask next", planned-question coverage, follow-ups.
  *   4. Summarise button POSTs the whole transcript to /api/summarize.
  */
 
@@ -14,13 +14,12 @@ const $ = (id) => document.getElementById(id);
 
 const state = {
   recording: false,
-  segMs: 12000,          // length of each audio segment
-  mixStream: null,
-  sources: [],           // MediaStreams to stop on teardown
-  audioCtx: null,
-  recorder: null,
-  transcript: [],        // array of text chunks
-  asked: [],             // questions already suggested (avoid repeats)
+  segMs: 10000,          // length of each audio segment
+  pipes: [],             // [{stream, label, recorder, active}]
+  transcript: [],        // [{speaker, text}]
+  planned: [],           // [{text, covered}]
+  asked: [],             // questions already suggested/asked (avoid repeats)
+  currentNext: "",       // the live "ask next" question text
   suggestBusy: false,
   lastSuggestLen: 0,
   startTime: 0,
@@ -43,8 +42,13 @@ function fmtTime(sec) {
   return `${m}:${s}`;
 }
 
-function transcriptText() {
-  return state.transcript.join(" ").replace(/\s+/g, " ").trim();
+// Transcript formatted for the model, with speaker labels.
+function transcriptForModel() {
+  return state.transcript.map((e) => `${e.speaker}: ${e.text}`).join("\n").trim();
+}
+
+function plannedTexts() {
+  return state.planned.map((p) => p.text);
 }
 
 /* ----------------------------------------------------------------- status - */
@@ -73,42 +77,34 @@ async function refreshStatus() {
 }
 
 /* ---------------------------------------------------------------- capture - */
-async function buildMixStream() {
+// Build the two source streams. We keep them SEPARATE (no mixing) so each can
+// be transcribed and labelled independently — that's what lets us hear both.
+async function buildSources() {
   const wantSystem = $("capSystem").checked;
   const wantMic = $("capMic").checked;
   if (!wantSystem && !wantMic) throw new Error("Pick at least one audio source.");
-
-  state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const dest = state.audioCtx.createMediaStreamDestination();
-  let gotAudio = false;
+  const pipes = [];
 
   if (wantSystem) {
-    // The browser will ask which window/screen/tab to share. Tick "share audio".
     const disp = await navigator.mediaDevices.getDisplayMedia({
       video: true,
       audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
     });
-    state.sources.push(disp);
-    const tracks = disp.getAudioTracks();
-    if (tracks.length) {
-      state.audioCtx.createMediaStreamSource(new MediaStream([tracks[0]])).connect(dest);
-      gotAudio = true;
-    } else {
-      toast('No call audio captured — re-share and tick "Share audio".', 6000);
+    const atracks = disp.getAudioTracks();
+    disp.getVideoTracks().forEach((t) => t.stop());   // we only want the audio
+    if (!atracks.length) {
+      disp.getTracks().forEach((t) => t.stop());
+      throw new Error('No call audio captured — re-share and tick "Share audio".');
     }
-    // We don't need the video; stop it to save resources.
-    disp.getVideoTracks().forEach((t) => t.stop());
+    pipes.push({ stream: new MediaStream([atracks[0]]), raw: disp, label: "Them" });
   }
 
   if (wantMic) {
     const mic = await navigator.mediaDevices.getUserMedia({ audio: true });
-    state.sources.push(mic);
-    state.audioCtx.createMediaStreamSource(mic).connect(dest);
-    gotAudio = true;
+    pipes.push({ stream: mic, raw: mic, label: "You" });
   }
 
-  if (!gotAudio) throw new Error("No audio tracks were captured.");
-  state.mixStream = dest.stream;
+  state.pipes = pipes;
 }
 
 function pickMime() {
@@ -116,29 +112,29 @@ function pickMime() {
   return opts.find((m) => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || "";
 }
 
-/* Record one self-contained segment, then immediately start the next. Each
+/* Record one self-contained segment for a pipe, then start the next. Each
  * segment is a complete file Whisper can decode on its own. */
-function recordSegment() {
-  if (!state.recording) return;
+function recordSegment(pipe) {
+  if (!state.recording || !pipe.active) return;
   const mime = pickMime();
   const chunks = [];
-  const rec = new MediaRecorder(state.mixStream, mime ? { mimeType: mime } : undefined);
-  state.recorder = rec;
+  const rec = new MediaRecorder(pipe.stream, mime ? { mimeType: mime } : undefined);
+  pipe.recorder = rec;
 
   rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
   rec.onstop = () => {
     if (chunks.length) {
       const blob = new Blob(chunks, { type: mime || "audio/webm" });
-      if (blob.size > 1200) sendSegment(blob);  // skip near-empty blips
+      if (blob.size > 1200) sendSegment(blob, pipe.label);   // skip near-silent blips
     }
-    if (state.recording) recordSegment();        // loop
+    if (state.recording && pipe.active) recordSegment(pipe);  // loop
   };
 
   rec.start();
   setTimeout(() => { if (rec.state !== "inactive") rec.stop(); }, state.segMs);
 }
 
-async function sendSegment(blob) {
+async function sendSegment(blob, speaker) {
   const fd = new FormData();
   fd.append("audio", blob, "seg.webm");
   try {
@@ -146,63 +142,155 @@ async function sendSegment(blob) {
     const data = await r.json();
     if (data.error) { toast(data.error, 5000); return; }
     const text = (data.text || "").trim();
-    if (text) appendTranscript(text);
+    if (text) appendTranscript(speaker, text);
   } catch (e) {
     console.error("transcribe failed", e);
   }
 }
 
 /* ------------------------------------------------------------- transcript - */
-function appendTranscript(text) {
-  state.transcript.push(text);
+function appendTranscript(speaker, text) {
+  state.transcript.push({ speaker, text });
+  pulseEar(speaker);
   const box = $("transcript");
   const empty = box.querySelector(".empty");
   if (empty) empty.remove();
   const line = document.createElement("div");
-  line.className = "t-line";
-  line.textContent = text;
+  line.className = "t-line " + (speaker === "You" ? "t-you" : "t-them");
+  const tag = document.createElement("span");
+  tag.className = "t-tag";
+  tag.textContent = speaker;
+  const body = document.createElement("span");
+  body.textContent = " " + text;
+  line.append(tag, body);
   box.appendChild(line);
   box.scrollTop = box.scrollHeight;
+}
+
+function pulseEar(speaker) {
+  const el = speaker === "You" ? $("earYou") : $("earThem");
+  if (!el) return;
+  el.classList.add("ear-live");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove("ear-live"), 1400);
+}
+
+/* --------------------------------------------------------------- planned -- */
+function syncPlannedFromInput() {
+  const lines = $("planned").value.split("\n").map((s) => s.trim()).filter(Boolean);
+  // Preserve covered state for questions that still exist.
+  const prev = new Map(state.planned.map((p) => [p.text, p.covered]));
+  state.planned = lines.map((text) => ({ text, covered: prev.get(text) || false }));
+  renderPlanned();
+}
+
+function renderPlanned() {
+  const box = $("plannedList");
+  box.innerHTML = "";
+  if (!state.planned.length) {
+    box.innerHTML = '<div class="empty">Add questions on the left and they\'ll be tracked here.</div>';
+    $("plannedCount").textContent = "0 / 0";
+    return;
+  }
+  let done = 0;
+  state.planned.forEach((p, i) => {
+    if (p.covered) done++;
+    const row = document.createElement("div");
+    row.className = "planned-item" + (p.covered ? " covered" : "");
+    row.innerHTML = `<span class="pi-check">${p.covered ? "☑" : "☐"}</span><span class="pi-text"></span>`;
+    row.querySelector(".pi-text").textContent = p.text;
+    // Manual toggle in case the model misses one.
+    row.querySelector(".pi-check").onclick = () => { p.covered = !p.covered; renderPlanned(); };
+    box.appendChild(row);
+  });
+  $("plannedCount").textContent = `${done} / ${state.planned.length}`;
 }
 
 /* -------------------------------------------------------------- suggestions */
 async function maybeSuggest() {
   if (!state.recording || state.suggestBusy) return;
   const goal = $("goal").value.trim();
-  const full = transcriptText();
-  if (!goal || full.length < 60) return;
+  const planned = plannedTexts();
+  const full = transcriptForModel();
+  if ((!goal && !planned.length) || full.length < 60) return;
   // Only call when there's meaningfully new material since last time.
-  if (full.length - state.lastSuggestLen < 120) return;
+  if (full.length - state.lastSuggestLen < 100) return;
 
   state.suggestBusy = true;
   state.lastSuggestLen = full.length;
-  $("suggestState").textContent = "thinking…";
-  $("suggestState").className = "pill pill-live";
+  setSuggestState("thinking…", "pill-live");
   try {
     const r = await fetch("/api/suggest", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ goal, transcript: full, asked: state.asked }),
+      body: JSON.stringify({ goal, planned, transcript: full, asked: state.asked }),
     });
     const data = await r.json();
     if (data.error) { toast(data.error, 5000); }
-    else renderQuestions(data.questions || [], data.note || "");
+    else applySuggestions(data);
   } catch (e) {
     console.error("suggest failed", e);
   } finally {
     state.suggestBusy = false;
-    $("suggestState").textContent = state.recording ? "listening" : "idle";
-    $("suggestState").className = "pill " + (state.recording ? "pill-ok" : "pill-muted");
+    setSuggestState(state.recording ? "listening" : "idle", state.recording ? "pill-ok" : "pill-muted");
   }
 }
 
-function renderQuestions(questions, note) {
-  const box = $("questions");
-  if (!questions.length && !box.querySelector(".q-card")) {
-    return; // keep the empty hint until we have something
+function setSuggestState(text, cls) {
+  const el = $("suggestState");
+  el.textContent = text;
+  el.className = "pill " + cls;
+}
+
+function applySuggestions(data) {
+  // 1. Mark planned questions the model judged answered.
+  if (Array.isArray(data.covered) && state.planned.length) {
+    let changed = false;
+    data.covered.forEach((i) => {
+      if (state.planned[i] && !state.planned[i].covered) { state.planned[i].covered = true; changed = true; }
+    });
+    if (changed) renderPlanned();
   }
+
+  // 2. The single best thing to ask next.
+  renderAskNext(data.next || "", data.next_reason || "", data.next_source || "");
+
+  // 3. Follow-up ideas.
+  renderFollowups(data.questions || []);
+
+  // 4. Read on the room.
+  const note = (data.note || "").trim();
+  const n = $("qNote");
+  if (note) { n.textContent = "Read: " + note; n.classList.remove("hidden"); }
+}
+
+function renderAskNext(text, reason, source) {
+  const box = $("askNext");
+  if (!text) {
+    if (!box.querySelector(".ask-live")) {
+      box.innerHTML = '<div class="empty">Listening — nothing urgent to ask right now.</div>';
+    }
+    return;
+  }
+  if (text === state.currentNext) return;   // unchanged, don't re-animate
+  state.currentNext = text;
+  if (!state.asked.includes(text)) state.asked.push(text);
+  const badge = source === "planned"
+    ? '<span class="src-badge src-planned">your question</span>'
+    : '<span class="src-badge src-fresh">follow-up</span>';
+  box.innerHTML = `
+    <div class="ask-live">
+      <div class="ask-q"></div>
+      <div class="ask-foot">${badge}<span class="ask-why"></span></div>
+    </div>`;
+  box.querySelector(".ask-q").textContent = text;
+  box.querySelector(".ask-why").textContent = reason || "";
+}
+
+function renderFollowups(questions) {
+  const box = $("questions");
   questions.forEach((q) => {
-    if (state.asked.includes(q.q)) return;
+    if (!q.q || state.asked.includes(q.q)) return;
     state.asked.push(q.q);
     const empty = box.querySelector(".empty");
     if (empty) empty.remove();
@@ -217,26 +305,19 @@ function renderQuestions(questions, note) {
     box.prepend(card);
     setTimeout(() => card.classList.remove("q-new"), 1500);
   });
-  if (note) {
-    let n = box.parentElement.querySelector(".q-note");
-    if (!n) {
-      n = document.createElement("div");
-      n.className = "q-note";
-      box.parentElement.appendChild(n);
-    }
-    n.textContent = "Read: " + note;
-  }
 }
 
 /* --------------------------------------------------------------- lifecycle */
 async function start() {
+  syncPlannedFromInput();
   const goal = $("goal").value.trim();
-  if (!goal && !confirm("No goal set — the copilot works much better with one. Start anyway?"))
+  if (!goal && !state.planned.length &&
+      !confirm("No goal or questions set — the copilot works much better with them. Start anyway?"))
     return;
   try {
-    await buildMixStream();
+    await buildSources();
   } catch (e) {
-    toast(e.message || "Could not start capture.", 5000);
+    toast(e.message || "Could not start capture.", 6000);
     return;
   }
   state.recording = true;
@@ -244,38 +325,43 @@ async function start() {
   $("startBtn").disabled = true;
   $("stopBtn").disabled = false;
   $("summariseBtn").disabled = false;
-  $("suggestState").textContent = "listening";
-  $("suggestState").className = "pill pill-ok";
+  setSuggestState("listening", "pill-ok");
 
-  // If the user stops screen-share from the browser chrome, stop cleanly.
-  state.sources.forEach((s) =>
-    s.getTracks().forEach((t) => (t.onended = () => { if (state.recording) stop(); }))
-  );
+  state.pipes.forEach((pipe) => {
+    pipe.active = true;
+    // If the user stops screen-share from the browser chrome, drop that pipe.
+    pipe.raw.getTracks().forEach((t) => (t.onended = () => {
+      pipe.active = false;
+      if (pipe.label === "Them") toast("Call-audio share ended — only your mic is live now.", 5000);
+      if (!state.pipes.some((p) => p.active)) stop();
+    }));
+    recordSegment(pipe);
+  });
 
-  recordSegment();
   state.timerId = setInterval(() => {
     $("timer").textContent = fmtTime((Date.now() - state.startTime) / 1000);
   }, 500);
-  state.suggestTimer = setInterval(maybeSuggest, 6000);
+  state.suggestTimer = setInterval(maybeSuggest, 5000);
 }
 
 function stop() {
   state.recording = false;
-  try { if (state.recorder && state.recorder.state !== "inactive") state.recorder.stop(); } catch {}
-  state.sources.forEach((s) => s.getTracks().forEach((t) => t.stop()));
-  state.sources = [];
-  if (state.audioCtx) { state.audioCtx.close().catch(() => {}); state.audioCtx = null; }
+  state.pipes.forEach((pipe) => {
+    pipe.active = false;
+    try { if (pipe.recorder && pipe.recorder.state !== "inactive") pipe.recorder.stop(); } catch {}
+    pipe.raw.getTracks().forEach((t) => t.stop());
+  });
+  state.pipes = [];
   clearInterval(state.timerId);
   clearInterval(state.suggestTimer);
   $("startBtn").disabled = false;
   $("stopBtn").disabled = true;
-  $("suggestState").textContent = "idle";
-  $("suggestState").className = "pill pill-muted";
+  setSuggestState("idle", "pill-muted");
 }
 
 /* ---------------------------------------------------------------- summary - */
 async function summarise() {
-  const full = transcriptText();
+  const full = transcriptForModel();
   if (full.length < 40) { toast("Not enough transcript captured yet.", 4000); return; }
   const modal = $("summaryModal");
   modal.classList.remove("hidden");
@@ -284,7 +370,11 @@ async function summarise() {
     const r = await fetch("/api/summarize", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ goal: $("goal").value.trim(), transcript: full }),
+      body: JSON.stringify({
+        goal: $("goal").value.trim(),
+        planned: plannedTexts(),
+        transcript: full,
+      }),
     });
     const data = await r.json();
     if (data.error) { $("summaryBody").textContent = data.error; return; }
@@ -351,12 +441,18 @@ async function saveSettings() {
 $("startBtn").onclick = start;
 $("stopBtn").onclick = stop;
 $("summariseBtn").onclick = summarise;
+$("planned").addEventListener("input", syncPlannedFromInput);
 $("clearBtn").onclick = () => {
   state.transcript = [];
   state.asked = [];
+  state.currentNext = "";
   state.lastSuggestLen = 0;
+  state.planned.forEach((p) => (p.covered = false));
+  renderPlanned();
   $("transcript").innerHTML = '<div class="empty">Nothing yet.</div>';
-  $("questions").innerHTML = '<div class="empty">Suggested questions will appear here.</div>';
+  $("questions").innerHTML = '<div class="empty">Fresh follow-ups based on what\'s said will appear here.</div>';
+  $("askNext").innerHTML = '<div class="empty">Your single best next question shows up here, live.</div>';
+  $("qNote").classList.add("hidden");
 };
 $("settingsBtn").onclick = openSettings;
 $("settingsCancel").onclick = () => $("settingsModal").classList.add("hidden");

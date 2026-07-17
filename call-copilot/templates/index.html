@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Call Copilot</title>
+  <link rel="icon" href="data:," />
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
@@ -29,15 +30,26 @@
       </div>
 
       <div class="card">
+        <label class="field-label" for="planned">Questions you want to ask <span class="muted">(one per line)</span></label>
+        <textarea id="planned" rows="5"
+          placeholder="What's your realistic go-live date?&#10;Who owns the integration work?&#10;What could blow the budget?"></textarea>
+        <p class="hint">The copilot ticks these off as they get answered and reminds you of the ones still open.</p>
+      </div>
+
+      <div class="card">
         <div class="controls">
           <button id="startBtn" class="btn btn-primary">● Start listening</button>
           <button id="stopBtn" class="btn" disabled>■ Stop</button>
         </div>
         <div class="capture-row">
-          <label class="chk"><input type="checkbox" id="capSystem" checked /> Call audio (share Teams window/screen + audio)</label>
+          <label class="chk"><input type="checkbox" id="capSystem" checked /> Their audio (share Teams window/screen + audio)</label>
           <label class="chk"><input type="checkbox" id="capMic" checked /> My microphone</label>
         </div>
-        <div id="timer" class="timer">00:00</div>
+        <div class="hearing">
+          <span class="ear" id="earThem"><span class="ear-dot"></span> Them</span>
+          <span class="ear" id="earYou"><span class="ear-dot"></span> You</span>
+          <span id="timer" class="timer">00:00</span>
+        </div>
       </div>
 
       <div class="card summarise-card">
@@ -48,14 +60,29 @@
 
     <!-- Middle: live question prompts -->
     <section class="col col-mid">
-      <div class="card card-fill">
+      <div class="card ask-next-card">
         <div class="card-head">
-          <h2>Ask now</h2>
+          <h2>Ask next</h2>
           <span id="suggestState" class="pill pill-muted">idle</span>
         </div>
-        <div id="questions" class="questions">
-          <div class="empty">Set a goal and start listening. Suggested questions will appear here as the call unfolds.</div>
+        <div id="askNext" class="ask-next">
+          <div class="empty">Your single best next question shows up here, live.</div>
         </div>
+      </div>
+
+      <div class="card planned-card">
+        <div class="card-head"><h2>Your questions</h2><span id="plannedCount" class="pill pill-muted">0 / 0</span></div>
+        <div id="plannedList" class="planned-list">
+          <div class="empty">Add questions on the left and they'll be tracked here.</div>
+        </div>
+      </div>
+
+      <div class="card card-fill">
+        <div class="card-head"><h2>Follow-up ideas</h2></div>
+        <div id="questions" class="questions">
+          <div class="empty">Fresh follow-ups based on what's said will appear here.</div>
+        </div>
+        <div id="qNote" class="q-note hidden"></div>
       </div>
     </section>
 

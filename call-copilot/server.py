@@ -221,20 +221,38 @@ def transcribe():
 
 
 SUGGEST_SYSTEM = """You are a live meeting co-pilot listening to a Microsoft Teams call.
-The user has a GOAL for this call. You see a rolling transcript (it may be rough, \
-auto-transcribed, and mix multiple speakers without labels).
+The user has a GOAL for this call and may have a list of PLANNED questions they want to
+get answered. You see a rolling transcript. Lines are labelled by speaker: "You:" is the
+user (the person you're helping), "Them:" is the other participant(s). The transcript is
+rough auto-transcription, so read it charitably.
 
-Your job: suggest the 1-3 MOST useful questions the user could ask RIGHT NOW to move \
-toward their goal. Favour questions that:
-- fill a gap the goal needs but the conversation hasn't covered,
-- follow up sharply on something just said,
-- surface risks, commitments, numbers, owners, or deadlines.
+You have three jobs, in priority order:
 
-Do NOT repeat questions already listed as asked/suggested. If nothing new is worth \
-asking yet, return an empty list. Keep each question short and speakable out loud.
+1. TRACK THE PLANNED QUESTIONS. For each planned question, decide if the conversation has
+   now ANSWERED it (the substance was covered, whether or not it was asked word-for-word).
+   Return the indices (0-based) of every planned question you judge answered so far.
+
+2. SAY WHAT TO ASK NEXT. Pick the single best thing for the user to ask right now to move
+   toward the goal. Prefer the most relevant still-UNANSWERED planned question if one fits
+   the moment; otherwise craft a fresh question. Put it in "next".
+
+3. OFFER FOLLOW-UPS. Suggest up to 2 additional sharp questions ("questions") — follow-ups
+   on what was just said, or gaps the goal needs. Favour ones that surface risks,
+   commitments, numbers, owners, or deadlines.
+
+Rules:
+- Do NOT repeat anything in ALREADY ASKED / SUGGESTED.
+- Keep every question short and speakable out loud.
+- If nothing new is worth asking yet, set "next" to "" and "questions" to [].
+- "covered" must reflect the WHOLE transcript so far, not just the latest lines.
 
 Reply with ONLY a JSON object:
-{"questions": [{"q": "the question", "why": "<=8 word reason"}], "note": "optional one-line read on where the call is"}"""
+{"covered": [list of 0-based indices of answered planned questions],
+ "next": "the single best question to ask right now, or empty string",
+ "next_reason": "<=8 word reason for next",
+ "next_source": "planned" or "fresh",
+ "questions": [{"q": "another question", "why": "<=8 word reason"}],
+ "note": "optional one-line read on where the call is"}"""
 
 
 @app.route("/api/suggest", methods=["POST"])
@@ -243,36 +261,64 @@ def suggest():
     goal = (body.get("goal") or "").strip()
     transcript = (body.get("transcript") or "").strip()
     asked = body.get("asked") or []
-    if not goal:
-        return jsonify({"error": "goal is required"}), 400
+    planned = [str(p).strip() for p in (body.get("planned") or []) if str(p).strip()]
+    if not goal and not planned:
+        return jsonify({"error": "a goal or at least one planned question is required"}), 400
     if len(transcript) < 40:
-        return jsonify({"questions": [], "note": ""})
+        return jsonify({"questions": [], "covered": [], "next": "", "note": ""})
 
     # Keep the prompt bounded: the tail of the call is what matters live.
-    tail = transcript[-6000:]
+    tail = transcript[-7000:]
     asked_block = "\n".join(f"- {a}" for a in asked[-25:]) or "(none yet)"
+    planned_block = (
+        "\n".join(f"[{i}] {q}" for i, q in enumerate(planned)) or "(none — improvise from the goal)"
+    )
     user_text = (
-        f"GOAL:\n{goal}\n\n"
+        f"GOAL:\n{goal or '(none given — use the planned questions)'}\n\n"
+        f"PLANNED QUESTIONS (index in brackets):\n{planned_block}\n\n"
         f"ALREADY ASKED / SUGGESTED (do not repeat):\n{asked_block}\n\n"
         f"TRANSCRIPT SO FAR (most recent at the end):\n{tail}"
     )
     try:
         cfg = load_config()
-        reply = call_claude(cfg["suggest_model"], SUGGEST_SYSTEM, user_text, max_tokens=600)
+        reply = call_claude(cfg["suggest_model"], SUGGEST_SYSTEM, user_text, max_tokens=700)
     except RuntimeError as exc:
         return jsonify({"error": str(exc)}), 502
 
     parsed = extract_json(reply) or {}
-    questions = parsed.get("questions") or []
+
+    # Follow-up questions.
     clean = []
-    for item in questions:
+    for item in parsed.get("questions") or []:
         if isinstance(item, dict) and item.get("q"):
             clean.append({"q": str(item["q"]).strip(), "why": str(item.get("why", "")).strip()})
-    return jsonify({"questions": clean[:3], "note": parsed.get("note", "")})
+
+    # Covered planned-question indices, bounded to the real list.
+    covered = []
+    for idx in parsed.get("covered") or []:
+        try:
+            i = int(idx)
+        except (TypeError, ValueError):
+            continue
+        if 0 <= i < len(planned) and i not in covered:
+            covered.append(i)
+
+    return jsonify(
+        {
+            "next": str(parsed.get("next") or "").strip(),
+            "next_reason": str(parsed.get("next_reason") or "").strip(),
+            "next_source": str(parsed.get("next_source") or "").strip(),
+            "covered": covered,
+            "questions": clean[:2],
+            "note": str(parsed.get("note") or "").strip(),
+        }
+    )
 
 
 SUMMARY_SYSTEM = """You are helping the user wrap up a Microsoft Teams call. You are given \
-their GOAL for the call and the full (rough, auto-transcribed) transcript.
+their GOAL for the call, the questions they PLANNED to ask, and the full (rough, \
+auto-transcribed) transcript. Transcript lines are labelled by speaker: "You:" is the \
+user you're helping, "Them:" is the other participant(s).
 
 Produce a clear, ready-to-use debrief. Return GitHub-flavoured Markdown with these sections \
 in this order:
@@ -289,8 +335,12 @@ Bullet list of decisions made (or "None recorded").
 ## Action items
 Bullet list as "- [ ] owner — task — due" where known.
 
+## Your planned questions
+For each planned question, one line: the question, then "→ Answered: <the answer>" or \
+"→ Not answered". Omit this whole section if no planned questions were given.
+
 ## Open questions
-Anything left unresolved that still needs an answer.
+Anything left unresolved that still needs an answer (include any unanswered planned ones).
 
 ## How to summarise this call
 Practical guidance: who to send a recap to, the tone to strike, what to lead with, \
@@ -306,10 +356,16 @@ def summarize():
     body = request.get_json(force=True, silent=True) or {}
     goal = (body.get("goal") or "").strip() or "(no explicit goal given)"
     transcript = (body.get("transcript") or "").strip()
+    planned = [str(p).strip() for p in (body.get("planned") or []) if str(p).strip()]
     if len(transcript) < 40:
         return jsonify({"error": "Not enough transcript captured yet to summarise."}), 400
 
-    user_text = f"GOAL:\n{goal}\n\nFULL TRANSCRIPT:\n{transcript[-40000:]}"
+    planned_block = "\n".join(f"- {q}" for q in planned) or "(none)"
+    user_text = (
+        f"GOAL:\n{goal}\n\n"
+        f"PLANNED QUESTIONS:\n{planned_block}\n\n"
+        f"FULL TRANSCRIPT:\n{transcript[-40000:]}"
+    )
     try:
         cfg = load_config()
         reply = call_claude(cfg["summary_model"], SUMMARY_SYSTEM, user_text, max_tokens=2000)

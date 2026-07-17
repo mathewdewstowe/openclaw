@@ -80,8 +80,16 @@ textarea:focus, input:focus, select:focus { outline: none; border-color: var(--p
 .controls .btn { flex: 1; }
 .capture-row { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 .chk { font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
-.timer { text-align: center; font-variant-numeric: tabular-nums; font-size: 26px; margin-top: 12px; color: var(--text); letter-spacing: 1px; }
+.muted { color: var(--muted); font-weight: normal; }
+.timer { font-variant-numeric: tabular-nums; font-size: 20px; color: var(--text); letter-spacing: 1px; margin-left: auto; }
 .summarise-card { margin-top: auto; }
+
+/* hearing indicators — reassure you that both sides are actually heard */
+.hearing { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+.ear { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
+.ear-dot { width: 9px; height: 9px; border-radius: 50%; background: #394153; transition: .2s; }
+.ear-live .ear-dot { background: var(--accent); box-shadow: 0 0 0 4px rgba(36,197,138,.18); }
+.ear-live { color: var(--text); }
 
 /* pills */
 .pill { font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); }
@@ -89,6 +97,26 @@ textarea:focus, input:focus, select:focus { outline: none; border-color: var(--p
 .pill-ok { color: var(--accent); border-color: rgba(36,197,138,.4); }
 .pill-warn { color: var(--warn); border-color: rgba(242,181,68,.4); }
 .pill-live { color: var(--primary); border-color: rgba(79,124,255,.5); }
+
+/* ask next — the prominent, single best question to ask right now */
+.ask-next-card { border-color: rgba(79,124,255,.35); }
+.ask-next { min-height: 64px; }
+.ask-live { animation: pop .5s ease; }
+.ask-q { font-size: 20px; font-weight: 700; line-height: 1.35; }
+.ask-foot { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.ask-why { font-size: 12.5px; color: var(--muted); font-style: italic; }
+.src-badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+.src-planned { background: rgba(36,197,138,.16); color: var(--accent); }
+.src-fresh { background: rgba(79,124,255,.16); color: var(--primary); }
+
+/* planned-question tracker */
+.planned-card { max-height: 34vh; display: flex; flex-direction: column; }
+.planned-list { overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.planned-item { display: flex; gap: 9px; align-items: flex-start; font-size: 13.5px; padding: 4px 0; }
+.pi-check { cursor: pointer; color: var(--muted); user-select: none; line-height: 1.4; }
+.planned-item.covered .pi-check { color: var(--accent); }
+.planned-item.covered .pi-text { color: var(--muted); text-decoration: line-through; }
+.pi-text { flex: 1; }
 
 /* questions */
 .questions { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
@@ -105,10 +133,14 @@ textarea:focus, input:focus, select:focus { outline: none; border-color: var(--p
 .q-asked { opacity: .5; border-left-color: var(--accent); }
 .q-asked .q-text { text-decoration: line-through; }
 .q-note { font-size: 12.5px; color: var(--muted); margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.q-note.hidden { display: none; }
 
 /* transcript */
 .transcript { flex: 1; min-height: 0; overflow-y: auto; font-size: 14px; color: #cdd2dc; }
 .t-line { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+.t-tag { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 5px; }
+.t-you .t-tag { background: rgba(79,124,255,.18); color: var(--primary); }
+.t-them .t-tag { background: rgba(242,181,68,.16); color: var(--warn); }
 .empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
 
 /* modal */

@@ -1,9 +1,15 @@
 # Call Copilot
 
-A local desktop tool that listens to a Microsoft Teams call, and — based on a
-**goal you give it** — prompts you with the sharpest questions to ask in real time.
-When the call is wrapping up, hit **Summarise** and it tells you how best to
-summarise the whole call, with a copy‑paste‑ready recap.
+A local desktop tool that listens to **both sides** of a Microsoft Teams call and —
+based on a **goal** and a **list of questions you want answered** — tells you the single
+best thing to ask next, in real time. It ticks your planned questions off as they get
+answered and keeps suggesting sharp follow‑ups. When the call is wrapping up, hit
+**Summarise** and it tells you how best to summarise the whole call, with a
+copy‑paste‑ready recap.
+
+It hears **both sides**: the other participants (via shared call audio, labelled
+**Them**) and you (via your mic, labelled **You**), transcribed separately so it knows
+who said what.
 
 Everything runs on your machine. Audio is transcribed locally with Whisper — the
 only thing that leaves your computer is the transcript **text**, sent to the
@@ -74,15 +80,25 @@ python server.py            # then open http://127.0.0.1:8777
    lever on how useful the prompts are.
    > *"Confirm they can hit a March go‑live, find out who owns the integration
    > work, and surface any budget blockers."*
-2. Click **● Start listening**. The browser asks what to share — pick the
+2. Add the **questions you want to ask**, one per line, in the box below the goal.
+   The copilot tracks these and ticks them off as they get answered.
+3. Click **● Start listening**. The browser asks what to share — pick the
    **Teams window** (or the whole screen / the Teams tab) and **tick
-   "Share audio"**. That's how it hears the other participants. Your mic is
-   captured separately so it hears you too.
-3. As the call unfolds, suggested questions appear under **Ask now**, newest on
-   top, each with a one‑line reason. Click ✓ to mark one asked.
-4. When the call is closing, click **Summarise the call**. You get a TL;DR, key
-   points, decisions, action items, open questions, and — the part you asked for
-   — **how best to summarise it**, plus a ready‑to‑send recap. Hit **Copy**.
+   "Share audio"**. That's how it hears the other participants (**Them**). Your mic is
+   captured separately (**You**) so it hears both sides. The two dots by the timer
+   pulse green as each side is heard.
+4. As the call unfolds:
+   - **Ask next** shows the single best question to ask right now — either the most
+     relevant of your planned questions (badge *your question*) or a fresh
+     follow‑up (*follow‑up*), with a one‑line reason.
+   - **Your questions** ticks off each planned question as it's answered (☐ → ☑).
+     You can also click a box to toggle it by hand.
+   - **Follow‑up ideas** collects extra sharp questions worth having in your back
+     pocket. Click ✓ on one to mark it asked.
+5. When the call is closing, click **Summarise the call**. You get a TL;DR, key
+   points, decisions, action items, a rundown of which planned questions were
+   answered, open questions, and — the part you asked for — **how best to
+   summarise it**, plus a ready‑to‑send recap. Hit **Copy**.
 
 ## Notes & tuning
 
