@@ -119,3 +119,39 @@ On Sundays (`date +%u` returns `7`):
 3. Vacuum SQLite: `sqlite3 /home/matthewdewstowe/.openclaw/workspace/data/openclaw.db "VACUUM;"`
 4. Alert Matthew: `🧹 Sunday wash done — sessions pruned, old memory compressed, DB vacuumed.`
 5. Log one concise note in today's memory file
+
+---
+
+## 8. Daily 8 AM Open-Tasks Reminder
+
+The point: Matthew keeps dropping tasks into chat/Claude Code and forgetting them. Anything captured to the board (see AGENTS.md → *Capture Every Task*) gets read back to him once every morning at 8 AM so nothing rots in Triage.
+
+**Fire once per day, at 08:00 Matthew's local time (Europe/London — DST-safe).**
+
+Check the gate:
+```bash
+NOW_H=$(TZ='Europe/London' date +%H)
+TODAY=$(TZ='Europe/London' date +%F)
+LAST=$(cat /home/matthewdewstowe/.openclaw/workspace/memory/task-reminder.json 2>/dev/null | grep -o '"[0-9-]*"' | tr -d '"')
+```
+
+If `NOW_H` is `08` **and** `LAST` ≠ `TODAY`:
+1. Pull open tasks: `bash /home/matthewdewstowe/.openclaw/workspace/scripts/open-tasks.sh`
+2. If the output is **non-empty**, message Matthew directly — no Slack channel, this is his morning nudge:
+   ```
+   ☀️ Morning Matthew — open tasks you asked me to hold onto:
+
+   <the open-tasks.sh output, one per line>
+
+   Reply with anything to mark done, defer, or bin.
+   ```
+   - Keep it punchy. Lead with 🔴/🟠 (urgent/high) items; don't editorialise.
+   - If the board is **empty**, send nothing (or one line: `☀️ Board's clear — nothing outstanding.`), your call.
+3. Record it so it fires only once today:
+   ```bash
+   echo "{ \"lastSent\": \"$TODAY\" }" > /home/matthewdewstowe/.openclaw/workspace/memory/task-reminder.json
+   ```
+
+Outside the 08:00 hour, or if already sent today: do nothing here.
+
+> Swap-to-Slack option: if Matthew later wants this in a channel instead of the main chat, send the same block to `#claw_neuro` (or a dedicated tasks channel) in step 2 — everything else stays the same.
